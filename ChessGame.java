@@ -16,16 +16,17 @@ import java.io.FileNotFoundException;
 
 public class ChessGame extends JFrame {
 
+    private CoordinatesManager coordinatesManager;
+    private float scalingProportion;
+
     public ChessGame() throws IOException, FileNotFoundException {
         super("Chess");
-
-        ImageManager imgMgr = new ImageManager("./images/");
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         Dimension screenDims = Toolkit.getDefaultToolkit().getScreenSize();
-        Dimension windowDims = new Dimension((int) Math.floor(0.9D * (double) screenDims.getHeight()),
-                                             (int) Math.floor(0.9D * (double) screenDims.getHeight()));
+        Dimension windowDims = new Dimension((int) Math.floor(0.8D * (double) screenDims.getHeight()),
+                                             (int) Math.floor(0.8D * (double) screenDims.getHeight()));
 
         GridBagLayout gameLayout = new GridBagLayout();
         JPanel gamePanel = new JPanel(gameLayout);
@@ -42,10 +43,15 @@ public class ChessGame extends JFrame {
 
         Dimension chessboardDims = new Dimension((int) windowDims.getWidth() - 40, (int) windowDims.getHeight() - 40);
 
+        scalingProportion = (float) chessboardDims.getWidth() / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
+        coordinatesManager = new CoordinatesManager(scalingProportion);
+
+        ImagesManager imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
+
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
         gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
 
-        ChessboardView chessboardView = new ChessboardView(chessboardDims, imgMgr);
+        ChessboardView chessboardView = new ChessboardView(chessboardDims, imagesManager, coordinatesManager);
         gamePanel.add(chessboardView, chessboardConstraints);
 
         validate();
@@ -57,5 +63,4 @@ public class ChessGame extends JFrame {
         chessGame.setVisible(true);
         chessGame.setLocationRelativeTo(null);
     }
-
 }

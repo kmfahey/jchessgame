@@ -4,8 +4,6 @@ A simple graphical chessgame that implements a standard glyphic graphical chessb
 
 #### Images Credit
 
-The chessboard image, ./images/Chessboard.png, is a public-domain image retrieved from CreativeCommons.org: [Simple chessboard](https://freesvg.org/simple-chessboard).
-
 The chesspiece images, to wit,
 
  * ./images/Black Bishop.png
@@ -23,6 +21,6 @@ The chesspiece images, to wit,
  * ./images/White Queen.png
  * ./images/White Rook.png
 
-were individually cropped out of a composite image, also in the public domain, also retrieved from CreativeCommons.org: [Chess pieces vector](https://freesvg.org/chess-pieces-vector).
+were individually cropped out of a composite image, in the public domain, retrieved from CreativeCommons.org: [Chess pieces vector](https://freesvg.org/chess-pieces-vector).
 
 
