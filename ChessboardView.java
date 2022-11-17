@@ -8,6 +8,7 @@ import java.awt.Dimension;
 //import java.awt.event.MouseListener;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Image;
 import java.awt.Point;
 //import java.util.concurrent.ThreadLocalRandom;
 //import java.util.Iterator;
@@ -21,11 +22,13 @@ public class ChessboardView extends JComponent /* implements ActionListener, Mou
     private Dimension chessboardDims;
     private ImagesManager imagesManager;
     private CoordinatesManager coordinatesManager;
+    private ChesspiecesManager chesspiecesManager;
 
-    public ChessboardView(final Dimension cmpntDims, final ImagesManager imgMgr, final CoordinatesManager coordMgr) {
+    public ChessboardView(final Dimension cmpntDims, final ImagesManager imgMgr, final CoordinatesManager coordMgr, final ChesspiecesManager chesspiecesMgr) {
         chessboardDims = cmpntDims;
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
+        chesspiecesManager = chesspiecesMgr;
         repaint();
     }
 
@@ -67,6 +70,14 @@ public class ChessboardView extends JComponent /* implements ActionListener, Mou
             Point squareUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(lightColoredSquareAlgNotn);
             graphics.fillRect(squareUpperLeftCorner.x, squareUpperLeftCorner.y,
                               (int) squareDimensions.getWidth(), (int) squareDimensions.getHeight());
+        }
+
+        for (String chesspieceIdentity : chesspiecesManager) {
+            for (Chesspiece chesspiece : chesspiecesManager.getChesspieces(chesspieceIdentity)) {
+                Image chesspieceIcon = chesspiece.getImage();
+                Point chesspieceUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(chesspiece.getChessboardLocation());
+                graphics.drawImage(chesspieceIcon, chesspieceUpperLeftCorner.x, chesspieceUpperLeftCorner.y, this);
+            }
         }
     }
 }

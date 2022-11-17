@@ -16,7 +16,9 @@ import java.io.FileNotFoundException;
 
 public class ChessGame extends JFrame {
 
+    private ChesspiecesManager chesspiecesManager;
     private CoordinatesManager coordinatesManager;
+    private ImagesManager imagesManager;
     private float scalingProportion;
 
     public ChessGame() throws IOException, FileNotFoundException {
@@ -46,12 +48,14 @@ public class ChessGame extends JFrame {
         scalingProportion = (float) chessboardDims.getWidth() / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
         coordinatesManager = new CoordinatesManager(scalingProportion);
 
-        ImagesManager imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
+        imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
+
+        chesspiecesManager = new ChesspiecesManager(imagesManager, "black");
 
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
         gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
 
-        ChessboardView chessboardView = new ChessboardView(chessboardDims, imagesManager, coordinatesManager);
+        ChessboardView chessboardView = new ChessboardView(chessboardDims, imagesManager, coordinatesManager, chesspiecesManager);
         gamePanel.add(chessboardView, chessboardConstraints);
 
         validate();

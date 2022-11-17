@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -16,12 +17,15 @@ import java.io.FileNotFoundException;
 public class ImagesManager {
 
     private HashMap<String, BufferedImage> piecesImages;
+    private HashMap<String, Image> piecesImagesScaled;
     private Dimension squareDimensions;
 
     public ImagesManager(final String imageDirectory, final Dimension squareDims) throws IOException, FileNotFoundException {
 
         piecesImages = new HashMap<>();
         squareDimensions = squareDims;
+
+        piecesImagesScaled = new HashMap<String, Image>();
 
         Path imageDirPath = Paths.get(imageDirectory);
         try (DirectoryStream<Path> imageDirStream = Files.newDirectoryStream(imageDirPath, "*.png")) {
@@ -34,110 +38,75 @@ public class ImagesManager {
                 String pieceRole = fileNamePieces[1].toLowerCase();
                 if (pieceRole.equals("knight")) {
                     String chirality = fileNamePieces[2].toLowerCase();
-                    pieceRole = pieceRole + " " + chirality;
+                    pieceRole = pieceRole + "-" + chirality;
                 }
                 String pieceKey = pieceColor + "-" + pieceRole;
                 piecesImages.put(pieceKey, imageData);
             }
         }
+
+        for (Entry<String, BufferedImage> piecesEntry : piecesImages.entrySet()) {
+            Image scaledImage = piecesEntry.getValue()
+                                           .getScaledInstance((int) squareDimensions.getWidth(),
+                                                              (int) squareDimensions.getHeight(),
+                                                              BufferedImage.SCALE_SMOOTH);
+            piecesImagesScaled.put(piecesEntry.getKey(), scaledImage);
+        }
     }
 
     public Image getBlackBishop() {
-        return piecesImages.get("black-bishop")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("black-bishop");
     }
 
     public Image getBlackKing() {
-        return piecesImages.get("black-king")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("black-king");
     }
 
     public Image getBlackKnightLeft() {
-        return piecesImages.get("black-knight-left")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("black-knight-left");
     }
 
     public Image getBlackKnightRight() {
-        return piecesImages.get("black-knight-right")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("black-knight-right");
     }
 
     public Image getBlackPawn() {
-        return piecesImages.get("black-pawn")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("black-pawn");
     }
 
     public Image getBlackQueen() {
-        return piecesImages.get("black-queen")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("black-queen");
     }
 
     public Image getBlackRook() {
-        return piecesImages.get("black-rook")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("black-rook");
     }
 
     public Image getWhiteBishop() {
-        return piecesImages.get("black-bishop")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("white-bishop");
     }
 
     public Image getWhiteKing() {
-        return piecesImages.get("black-king")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("white-king");
     }
 
     public Image getWhiteKnightLeft() {
-        return piecesImages.get("black-knight-left")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("white-knight-left");
     }
 
     public Image getWhiteKnightRight() {
-        return piecesImages.get("black-knight-right")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("white-knight-right");
     }
 
     public Image getWhitePawn() {
-        return piecesImages.get("black-pawn")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("white-pawn");
     }
 
     public Image getWhiteQueen() {
-        return piecesImages.get("black-queen")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("white-queen");
     }
 
     public Image getWhiteRook() {
-        return piecesImages.get("black-rook")
-                           .getScaledInstance((int) squareDimensions.getWidth(),
-                                              (int) squareDimensions.getHeight(),
-                                              BufferedImage.SCALE_FAST);
+        return piecesImagesScaled.get("white-rook");
     }
-
 }

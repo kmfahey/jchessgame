@@ -4,65 +4,46 @@ import java.util.HashMap;
 import java.awt.Image;
 
 public class Chesspiece {
-    public final int ROOK = 0;
-    public final int KNIGHT = 1;
-    public final int BISHOP = 2;
-    public final int QUEEN = 3;
-    public final int KING = 4;
-    public final int PAWN = 5;
 
-    public final int WHITE = 0;
-    public final int BLACK = 1;
-
-    public final int LEFT = 0;
-    public final int RIGHT = 1;
-
-    private int roleFlag;
-    private int colorFlag;
-    private int chiralityFlag;
-
+    private String chesspieceIdentity;
     private String chessboardLocation;
 
-    private CoordinatesManager coordinatesManager;
+    private ImagesManager imagesManager;
 
-    public Chesspiece(final int pieceRoleFlag, final int pieceColorFlag, final int pieceChiralityFlag,
-                      final ImagesManager imgMgr, final CoordinatesManager coordMgr) {
+    public Chesspiece(final String pieceIdentity, final ImagesManager imgMgr) {
         imagesManager = imgMgr;
-        coordinatesManager = coordMgr;
-        roleFlag = pieceRoleFlag;
-        colorFlag = pieceColorFlag;
-        chiralityFlag = pieceChiralityFlag;
+        chesspieceIdentity = pieceIdentity;
+    }
+
+    public String getChessboardLocation() {
+        return chessboardLocation;
+    }
+
+    public void setChessboardLocation(String chessboardLocationStr) {
+        chessboardLocation = chessboardLocationStr;
+    }
+
+    public String getChesspieceIdentity() {
+        return chesspieceIdentity;
     }
 
     public Image getImage() {
         Image pieceImage = null;
-        switch (colorFlag) {
-            case WHITE:
-                switch (roleFlag) {
-                    case ROOK: pieceImage = imagesManager.getWhiteRook(); break;
-                    case KNIGHT:
-                        switch (chiralityFlag) {
-                            case LEFT: pieceImage = imagesManager.getWhiteKnightLeft(); break;
-                            case RIGHT: pieceImage = imagesManager.getWhiteKnightRight(); break;
-                        }
-                    case BISHOP: pieceImage = imagesManager.getWhiteBishop(); break;
-                    case QUEEN: pieceImage = imagesManager.getWhiteQueen(); break;
-                    case KING: pieceImage = imagesManager.getWhiteKing(); break;
-                    case PAWN: pieceImage = imagesManager.getWhitePawn(); break;
-                }
-            case BLACK:
-                switch (roleFlag) {
-                    case ROOK: pieceImage = imagesManager.getBlackRook(); break;
-                    case KNIGHT:
-                        switch (chiralityFlag) {
-                            case LEFT: pieceImage = imagesManager.getBlackKnightLeft(); break;
-                            case RIGHT: pieceImage = imagesManager.getBlackKnightRight(); break;
-                        }
-                    case BISHOP: pieceImage = imagesManager.getBlackBishop(); break;
-                    case QUEEN: pieceImage = imagesManager.getBlackQueen(); break;
-                    case KING: pieceImage = imagesManager.getBlackKing(); break;
-                    case PAWN: pieceImage = imagesManager.getBlackPawn(); break;
-                }
+        switch (chesspieceIdentity) {
+            case "white-rook": pieceImage = imagesManager.getWhiteRook(); break;
+            case "white-knight-left": pieceImage = imagesManager.getWhiteKnightLeft(); break;
+            case "white-knight-right": pieceImage = imagesManager.getWhiteKnightRight(); break;
+            case "white-bishop": pieceImage = imagesManager.getWhiteBishop(); break;
+            case "white-queen": pieceImage = imagesManager.getWhiteQueen(); break;
+            case "white-king": pieceImage = imagesManager.getWhiteKing(); break;
+            case "white-pawn": pieceImage = imagesManager.getWhitePawn(); break;
+            case "black-rook": pieceImage = imagesManager.getBlackRook(); break;
+            case "black-knight-left": pieceImage = imagesManager.getBlackKnightLeft(); break;
+            case "black-knight-right": pieceImage = imagesManager.getBlackKnightRight(); break;
+            case "black-bishop": pieceImage = imagesManager.getBlackBishop(); break;
+            case "black-queen": pieceImage = imagesManager.getBlackQueen(); break;
+            case "black-king": pieceImage = imagesManager.getBlackKing(); break;
+            case "black-pawn": pieceImage = imagesManager.getBlackPawn(); break;
         }
         return pieceImage;
     }
