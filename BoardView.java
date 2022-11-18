@@ -93,29 +93,6 @@ public class BoardView extends JComponent implements MouseListener {
                 graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
             }
         }
-
-        /* if (!Objects.isNull(clickEventClickedPiece) && !clickEventMovingFrom.equals("") && !clickEventMovingTo.equals(""))  {
-            Point movingFromSquareUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(clickEventMovingFrom);
-            graphics.setColor(Arrays.binarySearch(LIGHT_COLORED_SQUARES_LOCS, clickEventMovingFrom) >= 0 ? BEIGE : Color.BLACK);
-            graphics.fillRect(movingFromSquareUpperLeftCorner.x, movingFromSquareUpperLeftCorner.y,
-                              (int) squareDimensions.getWidth(), (int) squareDimensions.getHeight());
-
-            if (!Objects.isNull(clickEventToCapturePiece)) {
-                Point movingToSquareUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(clickEventMovingTo);
-                graphics.setColor(Arrays.binarySearch(LIGHT_COLORED_SQUARES_LOCS, clickEventMovingTo) >= 0 ? BEIGE : Color.BLACK);
-                graphics.fillRect(movingToSquareUpperLeftCorner.x, movingToSquareUpperLeftCorner.y,
-                                  (int) squareDimensions.getWidth(), (int) squareDimensions.getHeight());
-            }
-
-            Image clickedPieceIcon = clickEventClickedPiece.getImage();
-            Point clickedPieceUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(clickEventMovingTo);
-            graphics.drawImage(clickedPieceIcon, clickedPieceUpperLeftCorner.x, clickedPieceUpperLeftCorner.y, this);
-
-            clickEventClickedPiece = null;
-            clickEventMovingFrom = "";
-            clickEventToCapturePiece = null;
-            clickEventMovingTo = "";
-        } */
     }
 
     public void mouseClicked(final MouseEvent event) {
@@ -172,7 +149,10 @@ public class BoardView extends JComponent implements MouseListener {
             if (!Objects.isNull(clickEventToCapturePiece) && clickEventToCapturePiece.getColor().equals(piecesManager.getColorPlaying())) {
                 resetClickEventVars();
                 return;
-            }
+            } else if (clickEventClickedPiece.getRole().equals(PiecesManager.KING) && piecesManager.isSquareThreatened(clickEventMovingTo)) {
+                resetClickEventVars();
+                return;
+            } 
 
             piecesManager.movePiece(clickEventMovingFrom, clickEventMovingTo);
 

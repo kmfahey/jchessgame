@@ -15,6 +15,16 @@ public class PiecesManager implements Iterable<String> {
     public static String WHITE = "white";
     public static String BLACK = "black";
 
+    public static String BISHOP = "bishop";
+    public static String KING = "king";
+    public static String KNIGHT = "knight";
+    public static String PAWN = "pawn";
+    public static String QUEEN = "queen";
+    public static String ROOK = "rook";
+
+    public static String RIGHT = "right";
+    public static String LEFT = "left";
+
     public static final int NORTH = 0;
     public static final int NORTH_NORTH_EAST = 1;
     public static final int NORTH_EAST = 2;
@@ -273,8 +283,8 @@ public class PiecesManager implements Iterable<String> {
         }
     }
 
-    public HashSet<String> getValidMoveSet(final String pieceLocation) {
-        Piece piece = piecesLocations.get(pieceLocation);
+    public HashSet<String> getValidMoveSet(final Piece piece) {
+        String pieceLocation = piece.getBoardLocation();
         if (Objects.isNull(piece)) {
             return null;
         }
@@ -296,6 +306,25 @@ public class PiecesManager implements Iterable<String> {
                 retval = null;
         }
         return retval;
+    }
+
+    public HashSet<String> getValidMoveSet(final String pieceLocation) {
+        Piece piece = piecesLocations.get(pieceLocation);
+        return getValidMoveSet(piece);
+    }
+
+    public boolean isSquareThreatened(String squareLoc) {
+        for (Entry<String, Piece[]> identityToPieces : piecesMap.entrySet()) {
+            if (identityToPieces.getKey().startsWith(colorPlaying)) {
+                continue;
+            }
+            for (Piece piece : identityToPieces.getValue()) {
+                if (getValidMoveSet(piece).contains(squareLoc)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public Piece getPiece(final String pieceLoc) {
