@@ -3,33 +3,45 @@ package com.kmfahey.jchessgame;
 import java.util.HashMap;
 import java.awt.Image;
 
-public class Chesspiece {
+public class Piece {
 
-    private String chesspieceIdentity;
-    private String chessboardLocation;
+    private String pieceIdentity;
+    private String boardLocation;
 
     private ImagesManager imagesManager;
 
-    public Chesspiece(final String pieceIdentity, final ImagesManager imgMgr) {
+    public Piece(final String identity, final ImagesManager imgMgr) {
         imagesManager = imgMgr;
-        chesspieceIdentity = pieceIdentity;
+        pieceIdentity = identity;
     }
 
-    public String getChessboardLocation() {
-        return chessboardLocation;
+    public String getBoardLocation() {
+        return boardLocation;
     }
 
-    public void setChessboardLocation(String chessboardLocationStr) {
-        chessboardLocation = chessboardLocationStr;
+    public void setBoardLocation(String boardLocationStr) {
+        boardLocation = boardLocationStr;
     }
 
-    public String getChesspieceIdentity() {
-        return chesspieceIdentity;
+    public String getIdentity() {
+        return pieceIdentity;
+    }
+
+    public String getColor() {
+        return pieceIdentity.split("-")[0];
+    }
+
+    public String getRole() {
+        return pieceIdentity.split("-")[1];
+    }
+
+    public String getChirality() {
+        return pieceIdentity.split("-")[2];
     }
 
     public Image getImage() {
         Image pieceImage = null;
-        switch (chesspieceIdentity) {
+        switch (pieceIdentity) {
             case "white-rook": pieceImage = imagesManager.getWhiteRook(); break;
             case "white-knight-left": pieceImage = imagesManager.getWhiteKnightLeft(); break;
             case "white-knight-right": pieceImage = imagesManager.getWhiteKnightRight(); break;

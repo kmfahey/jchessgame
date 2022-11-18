@@ -15,20 +15,20 @@ import java.awt.Point;
 import javax.swing.JComponent;
 //import javax.swing.Timer;
 
-public class ChessboardView extends JComponent /* implements ActionListener, MouseListener */ {
+public class BoardView extends JComponent /* implements ActionListener, MouseListener */ {
 
-    private final Color BEIGE = new Color(0.949019F, 0.901960F, 0.800000F);
+    private static final Color BEIGE = new Color(0.949019F, 0.901960F, 0.800000F);
 
-    private Dimension chessboardDims;
+    private Dimension boardDims;
     private ImagesManager imagesManager;
     private CoordinatesManager coordinatesManager;
-    private ChesspiecesManager chesspiecesManager;
+    private PiecesManager piecesManager;
 
-    public ChessboardView(final Dimension cmpntDims, final ImagesManager imgMgr, final CoordinatesManager coordMgr, final ChesspiecesManager chesspiecesMgr) {
-        chessboardDims = cmpntDims;
+    public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr, final CoordinatesManager coordMgr, final PiecesManager piecesMgr) {
+        boardDims = cmpntDims;
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
-        chesspiecesManager = chesspiecesMgr;
+        piecesManager = piecesMgr;
         repaint();
     }
 
@@ -36,7 +36,7 @@ public class ChessboardView extends JComponent /* implements ActionListener, Mou
     protected void paintComponent(final Graphics graphics) {
         super.paintComponent(graphics);
 
-        final String[] lightColoredSquaresAlgNotn = new String[] {
+        final String[] lightColoredSquaresLocs = new String[] {
             "a8", "c8", "e8", "g8", "b7", "d7", "f7", "h7",
             "a6", "c6", "e6", "g6", "b5", "d5", "f5", "h5",
             "a4", "c4", "e4", "g4", "b3", "d3", "f3", "h3",
@@ -47,7 +47,7 @@ public class ChessboardView extends JComponent /* implements ActionListener, Mou
         Dimension beigeMarginDimensions = coordinatesManager.getBeigeMarginDimensions();
         Insets innerBlackBorderInsets = coordinatesManager.getInnerBlackBorderInsets();
         Dimension innerBlackBorderDimensions = coordinatesManager.getInnerBlackBorderDimensions();
-        Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets() ;
+        Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
 
         graphics.setColor(Color.BLACK);
@@ -63,20 +63,20 @@ public class ChessboardView extends JComponent /* implements ActionListener, Mou
 
         graphics.fillRect(innerBlackBorderInsets.left, innerBlackBorderInsets.top,
                           (int) innerBlackBorderDimensions.getWidth(), (int) innerBlackBorderDimensions.getHeight());
-        
+
         graphics.setColor(BEIGE);
 
-        for (String lightColoredSquareAlgNotn : lightColoredSquaresAlgNotn) {
-            Point squareUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(lightColoredSquareAlgNotn);
+        for (String lightColoredSquareLoc : lightColoredSquaresLocs) {
+            Point squareUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(lightColoredSquareLoc);
             graphics.fillRect(squareUpperLeftCorner.x, squareUpperLeftCorner.y,
                               (int) squareDimensions.getWidth(), (int) squareDimensions.getHeight());
         }
 
-        for (String chesspieceIdentity : chesspiecesManager) {
-            for (Chesspiece chesspiece : chesspiecesManager.getChesspieces(chesspieceIdentity)) {
-                Image chesspieceIcon = chesspiece.getImage();
-                Point chesspieceUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(chesspiece.getChessboardLocation());
-                graphics.drawImage(chesspieceIcon, chesspieceUpperLeftCorner.x, chesspieceUpperLeftCorner.y, this);
+        for (String pieceIdentity : piecesManager) {
+            for (Piece piece : piecesManager.getPieces(pieceIdentity)) {
+                Image pieceIcon = piece.getImage();
+                Point pieceUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(piece.getBoardLocation());
+                graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
             }
         }
     }

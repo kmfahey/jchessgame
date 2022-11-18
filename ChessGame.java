@@ -16,13 +16,13 @@ import java.io.FileNotFoundException;
 
 public class ChessGame extends JFrame {
 
-    private ChesspiecesManager chesspiecesManager;
+    private PiecesManager piecesManager;
     private CoordinatesManager coordinatesManager;
     private ImagesManager imagesManager;
     private float scalingProportion;
 
     public ChessGame() throws IOException, FileNotFoundException {
-        super("Chess");
+        super("");
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
@@ -35,34 +35,34 @@ public class ChessGame extends JFrame {
         setContentPane(gamePanel);
         setSize(windowDims);
 
-        GridBagConstraints chessboardConstraints = new GridBagConstraints();
-        chessboardConstraints.fill = GridBagConstraints.BOTH;
-        chessboardConstraints.gridy = 0;
-        chessboardConstraints.gridx = 0;
-        chessboardConstraints.gridheight = 1;
-        chessboardConstraints.gridwidth = 1;
-        chessboardConstraints.insets = new Insets(20, 20, 20, 20);
+        GridBagConstraints boardConstraints = new GridBagConstraints();
+        boardConstraints.fill = GridBagConstraints.BOTH;
+        boardConstraints.gridy = 0;
+        boardConstraints.gridx = 0;
+        boardConstraints.gridheight = 1;
+        boardConstraints.gridwidth = 1;
+        boardConstraints.insets = new Insets(20, 20, 20, 20);
 
-        Dimension chessboardDims = new Dimension((int) windowDims.getWidth() - 40, (int) windowDims.getHeight() - 40);
+        Dimension boardDims = new Dimension((int) windowDims.getWidth() - 40, (int) windowDims.getHeight() - 40);
 
-        scalingProportion = (float) chessboardDims.getWidth() / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
+        scalingProportion = (float) boardDims.getWidth() / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
         coordinatesManager = new CoordinatesManager(scalingProportion);
 
         imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
 
-        chesspiecesManager = new ChesspiecesManager(imagesManager, "black");
+        piecesManager = new PiecesManager(imagesManager, "black");
 
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
         gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
 
-        ChessboardView chessboardView = new ChessboardView(chessboardDims, imagesManager, coordinatesManager, chesspiecesManager);
-        gamePanel.add(chessboardView, chessboardConstraints);
+        BoardView boardView = new BoardView(boardDims, imagesManager, coordinatesManager, piecesManager);
+        gamePanel.add(boardView, boardConstraints);
 
         validate();
         pack();
     }
 
-    public static void main(String[] args) throws IOException, FileNotFoundException {
+    public static void main(final String[] args) throws IOException, FileNotFoundException {
         ChessGame chessGame = new ChessGame();
         chessGame.setVisible(true);
         chessGame.setLocationRelativeTo(null);

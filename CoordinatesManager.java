@@ -83,34 +83,36 @@ public class CoordinatesManager {
                 leftOuterBlackBorderWidth -= 1;
                 break;
             case -3:
-                leftInnerBlackBorderWidth-= 1; leftBeigeMarginWidth-= 1; leftOuterBlackBorderWidth-= 1;
+                leftInnerBlackBorderWidth -= 1; leftBeigeMarginWidth -= 1; leftOuterBlackBorderWidth -= 1;
                 break;
             case -2:
-                leftInnerBlackBorderWidth-= 1; leftBeigeMarginWidth-= 1;
+                leftInnerBlackBorderWidth -= 1; leftBeigeMarginWidth -= 1;
                 break;
             case -1:
-                leftInnerBlackBorderWidth-= 1;
+                leftInnerBlackBorderWidth -= 1;
                 break;
             case 1:
                 leftOuterBlackBorderWidth += 1;
                 break;
             case 2:
-                leftBeigeMarginWidth+= 1; leftOuterBlackBorderWidth+= 1;
+                leftBeigeMarginWidth += 1; leftOuterBlackBorderWidth += 1;
                 break;
             case 3:
-                leftInnerBlackBorderWidth+= 1; leftBeigeMarginWidth+= 1; leftOuterBlackBorderWidth+= 1;
+                leftInnerBlackBorderWidth += 1; leftBeigeMarginWidth += 1; leftOuterBlackBorderWidth += 1;
                 break;
             case 4:
-                leftInnerBlackBorderWidth+= 1; leftBeigeMarginWidth+= 1; rightOuterBlackBorderWidth+= 1;
-                leftOuterBlackBorderWidth+= 1;
+                leftInnerBlackBorderWidth += 1; leftBeigeMarginWidth += 1; rightOuterBlackBorderWidth += 1;
+                leftOuterBlackBorderWidth += 1;
                 break;
             case 5:
-                leftInnerBlackBorderWidth+= 1; rightBeigeMarginWidth+= 1; leftBeigeMarginWidth+= 1;
-                rightOuterBlackBorderWidth+= 1; leftOuterBlackBorderWidth+= 1;
+                leftInnerBlackBorderWidth += 1; rightBeigeMarginWidth += 1; leftBeigeMarginWidth += 1;
+                rightOuterBlackBorderWidth += 1; leftOuterBlackBorderWidth += 1;
                 break;
             case 6:
-                rightInnerBlackBorderWidth+= 1; leftInnerBlackBorderWidth+= 1; rightBeigeMarginWidth+= 1;
-                leftBeigeMarginWidth+= 1; rightOuterBlackBorderWidth+= 1; leftOuterBlackBorderWidth+= 1;
+                rightInnerBlackBorderWidth += 1; leftInnerBlackBorderWidth += 1; rightBeigeMarginWidth += 1;
+                leftBeigeMarginWidth += 1; rightOuterBlackBorderWidth += 1; leftOuterBlackBorderWidth += 1;
+                break;
+            default:
                 break;
         }
 
