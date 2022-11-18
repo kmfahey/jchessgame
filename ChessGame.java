@@ -58,6 +58,8 @@ public class ChessGame extends JFrame {
         BoardView boardView = new BoardView(boardDims, imagesManager, coordinatesManager, piecesManager);
         gamePanel.add(boardView, boardConstraints);
 
+        boardView.addMouseListener(boardView);
+
         validate();
         pack();
     }

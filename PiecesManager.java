@@ -83,12 +83,12 @@ public class PiecesManager implements Iterable<String> {
 
     private HashMap<String, Piece[]> piecesMap;
 
-    private String playingColor;
+    private String colorPlaying;
 
-    public PiecesManager(final ImagesManager imgMgr, final String colorPlaying) {
+    public PiecesManager(final ImagesManager imgMgr, final String playingColor) {
 
         imagesManager = imgMgr;
-        playingColor = colorPlaying;
+        colorPlaying = playingColor;
         piecesMap = new HashMap<String, Piece[]>();
 
         HashMap<String, String[]> piecesStartingLocs = (colorPlaying == "white")
@@ -298,13 +298,47 @@ public class PiecesManager implements Iterable<String> {
         return retval;
     }
 
+    public Piece getPiece(final String pieceLoc) {
+        return piecesLocations.get(pieceLoc);
+    }
+
+    public String numericIndexesToAlgNotnLoc(int horizIndex, int vertIndex) {
+        final String alphaCharVals = "abcdefgh";
+        final String numCharVals = "87654321";
+        return String.valueOf(alphaCharVals.charAt(horizIndex)) + String.valueOf(numCharVals.charAt(vertIndex));
+    }
+
     public void movePiece(final String pieceCurrentLoc, final String pieceMoveToLoc) {
+        Piece movedPiece = piecesLocations.get(pieceCurrentLoc);
+        Piece capturedPiece = piecesLocations.get(pieceMoveToLoc);
+        if (!Objects.isNull(capturedPiece)) {
+            capturedPiece.setBoardLocation(null);
+            Piece[] oldPiecesArray = piecesMap.get(capturedPiece.getIdentity());
+            Piece[] newPiecesArray = new Piece[oldPiecesArray.length-1];
+            int fromIndex = 0;
+            int toIndex = 0;
+            while (fromIndex < oldPiecesArray.length) {
+                if (oldPiecesArray[fromIndex] == capturedPiece) {
+                    fromIndex++;
+                    continue;
+                }
+                newPiecesArray[toIndex] = oldPiecesArray[fromIndex];
+                fromIndex++;
+                toIndex++;
+            }
+            piecesMap.put(capturedPiece.getIdentity(), newPiecesArray);
+        }
+        movedPiece.setBoardLocation(pieceMoveToLoc);
         piecesLocations.put(pieceMoveToLoc, piecesLocations.get(pieceCurrentLoc));
         piecesLocations.put(pieceCurrentLoc, null);
     }
 
     public Piece[] getPieces(final String pieceIdentity) {
         return piecesMap.get(pieceIdentity);
+    }
+
+    public String getColorPlaying() {
+        return colorPlaying;
     }
 
     @Override
