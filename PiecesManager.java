@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 import java.util.StringJoiner;
 import net.sf.repr.Repr;
 
-public class PiecesManager implements Iterable<String> {
+public class PiecesManager {
 
     public static String WHITE = "white";
     public static String BLACK = "black";
@@ -76,30 +76,16 @@ public class PiecesManager implements Iterable<String> {
         }
     }};
 
-    private HashMap<String, Piece> piecesLocations = new HashMap<>() {{
-        for (String algNotnAlphaChar : "abcdefgh".split("(?=.)")) {
-            for (String algNotnNumChar : "87654321".split("(?=.)")) {
-                this.put(algNotnAlphaChar + algNotnNumChar, null);
-            }
-        }
-     /* This yields results identical to:
-        this.put("a8", null); this.put("a7", null); this.put("a6", null); this.put("a5", null);
-        this.put("a4", null); this.put("a3", null); this.put("a2", null); this.put("a1", null);
-        this.put("b8", null); this.put("b7", null); this.put("b6", null); this.put("b5", null);
-        ... and so on */
-    }};
-
     private ImagesManager imagesManager;
-
-    private HashMap<String, Piece[]> piecesMap;
-
+    private Chessboard chessboard;
     private String colorPlaying;
 
     public PiecesManager(final ImagesManager imgMgr, final String playingColor) {
 
         imagesManager = imgMgr;
         colorPlaying = playingColor;
-        piecesMap = new HashMap<String, Piece[]>();
+
+        chessboard = new Chessboard();
 
         HashMap<String, String[]> piecesStartingLocs = (colorPlaying == "white")
                                                        ? piecesStartingLocsWhiteBelow
@@ -113,12 +99,12 @@ public class PiecesManager implements Iterable<String> {
                 piece.setBoardLocation(startingLocs[index]);
                 pieces[index] = piece;
             }
-            piecesMap.put(pieceStartingLocs.getKey(), pieces);
+            chessboard.storePiecesByIdentity(pieceStartingLocs.getKey(), pieces);
         }
 
-        for (Entry<String, Piece[]> identityTopiece : piecesMap.entrySet()) {
-            for (Piece piece : identityTopiece.getValue()) {
-                piecesLocations.put(piece.getBoardLocation(), piece);
+        for (String pieceIdentity : chessboard.getPiecesIdentities()) {
+            for (Piece piece : chessboard.getPiecesByIdentity(pieceIdentity)) {
+                chessboard.placePiece(piece, piece.getBoardLocation());
             }
         }
     }
@@ -225,18 +211,18 @@ public class PiecesManager implements Iterable<String> {
         pruneMoveMap(piece, moveRangesByDir);
         if (moveRangesByDir.containsKey(NORTH)) {
             if (moveRangesByDir.get(NORTH).length >= 1) {
-                if (!Objects.isNull(piecesLocations.get(moveRangesByDir.get(NORTH)[0]))) {
+                if (!Objects.isNull(chessboard.pieceAtLoc(moveRangesByDir.get(NORTH)[0]))) {
                     moveRangesByDir.remove(NORTH);
                 } else if (moveRangesByDir.get(NORTH).length == 2
-                           && !Objects.isNull(piecesLocations.get(moveRangesByDir.get(NORTH)[1]))) {
+                           && !Objects.isNull(chessboard.pieceAtLoc(moveRangesByDir.get(NORTH)[1]))) {
                     moveRangesByDir.put(NORTH, new String[] {moveRangesByDir.get(NORTH)[0]});
                 }
             }
         }
         for (int moveDir : new int[] {NORTH_EAST, NORTH_WEST}) {
             if (moveRangesByDir.containsKey(moveDir)
-                && (Objects.isNull(piecesLocations.get(moveRangesByDir.get(moveDir)[0]))
-                    || piecesLocations.get(moveRangesByDir.get(moveDir)[0])
+                && (Objects.isNull(chessboard.pieceAtLoc(moveRangesByDir.get(moveDir)[0]))
+                    || chessboard.pieceAtLoc(moveRangesByDir.get(moveDir)[0])
                                       .getColor().equals(piece.getColor()))) {
                 moveRangesByDir.remove(moveDir);
             }
@@ -266,15 +252,15 @@ public class PiecesManager implements Iterable<String> {
                         moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index));
                     }
                     break;
-                } else if (!Objects.isNull(piecesLocations.get(moveMap.get(moveDir)[index]))) {
-                    if (piecesLocations.get(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
+                } else if (!Objects.isNull(chessboard.pieceAtLoc(moveMap.get(moveDir)[index]))) {
+                    if (chessboard.pieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
                         if (index == 0) {
                             moveMap.remove(moveDir);
                         } else {
                             moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index));
                         }
                         break;
-                    } else if (!piecesLocations.get(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
+                    } else if (!chessboard.pieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
                         moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index+1));
                         break;
                     }
@@ -309,16 +295,16 @@ public class PiecesManager implements Iterable<String> {
     }
 
     public HashSet<String> getValidMoveSet(final String pieceLocation) {
-        Piece piece = piecesLocations.get(pieceLocation);
+        Piece piece = chessboard.pieceAtLoc(pieceLocation);
         return getValidMoveSet(piece);
     }
 
     public boolean isSquareThreatened(String squareLoc) {
-        for (Entry<String, Piece[]> identityToPieces : piecesMap.entrySet()) {
-            if (identityToPieces.getKey().startsWith(colorPlaying)) {
+        for (String piecesIdentity : chessboard.getPiecesIdentities()) {
+            if (piecesIdentity.startsWith(colorPlaying)) {
                 continue;
             }
-            for (Piece piece : identityToPieces.getValue()) {
+            for (Piece piece : chessboard.getPiecesByIdentity(piecesIdentity)) {
                 if (getValidMoveSet(piece).contains(squareLoc)) {
                     return true;
                 }
@@ -328,7 +314,7 @@ public class PiecesManager implements Iterable<String> {
     }
 
     public Piece getPiece(final String pieceLoc) {
-        return piecesLocations.get(pieceLoc);
+        return chessboard.pieceAtLoc(pieceLoc);
     }
 
     public String numericIndexesToAlgNotnLoc(int horizIndex, int vertIndex) {
@@ -337,62 +323,20 @@ public class PiecesManager implements Iterable<String> {
         return String.valueOf(alphaCharVals.charAt(horizIndex)) + String.valueOf(numCharVals.charAt(vertIndex));
     }
 
-    public void movePiece(final String pieceCurrentLoc, final String pieceMoveToLoc) {
-        Piece movedPiece = piecesLocations.get(pieceCurrentLoc);
-        Piece capturedPiece = piecesLocations.get(pieceMoveToLoc);
-        if (!Objects.isNull(capturedPiece)) {
-            capturedPiece.setBoardLocation(null);
-            Piece[] oldPiecesArray = piecesMap.get(capturedPiece.getIdentity());
-            Piece[] newPiecesArray = new Piece[oldPiecesArray.length-1];
-            int fromIndex = 0;
-            int toIndex = 0;
-            while (fromIndex < oldPiecesArray.length) {
-                if (oldPiecesArray[fromIndex] == capturedPiece) {
-                    fromIndex++;
-                    continue;
-                }
-                newPiecesArray[toIndex] = oldPiecesArray[fromIndex];
-                fromIndex++;
-                toIndex++;
-            }
-            piecesMap.put(capturedPiece.getIdentity(), newPiecesArray);
-        }
-        movedPiece.setBoardLocation(pieceMoveToLoc);
-        piecesLocations.put(pieceMoveToLoc, piecesLocations.get(pieceCurrentLoc));
-        piecesLocations.put(pieceCurrentLoc, null);
+    public void movePiece(final String pieceCurrentLoc, final String movingToLoc) {
+        Piece movedPiece = chessboard.pieceAtLoc(pieceCurrentLoc);
+        chessboard.movePieceToLoc(movedPiece, movingToLoc);
     }
 
-    public Piece[] getPieces(final String pieceIdentity) {
-        return piecesMap.get(pieceIdentity);
+    public Piece[] getPiecesByIdentity(final String piecesIdentity) {
+        return chessboard.getPiecesByIdentity(piecesIdentity);
+    }
+
+    public String[] getPiecesIdentities() {
+        return chessboard.getPiecesIdentities();
     }
 
     public String getColorPlaying() {
         return colorPlaying;
-    }
-
-    @Override
-    public Iterator<String> iterator() {
-        Iterator<String> iterator = new Iterator<String>() {
-            private Object[] piecesFlags = piecesMap.keySet().toArray();
-            private int index = 0;
-
-            @Override
-            public boolean hasNext() {
-                return index < piecesFlags.length;
-            }
-
-            @Override
-            public String next() {
-                String retval = (String) piecesFlags[index];
-                index += 1;
-                return retval;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
-        return iterator;
     }
 }

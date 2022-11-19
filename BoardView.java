@@ -86,8 +86,8 @@ public class BoardView extends JComponent implements MouseListener {
                               (int) squareDimensions.getWidth(), (int) squareDimensions.getHeight());
         }
 
-        for (String pieceIdentity : piecesManager) {
-            for (Piece piece : piecesManager.getPieces(pieceIdentity)) {
+        for (String piecesIdentity : piecesManager.getPiecesIdentities()) {
+            for (Piece piece : piecesManager.getPiecesByIdentity(piecesIdentity)) {
                 Image pieceIcon = piece.getImage();
                 Point pieceUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(piece.getBoardLocation());
                 graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
