@@ -55,6 +55,10 @@ public class ImagesManager {
         }
     }
 
+    public Image getImageByIdentity(String identity) {
+        return piecesImagesScaled.get(identity);
+    }
+
     public Image getBlackBishop() {
         return piecesImagesScaled.get("black-bishop");
     }

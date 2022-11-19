@@ -10,6 +10,7 @@ import java.awt.Image;
 import java.awt.Point;
 import javax.swing.JComponent;
 import java.util.Objects;
+import java.util.Iterator;
 
 public class BoardView extends JComponent implements MouseListener {
 
@@ -36,7 +37,7 @@ public class BoardView extends JComponent implements MouseListener {
     private Dimension boardDims;
     private ImagesManager imagesManager;
     private CoordinatesManager coordinatesManager;
-    private PiecesManager piecesManager;
+    private Chessboard chessboard;
 
     private Piece clickEventClickedPiece = null;
     private String clickEventMovingFrom = "";
@@ -44,11 +45,11 @@ public class BoardView extends JComponent implements MouseListener {
     private String clickEventMovingTo = "";
 
     public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr,
-                     final CoordinatesManager coordMgr, final PiecesManager piecesMgr) {
+                     final CoordinatesManager coordMgr, final Chessboard chessBoard) {
         boardDims = cmpntDims;
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
-        piecesManager = piecesMgr;
+        chessboard = chessBoard;
         repaint();
     }
 
@@ -91,19 +92,21 @@ public class BoardView extends JComponent implements MouseListener {
                               (int) squareDimensions.getHeight());
         }
 
-        for (String piecesIdentity : piecesManager.getPiecesIdentities()) {
-            for (Piece piece : piecesManager.getPiecesByIdentity(piecesIdentity)) {
-                Image pieceIcon = piece.getImage();
-                Point pieceUpperLeftCorner = coordinatesManager
-                                             .getSquareUpperLeftCorner(piece.getBoardLocation());
-                graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
-            }
+        Iterator<Piece> pieceIterator = chessboard.iterator();
+        while (pieceIterator.hasNext()) {
+            Piece piece = pieceIterator.next();
+            Image pieceIcon = piece.getImage();
+            Point pieceUpperLeftCorner = coordinatesManager
+                                         .getSquareUpperLeftCorner(piece.getBoardLocation());
+            graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
         }
     }
 
     public void mouseClicked(final MouseEvent event) {
         int horizCoord = event.getX();
         int vertCoord = event.getY();
+
+        /* FIXME: this code needs to handle check and checkmate cases. */
 
         Piece capturedPiece;
 
@@ -132,39 +135,46 @@ public class BoardView extends JComponent implements MouseListener {
             vertIndex += 1;
         }
 
-        String clickSquareLoc = piecesManager.numericIndexesToAlgNotnLoc(horizIndex, vertIndex);
+        String clickSquareLoc = chessboard.numericIndexesToAlgNotnLoc(horizIndex, vertIndex);
 
         if (Objects.isNull(clickEventClickedPiece)) {
             clickEventMovingFrom = clickSquareLoc;
-            clickEventClickedPiece = piecesManager.getPiece(clickEventMovingFrom);
+            clickEventClickedPiece = chessboard.getPieceAtLoc(clickEventMovingFrom);
 
             if (Objects.isNull(clickEventClickedPiece) ||
-                    !clickEventClickedPiece.getColor().equals(piecesManager.getColorPlaying())) {
+                    !clickEventClickedPiece.getColor().equals(chessboard.getColorPlaying())) {
                 resetClickEventVars();
                 return;
             }
         } else {
             clickEventMovingTo = clickSquareLoc;
 
-            if (!piecesManager.getValidMoveSet(clickEventMovingFrom).contains(clickEventMovingTo)) {
+            if (!chessboard.getValidMoveSet(clickEventMovingFrom).contains(clickEventMovingTo)) {
                 resetClickEventVars();
                 return;
             }
 
-            clickEventToCapturePiece = piecesManager.getPiece(clickEventMovingTo);
+            clickEventToCapturePiece = chessboard.getPieceAtLoc(clickEventMovingTo);
 
             if (!Objects.isNull(clickEventToCapturePiece)
                     && clickEventToCapturePiece.getColor()
-                                               .equals(piecesManager.getColorPlaying())) {
+                                               .equals(chessboard.getColorPlaying())) {
                 resetClickEventVars();
                 return;
-            } else if (clickEventClickedPiece.getRole().equals(PiecesManager.KING)
-                    && piecesManager.isSquareThreatened(clickEventMovingTo)) {
+            } else if (clickEventClickedPiece.getRole().equals("king")
+                    && chessboard.isSquareThreatened(clickEventMovingTo,
+                                                     clickEventClickedPiece.getColor().equals("white")
+                                                     ? "black" : "white")) {
                 resetClickEventVars();
                 return;
             }
 
-            piecesManager.movePiece(clickEventMovingFrom, clickEventMovingTo);
+            /* This method returns a king Piece if a king has been put in check
+               or checkmate by the move. FIXME need to check for those cases
+               and handle them in the game logic. Also if it's check then the
+               possible moves need to be limited to moves that can end the
+               check. */
+            chessboard.movePiece(clickEventMovingFrom, clickEventMovingTo);
 
             resetClickEventVars();
 

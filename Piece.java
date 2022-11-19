@@ -3,19 +3,46 @@ package com.kmfahey.jchessgame;
 import java.util.HashSet;
 import java.awt.Image;
 
-public class Piece {
+public class Piece implements Cloneable {
 
     private String pieceIdentity;
     private String boardLocation;
 
-    private HashSet<Piece> inCheckByPieces = null;
-    private ImagesManager imagesManager;
+    private HashSet<String> inCheckByPieces = null;
+    private HashSet<String> inCheckmateByPieces = null;
+    private boolean hasBeenCaptured = false;
+    private Image pieceImage;
 
-    public Piece(final String identity, final ImagesManager imgMgr) {
-        imagesManager = imgMgr;
+    public Piece(final String identity, final Image pcImage) {
+        pieceImage = pcImage;
         pieceIdentity = identity;
         if (pieceIdentity.endsWith("king")) {
-            inCheckByPieces = new HashSet<Piece>();
+            inCheckByPieces = new HashSet<String>();
+            inCheckmateByPieces = new HashSet<String>();
+        }
+    }
+
+    public Piece(final String identity, final Image pcImage, final boolean beenCaptured) {
+        pieceImage = pcImage;
+        pieceIdentity = identity;
+        hasBeenCaptured = beenCaptured;
+    }
+    
+    public Piece(final String identity, final Image pcImage, final boolean beenCaptured,
+                 final HashSet<String> inCheckByPcs, final HashSet<String> inCheckmateByPcs) {
+        pieceImage = pcImage;
+        pieceIdentity = identity;
+        hasBeenCaptured = beenCaptured;
+        inCheckByPieces = inCheckByPcs;
+        inCheckmateByPieces = inCheckmateByPcs;
+    }
+
+    @Override
+    public Piece clone() {
+        if (pieceIdentity.endsWith("king")) {
+            return new Piece(pieceIdentity, pieceImage, hasBeenCaptured, new HashSet<String>(inCheckByPieces), new HashSet<String>(inCheckmateByPieces));
+        } else {
+            return new Piece(pieceIdentity, pieceImage, hasBeenCaptured);
         }
     }
 
@@ -23,24 +50,16 @@ public class Piece {
         return boardLocation;
     }
 
-    public void setBoardLocation(final String boardLocationStr) {
-        boardLocation = boardLocationStr;
-    }
-
     public String getIdentity() {
         return pieceIdentity;
     }
 
-    public void inCheckByPiece(final Piece pieceInCheckBy) {
-        inCheckByPieces.add(pieceInCheckBy);
-    }
-
-    public void noLongerInCheckBy(final Piece pieceNoLongerInCheckBy) {
-        inCheckByPieces.remove(pieceNoLongerInCheckBy);
-    }
-
-    public HashSet<Piece> getInCheckByPieces() {
+    public HashSet<String> getInCheckByPieces() {
         return inCheckByPieces;
+    }
+
+    public HashSet<String> getInCheckmateByPieces() {
+        return inCheckmateByPieces;
     }
 
     public boolean isInCheck() {
@@ -59,55 +78,35 @@ public class Piece {
         return pieceIdentity.split("-")[2];
     }
 
+    public boolean isInCheckmate() {
+        return inCheckmateByPieces.size() > 0;
+    }
+
+    public boolean getHasBeenCaptured() {
+        return hasBeenCaptured;
+    }
+
+    public void setHasBeenCaptured() {
+        hasBeenCaptured = true;
+    }
+
+    public void setBoardLocation(final String boardLocationStr) {
+        boardLocation = boardLocationStr;
+    }
+
+    public void inCheckmateByPiece(final Piece pieceInCheckmateBy) {
+        inCheckmateByPieces.add(pieceInCheckmateBy.getBoardLocation());
+    }
+
+    public void inCheckByPiece(final Piece pieceInCheckBy) {
+        inCheckByPieces.add(pieceInCheckBy.getBoardLocation());
+    }
+
+    public void noLongerInCheckBy(final Piece pieceNoLongerInCheckBy) {
+        inCheckByPieces.remove(pieceNoLongerInCheckBy.getBoardLocation());
+    }
+
     public Image getImage() {
-        Image pieceImage;
-        switch (pieceIdentity) {
-            case "white-rook":
-                pieceImage = imagesManager.getWhiteRook();
-                break;
-            case "white-knight-left":
-                pieceImage = imagesManager.getWhiteKnightLeft();
-                break;
-            case "white-knight-right":
-                pieceImage = imagesManager.getWhiteKnightRight();
-                break;
-            case "white-bishop":
-                pieceImage = imagesManager.getWhiteBishop();
-                break;
-            case "white-queen":
-                pieceImage = imagesManager.getWhiteQueen();
-                break;
-            case "white-king":
-                pieceImage = imagesManager.getWhiteKing();
-                break;
-            case "white-pawn":
-                pieceImage = imagesManager.getWhitePawn();
-                break;
-            case "black-rook":
-                pieceImage = imagesManager.getBlackRook();
-                break;
-            case "black-knight-left":
-                pieceImage = imagesManager.getBlackKnightLeft();
-                break;
-            case "black-knight-right":
-                pieceImage = imagesManager.getBlackKnightRight();
-                break;
-            case "black-bishop":
-                pieceImage = imagesManager.getBlackBishop();
-                break;
-            case "black-queen":
-                pieceImage = imagesManager.getBlackQueen();
-                break;
-            case "black-king":
-                pieceImage = imagesManager.getBlackKing();
-                break;
-            case "black-pawn":
-                pieceImage = imagesManager.getBlackPawn();
-                break;
-            default:
-                pieceImage = null;
-                break;
-        }
         return pieceImage;
     }
 }
