@@ -1,6 +1,7 @@
 package com.kmfahey.jchessgame;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.awt.Image;
 
 public class Piece {
@@ -8,11 +9,15 @@ public class Piece {
     private String pieceIdentity;
     private String boardLocation;
 
+    private HashSet<Piece> inCheckByPieces = null;
     private ImagesManager imagesManager;
 
     public Piece(final String identity, final ImagesManager imgMgr) {
         imagesManager = imgMgr;
         pieceIdentity = identity;
+        if (pieceIdentity.endsWith("king")) {
+            inCheckByPieces = new HashSet<Piece>();
+        }
     }
 
     public String getBoardLocation() {
@@ -25,6 +30,22 @@ public class Piece {
 
     public String getIdentity() {
         return pieceIdentity;
+    }
+
+    public void inCheckByPiece(Piece pieceInCheckBy) {
+        inCheckByPieces.add(pieceInCheckBy);
+    }
+
+    public void noLongerInCheckBy(Piece pieceNoLongerInCheckBy) {
+        inCheckByPieces.remove(pieceNoLongerInCheckBy);
+    }
+
+    public HashSet<Piece> getInCheckByPieces() {
+        return inCheckByPieces;
+    }
+    
+    public boolean isInCheck() {
+        return inCheckByPieces.size() > 0;
     }
 
     public String getColor() {

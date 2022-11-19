@@ -3,11 +3,13 @@ package com.kmfahey.jchessgame;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.stream.IntStream;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 import net.sf.repr.Repr;
 
 public class PiecesManager {
@@ -85,7 +87,7 @@ public class PiecesManager {
         imagesManager = imgMgr;
         colorPlaying = playingColor;
 
-        chessboard = new Chessboard();
+        chessboard = new Chessboard(this);
 
         HashMap<String, String[]> piecesStartingLocs = (colorPlaying == "white")
                                                        ? piecesStartingLocsWhiteBelow
@@ -211,18 +213,18 @@ public class PiecesManager {
         pruneMoveMap(piece, moveRangesByDir);
         if (moveRangesByDir.containsKey(NORTH)) {
             if (moveRangesByDir.get(NORTH).length >= 1) {
-                if (!Objects.isNull(chessboard.pieceAtLoc(moveRangesByDir.get(NORTH)[0]))) {
+                if (!Objects.isNull(chessboard.getPieceAtLoc(moveRangesByDir.get(NORTH)[0]))) {
                     moveRangesByDir.remove(NORTH);
                 } else if (moveRangesByDir.get(NORTH).length == 2
-                           && !Objects.isNull(chessboard.pieceAtLoc(moveRangesByDir.get(NORTH)[1]))) {
+                           && !Objects.isNull(chessboard.getPieceAtLoc(moveRangesByDir.get(NORTH)[1]))) {
                     moveRangesByDir.put(NORTH, new String[] {moveRangesByDir.get(NORTH)[0]});
                 }
             }
         }
         for (int moveDir : new int[] {NORTH_EAST, NORTH_WEST}) {
             if (moveRangesByDir.containsKey(moveDir)
-                && (Objects.isNull(chessboard.pieceAtLoc(moveRangesByDir.get(moveDir)[0]))
-                    || chessboard.pieceAtLoc(moveRangesByDir.get(moveDir)[0])
+                && (Objects.isNull(chessboard.getPieceAtLoc(moveRangesByDir.get(moveDir)[0]))
+                    || chessboard.getPieceAtLoc(moveRangesByDir.get(moveDir)[0])
                                       .getColor().equals(piece.getColor()))) {
                 moveRangesByDir.remove(moveDir);
             }
@@ -252,15 +254,15 @@ public class PiecesManager {
                         moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index));
                     }
                     break;
-                } else if (!Objects.isNull(chessboard.pieceAtLoc(moveMap.get(moveDir)[index]))) {
-                    if (chessboard.pieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
+                } else if (!Objects.isNull(chessboard.getPieceAtLoc(moveMap.get(moveDir)[index]))) {
+                    if (chessboard.getPieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
                         if (index == 0) {
                             moveMap.remove(moveDir);
                         } else {
                             moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index));
                         }
                         break;
-                    } else if (!chessboard.pieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
+                    } else if (!chessboard.getPieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
                         moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index+1));
                         break;
                     }
@@ -295,7 +297,7 @@ public class PiecesManager {
     }
 
     public HashSet<String> getValidMoveSet(final String pieceLocation) {
-        Piece piece = chessboard.pieceAtLoc(pieceLocation);
+        Piece piece = chessboard.getPieceAtLoc(pieceLocation);
         return getValidMoveSet(piece);
     }
 
@@ -314,7 +316,7 @@ public class PiecesManager {
     }
 
     public Piece getPiece(final String pieceLoc) {
-        return chessboard.pieceAtLoc(pieceLoc);
+        return chessboard.getPieceAtLoc(pieceLoc);
     }
 
     public String numericIndexesToAlgNotnLoc(int horizIndex, int vertIndex) {
@@ -324,7 +326,7 @@ public class PiecesManager {
     }
 
     public void movePiece(final String pieceCurrentLoc, final String movingToLoc) {
-        Piece movedPiece = chessboard.pieceAtLoc(pieceCurrentLoc);
+        Piece movedPiece = chessboard.getPieceAtLoc(pieceCurrentLoc);
         chessboard.movePieceToLoc(movedPiece, movingToLoc);
     }
 
@@ -336,7 +338,38 @@ public class PiecesManager {
         return chessboard.getPiecesIdentities();
     }
 
+    public String[] getPiecesIdentities(String substringToMatch) {
+        Object[] objectArray = Arrays.asList(chessboard.getPiecesIdentities()).stream()
+                                     .filter(strval -> strval.contains(substringToMatch)).map(String::new)
+                                     .collect(Collectors.toList()).toArray();
+        return Arrays.copyOf(objectArray, objectArray.length, String[].class);
+    }
+
     public String getColorPlaying() {
         return colorPlaying;
+    }
+
+    public void checkIfKingIsInCheck(String kingColor) {
+        HashSet<Piece> checkedPieces = new HashSet<Piece>();
+        Piece kingPiece = chessboard.getPiecesByIdentity(kingColor + "-king")[0];
+        String kingLocation = kingPiece.getBoardLocation();
+        if (kingPiece.isInCheck()) {
+            HashSet<Piece> kingInCheckByPieces = kingPiece.getInCheckByPieces();
+            for (Piece threateningPiece : kingInCheckByPieces) {
+                if (! getValidMoveSet(threateningPiece).contains(kingLocation)) {
+                    kingPiece.noLongerInCheckBy(threateningPiece);
+                }
+                checkedPieces.add(threateningPiece);
+            }
+        }
+        for (String otherSidePieceIdentity : getPiecesIdentities((kingColor.equals("white") ? "black" : "white"))) {
+            for (Piece otherSidePiece : getPiecesByIdentity(otherSidePieceIdentity)) {
+                if (checkedPieces.contains(otherSidePiece)) {
+                    continue;
+                } else if (getValidMoveSet(otherSidePiece).contains(kingLocation)) {
+                    kingPiece.inCheckByPiece(otherSidePiece);
+                }
+            }
+        }
     }
 }
