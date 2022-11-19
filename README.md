@@ -1,10 +1,12 @@
 #### JChessgame
 
-A simple graphical chessgame that implements a standard glyphic graphical chessboard interface and a sufficiently strong chess-playing algorithm to win games, completed as a self-teaching exercise. 
+A simple graphical chessgame that implements a standard icon-based graphical
+chessboard interface and a sufficiently strong chess-playing algorithm to win
+games, completed as a self-teaching exercise.
 
 #### Images Credit
 
-The chesspiece images, to wit,
+These chesspiece images:
 
  * ./images/Black Bishop.png
  * ./images/Black King.png
@@ -21,6 +23,12 @@ The chesspiece images, to wit,
  * ./images/White Queen.png
  * ./images/White Rook.png
 
-were individually cropped out of a composite image, in the public domain, retrieved from CreativeCommons.org: [Chess pieces vector](https://freesvg.org/chess-pieces-vector).
+were individually cropped out of a public domain SVG image, retrieved from
+CreativeCommons.org: [Chess pieces vector](https://freesvg.org/chess-pieces-vector).
 
+#### Algorithm Credit
 
+The board evaluation algorithm implemented in
+Chessboard.evaluateBoard() is adapted from a formula
+[found on chessprogramming.org](https://www.chessprogramming.org/Evaluation). It was
+originally derived in 1949 by Claude Shannon.

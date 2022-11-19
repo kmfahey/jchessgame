@@ -43,9 +43,11 @@ public class ChessGame extends JFrame {
         boardConstraints.gridwidth = 1;
         boardConstraints.insets = new Insets(20, 20, 20, 20);
 
-        Dimension boardDims = new Dimension((int) windowDims.getWidth() - 40, (int) windowDims.getHeight() - 40);
+        Dimension boardDims = new Dimension((int) windowDims.getWidth() - 40,
+                                            (int) windowDims.getHeight() - 40);
 
-        scalingProportion = (float) boardDims.getWidth() / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
+        scalingProportion = (float) boardDims.getWidth()
+                                    / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
         coordinatesManager = new CoordinatesManager(scalingProportion);
 
         imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
@@ -55,7 +57,8 @@ public class ChessGame extends JFrame {
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
         gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
 
-        BoardView boardView = new BoardView(boardDims, imagesManager, coordinatesManager, piecesManager);
+        BoardView boardView = new BoardView(boardDims, imagesManager,
+                                            coordinatesManager, piecesManager);
         gamePanel.add(boardView, boardConstraints);
 
         boardView.addMouseListener(boardView);

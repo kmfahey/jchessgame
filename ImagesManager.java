@@ -20,7 +20,8 @@ public class ImagesManager {
     private HashMap<String, Image> piecesImagesScaled;
     private Dimension squareDimensions;
 
-    public ImagesManager(final String imageDirectory, final Dimension squareDims) throws IOException, FileNotFoundException {
+    public ImagesManager(final String imageDirectory, final Dimension squareDims)
+                            throws IOException, FileNotFoundException {
 
         piecesImages = new HashMap<>();
         squareDimensions = squareDims;

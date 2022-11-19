@@ -2,8 +2,6 @@ package com.kmfahey.jchessgame;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Chessboard {
@@ -17,7 +15,7 @@ public class Chessboard {
     private PiecesManager piecesManager;
 
     public Chessboard(final PiecesManager piecesMgr) {
-    
+
         piecesManager = piecesMgr;
 
         piecesMap = new HashMap<String, Piece[]>();
@@ -45,7 +43,7 @@ public class Chessboard {
         int toIndex = 0;
 
         oldPiecesArray = piecesMap.get(piece.getIdentity());
-        newPiecesArray = new Piece[oldPiecesArray.length-1];
+        newPiecesArray = new Piece[oldPiecesArray.length - 1];
 
         if (oldPiecesArray.length > 1) {
             while (fromIndex < oldPiecesArray.length) {
@@ -73,17 +71,22 @@ public class Chessboard {
         movingPiece.setBoardLocation(movingToLoc);
         piecesLocations.put(movingToLoc, movingPiece);
         /* Possibilities:
-                - Due to this move, this side's king is now in check (because this piece got out of the way).
-                - Due to this move, this side's king is no longer in check (because this piece got in the way).
-                - Due to this move, the other side's king is now in check by this piece.
-                - Due to this move, the other side's king is now in check by another piece on this side.
-                - Due to this move, the other side's king is no longer in check because this piece got in the way. */
+           * Due to this move, this side's king is now in check (because this
+             piece got out of the way).
+           * Due to this move, this side's king is no longer in check (because
+             this piece got in the way).
+           * Due to this move, the other side's king is now in check by this
+             piece.
+           * Due to this move, the other side's king is now in check by another
+             piece on this side.
+           * Due to this move, the other side's king is no longer in check
+             because this piece got in the way. */
         piecesManager.checkIfKingIsInCheck(movingPiece.getColor());
         piecesManager.checkIfKingIsInCheck(movingPiece.getColor().equals("white") ? "black" : "white");
         return capturedPiece;
     }
 
-    public Piece[] getPiecesByIdentity(String piecesIdentity) {
+    public Piece[] getPiecesByIdentity(final String piecesIdentity) {
         return piecesMap.get(piecesIdentity);
     }
 
@@ -95,7 +98,7 @@ public class Chessboard {
         return piecesLocations.get(algNotnLoc);
     }
 
-    public float evaluateBoard(String thisColor) {
+    public float evaluateBoard(final String thisColor) {
         String otherColor = (thisColor.equals("white")) ? "black" : "white";
 
         float thisKingCount = piecesMap.get(thisColor + "-king")[0].isInCheck() ? 0F : 1F;
@@ -130,11 +133,11 @@ public class Chessboard {
         float generalPawnScore = (thisPawnCount - otherPawnCount);
         float specialPawnScore = 0.5F * (isolatedPawnDifference + blockedPawnDifference + doubledPawnDifference);
         float mobilityScore = 0.1F * (thisMobility - otherMobility);
-        return (kingScore + queenScore + rookScore + bishopAndKnightScore 
+        return (kingScore + queenScore + rookScore + bishopAndKnightScore
                 + generalPawnScore + specialPawnScore + mobilityScore);
     }
 
-    private float colorMobility(String thisColor) {
+    private float colorMobility(final String thisColor) {
         float possibleMovesCount = 0;
         for (String piecesIdentity : getPiecesIdentities()) {
             if (!piecesIdentity.startsWith(thisColor)) {
@@ -147,13 +150,13 @@ public class Chessboard {
         return possibleMovesCount;
     }
 
-    private float[] tallySpecialPawns(String thisColor) {
+    private float[] tallySpecialPawns(final String thisColor) {
         String otherColor = thisColor.equals("white") ? "black" : "white";
         float[] retval = new float[3];
         float doubledPawns = 0;
         float isolatedPawns = 0;
         float blockedPawns = 0;
-        
+
         for (Piece thisPawn : piecesMap.get(thisColor + "-pawn")) {
             String thisPawnLoc = thisPawn.getBoardLocation();
             boolean hasAdjacentPawn = false;

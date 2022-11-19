@@ -181,8 +181,10 @@ public class CoordinatesManager {
         char vertAlgbNotChar = algebraicNotation.charAt(1);
         int horizSquareOrdinate = algbNotnHorizCharsToInts.get(horizAlgbNotChar);
         int vertSquareOrdinate = algbNotnVertCharsToInts.get(vertAlgbNotChar);
-        int upperLeftHorizPixel = upperLeftCornerOfSquaresRegion.x + (int) squareDimensions.getWidth() * horizSquareOrdinate;
-        int upperLeftVertPixel = upperLeftCornerOfSquaresRegion.y + (int) squareDimensions.getHeight() * vertSquareOrdinate;
+        int upperLeftHorizPixel = upperLeftCornerOfSquaresRegion.x
+                                  + (int) squareDimensions.getWidth() * horizSquareOrdinate;
+        int upperLeftVertPixel = upperLeftCornerOfSquaresRegion.y
+                                 + (int) squareDimensions.getHeight() * vertSquareOrdinate;
         return new Point(upperLeftHorizPixel, upperLeftVertPixel);
     }
 }

@@ -1,6 +1,5 @@
 package com.kmfahey.jchessgame;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.awt.Image;
 
@@ -24,7 +23,7 @@ public class Piece {
         return boardLocation;
     }
 
-    public void setBoardLocation(String boardLocationStr) {
+    public void setBoardLocation(final String boardLocationStr) {
         boardLocation = boardLocationStr;
     }
 
@@ -32,18 +31,18 @@ public class Piece {
         return pieceIdentity;
     }
 
-    public void inCheckByPiece(Piece pieceInCheckBy) {
+    public void inCheckByPiece(final Piece pieceInCheckBy) {
         inCheckByPieces.add(pieceInCheckBy);
     }
 
-    public void noLongerInCheckBy(Piece pieceNoLongerInCheckBy) {
+    public void noLongerInCheckBy(final Piece pieceNoLongerInCheckBy) {
         inCheckByPieces.remove(pieceNoLongerInCheckBy);
     }
 
     public HashSet<Piece> getInCheckByPieces() {
         return inCheckByPieces;
     }
-    
+
     public boolean isInCheck() {
         return inCheckByPieces.size() > 0;
     }
@@ -61,22 +60,53 @@ public class Piece {
     }
 
     public Image getImage() {
-        Image pieceImage = null;
+        Image pieceImage;
         switch (pieceIdentity) {
-            case "white-rook": pieceImage = imagesManager.getWhiteRook(); break;
-            case "white-knight-left": pieceImage = imagesManager.getWhiteKnightLeft(); break;
-            case "white-knight-right": pieceImage = imagesManager.getWhiteKnightRight(); break;
-            case "white-bishop": pieceImage = imagesManager.getWhiteBishop(); break;
-            case "white-queen": pieceImage = imagesManager.getWhiteQueen(); break;
-            case "white-king": pieceImage = imagesManager.getWhiteKing(); break;
-            case "white-pawn": pieceImage = imagesManager.getWhitePawn(); break;
-            case "black-rook": pieceImage = imagesManager.getBlackRook(); break;
-            case "black-knight-left": pieceImage = imagesManager.getBlackKnightLeft(); break;
-            case "black-knight-right": pieceImage = imagesManager.getBlackKnightRight(); break;
-            case "black-bishop": pieceImage = imagesManager.getBlackBishop(); break;
-            case "black-queen": pieceImage = imagesManager.getBlackQueen(); break;
-            case "black-king": pieceImage = imagesManager.getBlackKing(); break;
-            case "black-pawn": pieceImage = imagesManager.getBlackPawn(); break;
+            case "white-rook":
+                pieceImage = imagesManager.getWhiteRook();
+                break;
+            case "white-knight-left":
+                pieceImage = imagesManager.getWhiteKnightLeft();
+                break;
+            case "white-knight-right":
+                pieceImage = imagesManager.getWhiteKnightRight();
+                break;
+            case "white-bishop":
+                pieceImage = imagesManager.getWhiteBishop();
+                break;
+            case "white-queen":
+                pieceImage = imagesManager.getWhiteQueen();
+                break;
+            case "white-king":
+                pieceImage = imagesManager.getWhiteKing();
+                break;
+            case "white-pawn":
+                pieceImage = imagesManager.getWhitePawn();
+                break;
+            case "black-rook":
+                pieceImage = imagesManager.getBlackRook();
+                break;
+            case "black-knight-left":
+                pieceImage = imagesManager.getBlackKnightLeft();
+                break;
+            case "black-knight-right":
+                pieceImage = imagesManager.getBlackKnightRight();
+                break;
+            case "black-bishop":
+                pieceImage = imagesManager.getBlackBishop();
+                break;
+            case "black-queen":
+                pieceImage = imagesManager.getBlackQueen();
+                break;
+            case "black-king":
+                pieceImage = imagesManager.getBlackKing();
+                break;
+            case "black-pawn":
+                pieceImage = imagesManager.getBlackPawn();
+                break;
+            default:
+                pieceImage = null;
+                break;
         }
         return pieceImage;
     }

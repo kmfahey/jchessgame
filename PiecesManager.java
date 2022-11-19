@@ -14,18 +14,18 @@ import net.sf.repr.Repr;
 
 public class PiecesManager {
 
-    public static String WHITE = "white";
-    public static String BLACK = "black";
+    public static final String WHITE = "white";
+    public static final String BLACK = "black";
 
-    public static String BISHOP = "bishop";
-    public static String KING = "king";
-    public static String KNIGHT = "knight";
-    public static String PAWN = "pawn";
-    public static String QUEEN = "queen";
-    public static String ROOK = "rook";
+    public static final String BISHOP = "bishop";
+    public static final String KING = "king";
+    public static final String KNIGHT = "knight";
+    public static final String PAWN = "pawn";
+    public static final String QUEEN = "queen";
+    public static final String ROOK = "rook";
 
-    public static String RIGHT = "right";
-    public static String LEFT = "left";
+    public static final String RIGHT = "right";
+    public static final String LEFT = "left";
 
     public static final int NORTH = 0;
     public static final int NORTH_NORTH_EAST = 1;
@@ -148,8 +148,8 @@ public class PiecesManager {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH, EAST, SOUTH, WEST}) {
             moveRangesByDir.put(moveDir, new String[7]);
-            for (int moveDist : new int[] {1,2,3,4,5,6,7}) {
-                moveRangesByDir.get(moveDir)[moveDist-1] = plotDirMove(pieceLocation, moveDist, moveDir);
+            for (int moveDist : new int[] {1, 2, 3, 4, 5, 6, 7}) {
+                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(pieceLocation, moveDist, moveDir);
             }
         }
         pruneMoveMap(piece, moveRangesByDir);
@@ -170,8 +170,8 @@ public class PiecesManager {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST}) {
             moveRangesByDir.put(moveDir, new String[7]);
-            for (int moveDist : new int[] {1,2,3,4,5,6,7}) {
-                moveRangesByDir.get(moveDir)[moveDist-1] = plotDirMove(pieceLocation, moveDist, moveDir);
+            for (int moveDist : new int[] {1, 2, 3, 4, 5, 6, 7}) {
+                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(pieceLocation, moveDist, moveDir);
             }
         }
         pruneMoveMap(piece, moveRangesByDir);
@@ -182,8 +182,8 @@ public class PiecesManager {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST}) {
             moveRangesByDir.put(moveDir, new String[7]);
-            for (int moveDist : new int[] {1,2,3,4,5,6,7}) {
-                moveRangesByDir.get(moveDir)[moveDist-1] = plotDirMove(pieceLocation, moveDist, moveDir);
+            for (int moveDist : new int[] {1, 2, 3, 4, 5, 6, 7}) {
+                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(pieceLocation, moveDist, moveDir);
             }
         }
         pruneMoveMap(piece, moveRangesByDir);
@@ -255,15 +255,17 @@ public class PiecesManager {
                     }
                     break;
                 } else if (!Objects.isNull(chessboard.getPieceAtLoc(moveMap.get(moveDir)[index]))) {
-                    if (chessboard.getPieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
+                    if (chessboard.getPieceAtLoc(moveMap.get(moveDir)[index])
+                                  .getColor().equals(piece.getColor())) {
                         if (index == 0) {
                             moveMap.remove(moveDir);
                         } else {
                             moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index));
                         }
                         break;
-                    } else if (!chessboard.getPieceAtLoc(moveMap.get(moveDir)[index]).getColor().equals(piece.getColor())) {
-                        moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index+1));
+                    } else if (!chessboard.getPieceAtLoc(moveMap.get(moveDir)[index])
+                                          .getColor().equals(piece.getColor())) {
+                        moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index + 1));
                         break;
                     }
                 }
@@ -301,7 +303,7 @@ public class PiecesManager {
         return getValidMoveSet(piece);
     }
 
-    public boolean isSquareThreatened(String squareLoc) {
+    public boolean isSquareThreatened(final String squareLoc) {
         for (String piecesIdentity : chessboard.getPiecesIdentities()) {
             if (piecesIdentity.startsWith(colorPlaying)) {
                 continue;
@@ -319,7 +321,7 @@ public class PiecesManager {
         return chessboard.getPieceAtLoc(pieceLoc);
     }
 
-    public String numericIndexesToAlgNotnLoc(int horizIndex, int vertIndex) {
+    public String numericIndexesToAlgNotnLoc(final int horizIndex, final int vertIndex) {
         final String alphaCharVals = "abcdefgh";
         final String numCharVals = "87654321";
         return String.valueOf(alphaCharVals.charAt(horizIndex)) + String.valueOf(numCharVals.charAt(vertIndex));
@@ -338,7 +340,7 @@ public class PiecesManager {
         return chessboard.getPiecesIdentities();
     }
 
-    public String[] getPiecesIdentities(String substringToMatch) {
+    public String[] getPiecesIdentities(final String substringToMatch) {
         Object[] objectArray = Arrays.asList(chessboard.getPiecesIdentities()).stream()
                                      .filter(strval -> strval.contains(substringToMatch)).map(String::new)
                                      .collect(Collectors.toList()).toArray();
@@ -349,14 +351,14 @@ public class PiecesManager {
         return colorPlaying;
     }
 
-    public void checkIfKingIsInCheck(String kingColor) {
+    public void checkIfKingIsInCheck(final String kingColor) {
         HashSet<Piece> checkedPieces = new HashSet<Piece>();
         Piece kingPiece = chessboard.getPiecesByIdentity(kingColor + "-king")[0];
         String kingLocation = kingPiece.getBoardLocation();
         if (kingPiece.isInCheck()) {
             HashSet<Piece> kingInCheckByPieces = kingPiece.getInCheckByPieces();
             for (Piece threateningPiece : kingInCheckByPieces) {
-                if (! getValidMoveSet(threateningPiece).contains(kingLocation)) {
+                if (!getValidMoveSet(threateningPiece).contains(kingLocation)) {
                     kingPiece.noLongerInCheckBy(threateningPiece);
                 }
                 checkedPieces.add(threateningPiece);

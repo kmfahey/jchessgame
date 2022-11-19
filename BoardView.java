@@ -10,7 +10,6 @@ import java.awt.Image;
 import java.awt.Point;
 import javax.swing.JComponent;
 import java.util.Objects;
-import java.util.Arrays;
 
 public class BoardView extends JComponent implements MouseListener {
 
@@ -44,7 +43,8 @@ public class BoardView extends JComponent implements MouseListener {
     private Piece clickEventToCapturePiece = null;
     private String clickEventMovingTo = "";
 
-    public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr, final CoordinatesManager coordMgr, final PiecesManager piecesMgr) {
+    public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr,
+                     final CoordinatesManager coordMgr, final PiecesManager piecesMgr) {
         boardDims = cmpntDims;
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
@@ -66,30 +66,36 @@ public class BoardView extends JComponent implements MouseListener {
 
         graphics.setColor(Color.BLACK);
 
-        graphics.fillRect(0, 0, (int) totalBoardDimensions.getWidth(), (int) totalBoardDimensions.getHeight());
+        graphics.fillRect(0, 0, (int) totalBoardDimensions.getWidth(),
+                                (int) totalBoardDimensions.getHeight());
 
         graphics.setColor(BEIGE);
 
         graphics.fillRect(beigeMarginInsets.left, beigeMarginInsets.top,
-                          (int) beigeMarginDimensions.getWidth(), (int) beigeMarginDimensions.getHeight());
+                          (int) beigeMarginDimensions.getWidth(),
+                          (int) beigeMarginDimensions.getHeight());
 
         graphics.setColor(Color.BLACK);
 
         graphics.fillRect(innerBlackBorderInsets.left, innerBlackBorderInsets.top,
-                          (int) innerBlackBorderDimensions.getWidth(), (int) innerBlackBorderDimensions.getHeight());
+                          (int) innerBlackBorderDimensions.getWidth(),
+                          (int) innerBlackBorderDimensions.getHeight());
 
         graphics.setColor(BEIGE);
 
         for (String lightColoredSquareLoc : LIGHT_COLORED_SQUARES_LOCS) {
-            Point squareUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(lightColoredSquareLoc);
+            Point squareUpperLeftCorner = coordinatesManager
+                                          .getSquareUpperLeftCorner(lightColoredSquareLoc);
             graphics.fillRect(squareUpperLeftCorner.x, squareUpperLeftCorner.y,
-                              (int) squareDimensions.getWidth(), (int) squareDimensions.getHeight());
+                              (int) squareDimensions.getWidth(),
+                              (int) squareDimensions.getHeight());
         }
 
         for (String piecesIdentity : piecesManager.getPiecesIdentities()) {
             for (Piece piece : piecesManager.getPiecesByIdentity(piecesIdentity)) {
                 Image pieceIcon = piece.getImage();
-                Point pieceUpperLeftCorner = coordinatesManager.getSquareUpperLeftCorner(piece.getBoardLocation());
+                Point pieceUpperLeftCorner = coordinatesManager
+                                             .getSquareUpperLeftCorner(piece.getBoardLocation());
                 graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
             }
         }
@@ -100,7 +106,7 @@ public class BoardView extends JComponent implements MouseListener {
         int vertCoord = event.getY();
 
         Piece capturedPiece;
-        
+
         Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
         Dimension boardSquareFieldDimensions = coordinatesManager.getBoardSquareFieldDimensions();
@@ -132,7 +138,8 @@ public class BoardView extends JComponent implements MouseListener {
             clickEventMovingFrom = clickSquareLoc;
             clickEventClickedPiece = piecesManager.getPiece(clickEventMovingFrom);
 
-            if (Objects.isNull(clickEventClickedPiece) || !clickEventClickedPiece.getColor().equals(piecesManager.getColorPlaying())) {
+            if (Objects.isNull(clickEventClickedPiece) ||
+                    !clickEventClickedPiece.getColor().equals(piecesManager.getColorPlaying())) {
                 resetClickEventVars();
                 return;
             }
@@ -145,14 +152,17 @@ public class BoardView extends JComponent implements MouseListener {
             }
 
             clickEventToCapturePiece = piecesManager.getPiece(clickEventMovingTo);
-            
-            if (!Objects.isNull(clickEventToCapturePiece) && clickEventToCapturePiece.getColor().equals(piecesManager.getColorPlaying())) {
+
+            if (!Objects.isNull(clickEventToCapturePiece)
+                    && clickEventToCapturePiece.getColor()
+                                               .equals(piecesManager.getColorPlaying())) {
                 resetClickEventVars();
                 return;
-            } else if (clickEventClickedPiece.getRole().equals(PiecesManager.KING) && piecesManager.isSquareThreatened(clickEventMovingTo)) {
+            } else if (clickEventClickedPiece.getRole().equals(PiecesManager.KING)
+                    && piecesManager.isSquareThreatened(clickEventMovingTo)) {
                 resetClickEventVars();
                 return;
-            } 
+            }
 
             piecesManager.movePiece(clickEventMovingFrom, clickEventMovingTo);
 
