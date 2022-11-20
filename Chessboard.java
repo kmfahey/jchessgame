@@ -74,7 +74,7 @@ public class Chessboard implements Cloneable {
     }};
 
     private String colorPlaying;
-
+    private Piece lastMovedPiece = null;
     private HashMap<String, Piece> piecesLocations;
 
     public Chessboard(final ImagesManager imagesManager, final String playingColor) {
@@ -101,7 +101,7 @@ public class Chessboard implements Cloneable {
             for (int index = 0; index < startingLocs.length; index++) {
                 Piece piece = new Piece(identityToLocations.getKey(),
                                         imagesManager.getImageByIdentity(identityToLocations.getKey()));
-                piece.setBoardLocation(startingLocs[index]);
+                piece.setLocation(startingLocs[index]);
                 piecesLocations.put(startingLocs[index], piece);
             }
         }
@@ -119,7 +119,9 @@ public class Chessboard implements Cloneable {
         /* The Pawn objects have state-- they store their location and Kings
            store if they're in check-- so they have to be individually cloned. */
         for (Entry<String, Piece> locToPiece : piecesLocations.entrySet()) {
-            piecesLocsCopy.put(locToPiece.getKey(), locToPiece.getValue().clone());
+            String location = locToPiece.getKey();
+            Piece piece = locToPiece.getValue();
+            piecesLocsCopy.put(location, Objects.isNull(piece) ? null : piece.clone());
         }
 
         return new Chessboard(piecesLocsCopy, colorPlaying);
@@ -157,7 +159,7 @@ public class Chessboard implements Cloneable {
                               .toArray(Piece[]::new);
     }
 
-    public Piece getPieceAtLoc(final String algNotnLoc) {
+    public Piece getPieceAtLocation(final String algNotnLoc) {
         return piecesLocations.get(algNotnLoc);
     }
 
@@ -254,13 +256,13 @@ public class Chessboard implements Cloneable {
         float blockedPawnsTally = 0;
 
         for (Piece thisPawn : getPieceByIdentity(theColor + "-pawn")) {
-            String thisPawnLoc = thisPawn.getBoardLocation();
+            String thisPawnLoc = thisPawn.getLocation();
             boolean hasAdjacentPawn = false;
             for (Piece otherPawn : getPieceByIdentity(theColor + "-pawn")) {
                 if (thisPawn == otherPawn) {
                     continue;
                 }
-                String otherPawnLoc = otherPawn.getBoardLocation();
+                String otherPawnLoc = otherPawn.getLocation();
                 if (thisPawnLoc.charAt(0) == otherPawnLoc.charAt(0)
                         && thisPawnLoc.charAt(1) + 1 == otherPawnLoc.charAt(1)) {
                     if (!doubledPawns.contains(thisPawn)) {
@@ -352,7 +354,7 @@ public class Chessboard implements Cloneable {
                         moveMap.put(moveDir, Arrays.copyOf(moveMap.get(moveDir), index));
                     }
                     break;
-                } else if (!Objects.isNull(getPieceAtLoc(moveMap.get(moveDir)[index]))) {
+                } else if (!Objects.isNull(getPieceAtLocation(moveMap.get(moveDir)[index]))) {
                     if (piecesLocations.get(moveMap.get(moveDir)[index])
                                        .getColor().equals(piece.getColor())) {
                         if (index == 0) {
@@ -371,62 +373,63 @@ public class Chessboard implements Cloneable {
         }
     }
 
-    private HashSet<String> rooksMoves(final Piece piece, final String pieceLocation) {
+    private HashSet<String> rooksMoves(final Piece piece) {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH, EAST, SOUTH, WEST}) {
             moveRangesByDir.put(moveDir, new String[7]);
             for (int moveDist : new int[] {1, 2, 3, 4, 5, 6, 7}) {
-                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(pieceLocation, moveDist, moveDir);
+                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(piece.getLocation(), moveDist, moveDir);
             }
         }
         pruneMoveMap(piece, moveRangesByDir);
         return moveMapToSet(moveRangesByDir);
     }
 
-    private HashSet<String> knightsMoves(final Piece piece, final String pieceLocation) {
+    private HashSet<String> knightsMoves(final Piece piece) {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH_NORTH_EAST, EAST_NORTH_EAST, EAST_SOUTH_EAST, SOUTH_SOUTH_EAST,
                                           SOUTH_SOUTH_WEST, WEST_SOUTH_WEST, WEST_NORTH_WEST, NORTH_NORTH_WEST}) {
-            moveRangesByDir.put(moveDir, new String[] {plotDirMove(pieceLocation, 1, moveDir)});
+            moveRangesByDir.put(moveDir, new String[] {plotDirMove(piece.getLocation(), 1, moveDir)});
         }
         pruneMoveMap(piece, moveRangesByDir);
         return moveMapToSet(moveRangesByDir);
     }
 
-    private HashSet<String> bishopsMoves(final Piece piece, final String pieceLocation) {
+    private HashSet<String> bishopsMoves(final Piece piece) {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST}) {
             moveRangesByDir.put(moveDir, new String[7]);
             for (int moveDist : new int[] {1, 2, 3, 4, 5, 6, 7}) {
-                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(pieceLocation, moveDist, moveDir);
+                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(piece.getLocation(), moveDist, moveDir);
             }
         }
         pruneMoveMap(piece, moveRangesByDir);
         return moveMapToSet(moveRangesByDir);
     }
 
-    private HashSet<String> queensMoves(final Piece piece, final String pieceLocation) {
+    private HashSet<String> queensMoves(final Piece piece) {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST}) {
             moveRangesByDir.put(moveDir, new String[7]);
             for (int moveDist : new int[] {1, 2, 3, 4, 5, 6, 7}) {
-                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(pieceLocation, moveDist, moveDir);
+                moveRangesByDir.get(moveDir)[moveDist - 1] = plotDirMove(piece.getLocation(), moveDist, moveDir);
             }
         }
         pruneMoveMap(piece, moveRangesByDir);
         return moveMapToSet(moveRangesByDir);
     }
 
-    private HashSet<String> kingsMoves(final Piece piece, final String pieceLocation) {
+    private HashSet<String> kingsMoves(final Piece piece) {
         HashMap<Integer, String[]> moveRangesByDir = new HashMap<>();
         for (int moveDir : new int[] {NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST}) {
-            moveRangesByDir.put(moveDir, new String[] {plotDirMove(pieceLocation, 1, moveDir)});
+            moveRangesByDir.put(moveDir, new String[] {plotDirMove(piece.getLocation(), 1, moveDir)});
         }
         pruneMoveMap(piece, moveRangesByDir);
         return moveMapToSet(moveRangesByDir);
     }
 
-    private HashSet<String> pawnsMoves(final Piece piece, final String pieceLocation) {
+    private HashSet<String> pawnsMoves(final Piece piece) {
+        String pieceLocation = piece.getLocation();
         int FORWARD_DIR = piece.getColor().equals(colorPlaying) ? NORTH : SOUTH;
         int LEFT_DIAG_DIR = piece.getColor().equals(colorPlaying) ? NORTH_WEST : SOUTH_EAST;
         int RIGHT_DIAG_DIR = piece.getColor().equals(colorPlaying) ? NORTH_EAST : SOUTH_WEST;
@@ -444,10 +447,10 @@ public class Chessboard implements Cloneable {
         pruneMoveMap(piece, moveRangesByDir);
         if (moveRangesByDir.containsKey(FORWARD_DIR)) {
             if (moveRangesByDir.get(FORWARD_DIR).length >= 1) {
-                if (!Objects.isNull(getPieceAtLoc(moveRangesByDir.get(FORWARD_DIR)[0]))) {
+                if (!Objects.isNull(getPieceAtLocation(moveRangesByDir.get(FORWARD_DIR)[0]))) {
                     moveRangesByDir.remove(FORWARD_DIR);
                 } else if (moveRangesByDir.get(FORWARD_DIR).length == 2
-                           && !Objects.isNull(getPieceAtLoc(moveRangesByDir.get(FORWARD_DIR)[1]))) {
+                           && !Objects.isNull(getPieceAtLocation(moveRangesByDir.get(FORWARD_DIR)[1]))) {
                     moveRangesByDir.put(FORWARD_DIR, new String[] {moveRangesByDir.get(FORWARD_DIR)[0]});
                 }
             }
@@ -464,24 +467,23 @@ public class Chessboard implements Cloneable {
     }
 
     public HashSet<String> getValidMoveSet(final Piece piece) {
-        String pieceLocation = piece.getBoardLocation();
         if (Objects.isNull(piece)) {
             return null;
         }
         HashSet<String> retval;
         switch (piece.getRole()) {
             case "rook":
-                retval = rooksMoves(piece, pieceLocation); break;
+                retval = rooksMoves(piece); break;
             case "knight":
-                retval = knightsMoves(piece, pieceLocation); break;
+                retval = knightsMoves(piece); break;
             case "bishop":
-                retval = bishopsMoves(piece, pieceLocation); break;
+                retval = bishopsMoves(piece); break;
             case "queen":
-                retval = queensMoves(piece, pieceLocation); break;
+                retval = queensMoves(piece); break;
             case "king":
-                retval = kingsMoves(piece, pieceLocation); break;
+                retval = kingsMoves(piece); break;
             case "pawn":
-                retval = pawnsMoves(piece, pieceLocation); break;
+                retval = pawnsMoves(piece); break;
             default:
                 retval = null;
         }
@@ -510,11 +512,11 @@ public class Chessboard implements Cloneable {
     public Piece checkIfKingIsInCheck(final String kingColor) {
         HashSet<Piece> checkedPieces = new HashSet<Piece>();
         Piece kingPiece = getPieceByIdentity(kingColor + "-king")[0];
-        String kingLocation = kingPiece.getBoardLocation();
+        String kingLocation = kingPiece.getLocation();
         Piece retval = null;
         if (kingPiece.isInCheck()) {
-            HashSet<String> kingInCheckByPiecesLocations = kingPiece.getInCheckByPieces();
-            for (String threateningPieceLocation : kingInCheckByPiecesLocations) {
+            HashSet<String> kingInCheckByPcsLocs = kingPiece.getInCheckByPcsAtLocs();
+            for (String threateningPieceLocation : kingInCheckByPcsLocs) {
                 Piece threateningPiece = piecesLocations.get(threateningPieceLocation);
                 if (!getValidMoveSet(threateningPiece).contains(kingLocation)) {
                     kingPiece.noLongerInCheckBy(threateningPiece);
@@ -543,7 +545,7 @@ public class Chessboard implements Cloneable {
         }
         String opposingColor = kingColor.equals("white") ? "black" : "white";
         Piece kingPiece = getPieceByIdentity(kingColor + "-king")[0];
-        for (String possibleMove : kingsMoves(kingPiece, kingPiece.getBoardLocation())) {
+        for (String possibleMove : kingsMoves(kingPiece)) {
             if (!isSquareThreatened(possibleMove, opposingColor)) {
                 return null;
             }
@@ -555,22 +557,26 @@ public class Chessboard implements Cloneable {
         return colorPlaying;
     }
 
-    public Piece movePiece(final String pieceCurrentLoc, final String movingToLoc) {
-        Piece movingPiece = piecesLocations.get(pieceCurrentLoc);
+    public Piece getLastMovedPiece() {
+        return lastMovedPiece;
+    }
+
+    public Piece movePiece(final Piece movingPiece, final String pieceCurrentLoc, final String movingToLoc) {
         Piece capturingPiece = null;
         HashSet<String> validMoves = null;
         Piece retval;
 
+        lastMovedPiece = movingPiece;
         if (!Objects.isNull(piecesLocations.get(movingToLoc))) {
             capturingPiece = piecesLocations.get(movingToLoc);
-            capturingPiece.setBoardLocation(null);
+            capturingPiece.setLocation(null);
         }
         Piece otherKing = getPieceByIdentity((colorPlaying.equals("white") ? "black" : "white") + "-king")[0];
-        if (otherKing.getInCheckByPieces().contains(pieceCurrentLoc)) {
+        if (otherKing.getInCheckByPcsAtLocs().contains(pieceCurrentLoc)) {
             otherKing.noLongerInCheckBy(movingPiece);
         }
         piecesLocations.put(pieceCurrentLoc, null);
-        movingPiece.setBoardLocation(movingToLoc);
+        movingPiece.setLocation(movingToLoc);
         piecesLocations.put(movingToLoc, movingPiece);
 
         /* Check possibilities:

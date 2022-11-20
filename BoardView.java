@@ -2,28 +2,23 @@ package com.kmfahey.jchessgame;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Point;
-import javax.swing.JComponent;
-import java.util.Objects;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.Iterator;
+import java.util.Objects;
+import javax.swing.JComponent;
+import javax.swing.Timer;
 
-public class BoardView extends JComponent implements MouseListener {
 
-    private static final String[][] BOARD_ALG_NOTN_LOCS = new String[][] {
-        new String[] {"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"},
-        new String[] {"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7"},
-        new String[] {"a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6"},
-        new String[] {"a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5"},
-        new String[] {"a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4"},
-        new String[] {"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3"},
-        new String[] {"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"},
-        new String[] {"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"}
-    };
+public class BoardView extends JComponent implements MouseListener, ActionListener {
 
     private static final String[] LIGHT_COLORED_SQUARES_LOCS = new String[] {
         "a2", "a4", "a6", "a8", "b1", "b3", "b5", "b7",
@@ -44,12 +39,21 @@ public class BoardView extends JComponent implements MouseListener {
     private Piece clickEventToCapturePiece = null;
     private String clickEventMovingTo = "";
 
+    private Piece lastPieceMovedByPlayer;
+
+    private String colorPlaying;
+    private final int timerDelayMlsec = 500;
+
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+
     public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr,
-                     final CoordinatesManager coordMgr, final Chessboard chessBoard) {
+                     final CoordinatesManager coordMgr, final Chessboard chessBoard,
+                     final String playingColor) {
         boardDims = cmpntDims;
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
         chessboard = chessBoard;
+        colorPlaying = playingColor;
         repaint();
     }
 
@@ -97,12 +101,13 @@ public class BoardView extends JComponent implements MouseListener {
             Piece piece = pieceIterator.next();
             Image pieceIcon = piece.getImage();
             Point pieceUpperLeftCorner = coordinatesManager
-                                         .getSquareUpperLeftCorner(piece.getBoardLocation());
+                                         .getSquareUpperLeftCorner(piece.getLocation());
             graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
         }
     }
 
     public void mouseClicked(final MouseEvent event) {
+        Timer opposingMoveDelayTimer;
         int horizCoord = event.getX();
         int vertCoord = event.getY();
 
@@ -139,7 +144,7 @@ public class BoardView extends JComponent implements MouseListener {
 
         if (Objects.isNull(clickEventClickedPiece)) {
             clickEventMovingFrom = clickSquareLoc;
-            clickEventClickedPiece = chessboard.getPieceAtLoc(clickEventMovingFrom);
+            clickEventClickedPiece = chessboard.getPieceAtLocation(clickEventMovingFrom);
 
             if (Objects.isNull(clickEventClickedPiece) ||
                     !clickEventClickedPiece.getColor().equals(chessboard.getColorPlaying())) {
@@ -154,7 +159,7 @@ public class BoardView extends JComponent implements MouseListener {
                 return;
             }
 
-            clickEventToCapturePiece = chessboard.getPieceAtLoc(clickEventMovingTo);
+            clickEventToCapturePiece = chessboard.getPieceAtLocation(clickEventMovingTo);
 
             if (!Objects.isNull(clickEventToCapturePiece)
                     && clickEventToCapturePiece.getColor()
@@ -174,12 +179,21 @@ public class BoardView extends JComponent implements MouseListener {
                and handle them in the game logic. Also if it's check then the
                possible moves need to be limited to moves that can end the
                check. */
-            chessboard.movePiece(clickEventMovingFrom, clickEventMovingTo);
+            chessboard.movePiece(clickEventClickedPiece, clickEventMovingFrom, clickEventMovingTo);
 
             resetClickEventVars();
 
             repaint();
 
+            /* This timer is used both to introduce a hangtime between the
+               player's move and the opposing move, and to break the opposing
+               move logic out of this mouseClicked() method and run it in its
+               own execution by using an event to trigger another, unconnected
+               method call. */
+            opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
+            opposingMoveDelayTimer.setActionCommand("move");
+            opposingMoveDelayTimer.setRepeats(false);
+            opposingMoveDelayTimer.start();
         }
     }
 
@@ -188,6 +202,42 @@ public class BoardView extends JComponent implements MouseListener {
         clickEventMovingFrom = "";
         clickEventToCapturePiece = null;
         clickEventMovingTo = "";
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+        ScoredMove optimalMove;
+        Chessboard clonedBoard;
+        Piece clonedPiece;
+        MinimaxTreeNode treeNode;
+        Move moveToMake;
+        LocalDateTime timeRightNow;
+        String opposingColor = colorPlaying.equals("white") ? "black" : "white";
+
+        timeRightNow = LocalDateTime.now();
+        System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
+
+        if (!event.getActionCommand().equals("move")) {
+            return;
+        }
+
+        lastPieceMovedByPlayer = chessboard.getLastMovedPiece();
+        clonedBoard = chessboard.clone();
+        clonedPiece = chessboard.getPieceAtLocation(lastPieceMovedByPlayer.getLocation());
+        treeNode = new MinimaxTreeNode(clonedBoard);
+
+        try {
+            moveToMake = treeNode.minimaxAlgorithmTopLevel(opposingColor);
+        } catch (AlgorithmNoResultException exception) {
+            System.out.println(exception.toString());
+            return;
+        }
+
+        chessboard.movePiece(moveToMake.getMovingPiece(), moveToMake.getCurrentLocation(), moveToMake.getMoveToLocation());
+
+        timeRightNow = LocalDateTime.now();
+        System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
+
+        repaint();
     }
 
     /**
