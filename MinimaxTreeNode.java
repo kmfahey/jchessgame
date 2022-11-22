@@ -1,6 +1,5 @@
 package com.kmfahey.jchessgame;
 
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -15,26 +14,28 @@ public class MinimaxTreeNode {
     private Chessboard chessboard;
     private ArrayList<MinimaxTreeNode> childNodes;
     private String playingColor;
-    private String colorsTurnItIs;
 
-    public MinimaxTreeNode(final Chessboard clonedChessboard) {
+    public record Move(Piece movingPiece, String currentLocation, String moveToLocation) { };
+
+    public MinimaxTreeNode(final Chessboard clonedChessboard, final String colorPlaying) {
         chessboard = clonedChessboard;
         childNodes = new ArrayList<MinimaxTreeNode>();
+        playingColor = colorPlaying;
     }
 
     public Chessboard getChessboard() {
         return chessboard;
     }
 
-    public boolean playingColorKingInCheckmate(final String playingColor) {
-        return !Objects.isNull(chessboard.checkIfKingIsInCheckmate(playingColor));
+    public boolean playingColorKingInCheckmate(final String colorPlaying) {
+        return !Objects.isNull(chessboard.checkIfKingIsInCheckmate(colorPlaying));
     }
 
-    public boolean otherColorKingInCheckmate(final String playingColor) {
-        return !Objects.isNull(chessboard.checkIfKingIsInCheckmate(playingColor.equals("white") ? "black" : "white"));
+    public boolean otherColorKingInCheckmate(final String colorPlaying) {
+        return !Objects.isNull(chessboard.checkIfKingIsInCheckmate(colorPlaying.equals("white") ? "black" : "white"));
     }
 
-    public Move minimaxAlgorithmTopLevel(final String playingColor) throws AlgorithmNoResultException {
+    public Move minimaxAlgorithmTopLevel() throws AlgorithmNoResultException {
         double bestScoreSeen = Double.NEGATIVE_INFINITY;
         Move retval = null;
         Piece bestScoredMovedPiece = null;
@@ -54,14 +55,14 @@ public class MinimaxTreeNode {
                 Chessboard clonedBoard = chessboard.clone();
                 Piece clonedPiece = clonedBoard.getPieceAtLocation(pieceLocation);
                 clonedBoard.movePiece(clonedPiece, clonedPiece.getLocation(), possibleMove);
-                childNodes.add(new MinimaxTreeNode(clonedBoard));
+                childNodes.add(new MinimaxTreeNode(clonedBoard, playingColor));
             }
         }
 
         Collections.shuffle(childNodes);
 
         for (MinimaxTreeNode childNode : childNodes) {
-            double moveScore = childNode.minimaxAlgorithmLowerLevel(3, playingColor, playingColor.equals("black") ? "white" : "black");
+            double moveScore = childNode.minimaxAlgorithmLowerLevel(3, playingColor.equals("black") ? "white" : "black");
             if (moveScore > bestScoreSeen) {
                 bestScoreSeen = moveScore;
                 bestScoredMovedPiece = childNode.getChessboard().getLastMovedPiece();
@@ -85,12 +86,13 @@ public class MinimaxTreeNode {
         return retval;
     }
 
-    public double minimaxAlgorithmLowerLevel(final int callDepth, final String playingColor, final String colorsTurnItIs) {
+    public double minimaxAlgorithmLowerLevel(final int callDepth, final String colorsTurnItIs) {
         double bestScoreSeen;
         double moveScore;
         BiFunction<Double, Double, Boolean> comparator;
         Iterator<Piece> piecesIterator;
 
+        System.out.println("+1");
         if (callDepth == 0) {
             return chessboard.evaluateBoard();
         } else if (playingColorKingInCheckmate(playingColor)) {
@@ -98,7 +100,7 @@ public class MinimaxTreeNode {
         } else if (otherColorKingInCheckmate(playingColor)) {
             return Double.NEGATIVE_INFINITY;
         }
-        
+
         if (playingColor.equals(colorsTurnItIs)) {
             bestScoreSeen = Double.NEGATIVE_INFINITY;
             comparator = (score, bestScore) -> (score > bestScore);
@@ -119,14 +121,14 @@ public class MinimaxTreeNode {
                 Chessboard clonedBoard = chessboard.clone();
                 Piece clonedPiece = clonedBoard.getPieceAtLocation(pieceLocation);
                 clonedBoard.movePiece(clonedPiece, clonedPiece.getLocation(), possibleMove);
-                childNodes.add(new MinimaxTreeNode(clonedBoard));
+                childNodes.add(new MinimaxTreeNode(clonedBoard, playingColor));
             }
         }
 
         Collections.shuffle(childNodes);
 
         for (MinimaxTreeNode childNode : childNodes) {
-            moveScore = childNode.minimaxAlgorithmLowerLevel(callDepth - 1, playingColor, colorsTurnItIs.equals("black") ? "white" : "black");
+            moveScore = childNode.minimaxAlgorithmLowerLevel(callDepth - 1, colorsTurnItIs.equals("black") ? "white" : "black");
             if (comparator.apply(moveScore, bestScoreSeen)) {
                 bestScoreSeen = moveScore;
             }

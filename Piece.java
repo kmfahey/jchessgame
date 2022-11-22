@@ -31,7 +31,7 @@ public class Piece implements Cloneable {
         currentLocation = currentLoc;
         lastLocation = lastLoc;
     }
-    
+
     public Piece(final String identity, final Image pcImage, final boolean beenCaptured,
                  final String lastLoc, final String currentLoc,
                  final HashSet<String> inCheckByPcs, final HashSet<String> inCheckmateByPcs) {

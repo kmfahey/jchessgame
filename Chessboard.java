@@ -8,10 +8,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.StringJoiner;
 
 public class Chessboard implements Cloneable {
 
@@ -36,8 +32,8 @@ public class Chessboard implements Cloneable {
     public static final int NORTH_WEST = 14;
     public static final int NORTH_NORTH_WEST = 15;
 
-    private final String algNotnAlphaChars = "abcdefgh";
-    private final String algNotnNumChars = "87654321";
+    private static final String ALG_NOTN_ALPHA_CHARS = "abcdefgh";
+    private static final String ALG_NOTN_NUM_CHARS = "87654321";
 
     private final HashMap<String, String[]> piecesStartingLocsWhiteBelow = new HashMap<>() {{
         this.put("black-king", new String[] {"d8"});
@@ -127,8 +123,7 @@ public class Chessboard implements Cloneable {
         return new Chessboard(piecesLocsCopy, colorPlaying);
     }
 
-    public Chessboard(final PiecesManager piecesMgr, final String playingColor,
-                      final HashMap<String, Piece> piecesLocationsMap) {
+    public Chessboard(final String playingColor, final HashMap<String, Piece> piecesLocationsMap) {
         colorPlaying = playingColor;
 
         piecesLocations = piecesLocationsMap;
@@ -151,7 +146,7 @@ public class Chessboard implements Cloneable {
                               .toArray(String[]::new);
     }
 
-    public Piece[] getPieceByIdentity(String identity) {
+    public Piece[] getPieceByIdentity(final String identity) {
         return piecesLocations.values()
                               .stream()
                               .filter(pc -> (!Objects.isNull(pc) && identity.equals(pc.getIdentity())))
@@ -206,6 +201,7 @@ public class Chessboard implements Cloneable {
                 case "black-knight-right": piecesCounts[blackIndex][knightIndex]++; break;
                 case "black-knight-left":  piecesCounts[blackIndex][knightIndex]++; break;
                 case "black-pawn":         piecesCounts[blackIndex][pawnIndex]++; break;
+                default: break;
             }
         }
 
@@ -334,12 +330,12 @@ public class Chessboard implements Cloneable {
             case NORTH_NORTH_WEST:  alphaIndex -= 1;            numIndex -= 2;          break;
             default: break;
         }
-        if (alphaIndex < 0 || alphaIndex >= algNotnAlphaChars.length()
-            || numIndex < 0 || numIndex >= algNotnNumChars.length()) {
+        if (alphaIndex < 0 || alphaIndex >= ALG_NOTN_ALPHA_CHARS.length()
+            || numIndex < 0 || numIndex >= ALG_NOTN_NUM_CHARS.length()) {
             return null;
         }
-        return String.valueOf(algNotnAlphaChars.charAt(alphaIndex))
-               + String.valueOf(algNotnNumChars.charAt(numIndex));
+        return String.valueOf(ALG_NOTN_ALPHA_CHARS.charAt(alphaIndex))
+               + String.valueOf(ALG_NOTN_NUM_CHARS.charAt(numIndex));
     }
 
     private void pruneMoveMap(final Piece piece, final HashMap<Integer, String[]> moveMap) {
@@ -511,7 +507,7 @@ public class Chessboard implements Cloneable {
 
     public Piece checkIfKingIsInCheck(final String kingColor) {
         HashSet<Piece> checkedPieces = new HashSet<Piece>();
-        Piece kingPiece = getPieceByIdentity(kingColor + "-king")[0];
+        Piece kingPiece = getPieceByIdentity(kingColor + "-king")[0]; // FIXME: this threw a ArrayIndexOutOfBoundsException: Index 0 out of bounds for length 0 one time
         String kingLocation = kingPiece.getLocation();
         Piece retval = null;
         if (kingPiece.isInCheck()) {
@@ -613,14 +609,14 @@ public class Chessboard implements Cloneable {
     }
 
     public String numericIndexesToAlgNotnLoc(final int horizIndex, final int vertIndex) {
-        return String.valueOf(algNotnAlphaChars.charAt(horizIndex))
-               + String.valueOf(algNotnNumChars.charAt(vertIndex));
+        return String.valueOf(ALG_NOTN_ALPHA_CHARS.charAt(horizIndex))
+               + String.valueOf(ALG_NOTN_NUM_CHARS.charAt(vertIndex));
     }
 
-    public int[] algNotnLocToNumericIndexes(String location) {
+    public int[] algNotnLocToNumericIndexes(final String location) {
         int[] coordinates = new int[2];
-        coordinates[0] = algNotnAlphaChars.indexOf(String.valueOf(location.charAt(0)));
-        coordinates[1] = algNotnNumChars.indexOf(String.valueOf(location.charAt(1)));
+        coordinates[0] = ALG_NOTN_ALPHA_CHARS.indexOf(String.valueOf(location.charAt(0)));
+        coordinates[1] = ALG_NOTN_NUM_CHARS.indexOf(String.valueOf(location.charAt(1)));
         return coordinates;
     }
 
@@ -630,28 +626,28 @@ public class Chessboard implements Cloneable {
 
     private class ChessboardIterator<Piece> implements Iterator<Piece> {
 
-        private ArrayList<Piece> piecesList;
+        Object[] pieceObjArray;
         private int index;
 
-        public ChessboardIterator(final HashMap<String, Piece> piecesLocations) {
-            piecesList = new ArrayList<Piece>();
-            for (Piece piece : piecesLocations.values()) {
-                if (Objects.isNull(piece)) {
-                    continue;
-                }
-                piecesList.add(piece);
-            }
+
+        ChessboardIterator(HashMap<String, Piece> piecesByLocations) {
+            pieceObjArray = piecesByLocations.values()
+                                             .stream()
+                                             .filter(strval -> !Objects.isNull(strval))
+                                             .collect(Collectors.toList())
+                                             .toArray();
             index = 0;
         }
-        
+
         @Override
         public boolean hasNext() {
-            return index < piecesList.size();
+            return index < pieceObjArray.length;
         }
 
-        @Override 
+        @Override
         public Piece next() {
-            Piece retval = (Piece) piecesList.get(index);
+            @SuppressWarnings("unchecked")
+            Piece retval = (Piece) pieceObjArray[index];
             index++;
             return retval;
         }

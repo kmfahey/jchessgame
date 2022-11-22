@@ -55,7 +55,7 @@ public class ImagesManager {
         }
     }
 
-    public Image getImageByIdentity(String identity) {
+    public Image getImageByIdentity(final String identity) {
         return piecesImagesScaled.get(identity);
     }
 

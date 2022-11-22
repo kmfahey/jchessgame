@@ -146,8 +146,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             clickEventMovingFrom = clickSquareLoc;
             clickEventClickedPiece = chessboard.getPieceAtLocation(clickEventMovingFrom);
 
-            if (Objects.isNull(clickEventClickedPiece) ||
-                    !clickEventClickedPiece.getColor().equals(chessboard.getColorPlaying())) {
+            if (Objects.isNull(clickEventClickedPiece)
+                || !clickEventClickedPiece.getColor().equals(chessboard.getColorPlaying())) {
                 resetClickEventVars();
                 return;
             }
@@ -205,11 +205,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void actionPerformed(final ActionEvent event) {
-        ScoredMove optimalMove;
         Chessboard clonedBoard;
         Piece clonedPiece;
         MinimaxTreeNode treeNode;
-        Move moveToMake;
+        MinimaxTreeNode.Move moveToMake;
         LocalDateTime timeRightNow;
         String opposingColor = colorPlaying.equals("white") ? "black" : "white";
 
@@ -223,16 +222,16 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         lastPieceMovedByPlayer = chessboard.getLastMovedPiece();
         clonedBoard = chessboard.clone();
         clonedPiece = chessboard.getPieceAtLocation(lastPieceMovedByPlayer.getLocation());
-        treeNode = new MinimaxTreeNode(clonedBoard);
+        treeNode = new MinimaxTreeNode(clonedBoard, colorPlaying);
 
         try {
-            moveToMake = treeNode.minimaxAlgorithmTopLevel(opposingColor);
+            moveToMake = treeNode.minimaxAlgorithmTopLevel();
         } catch (AlgorithmNoResultException exception) {
             System.out.println(exception.toString());
             return;
         }
 
-        chessboard.movePiece(moveToMake.getMovingPiece(), moveToMake.getCurrentLocation(), moveToMake.getMoveToLocation());
+        chessboard.movePiece(moveToMake.movingPiece(), moveToMake.currentLocation(), moveToMake.moveToLocation());
 
         timeRightNow = LocalDateTime.now();
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
