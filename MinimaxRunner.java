@@ -357,8 +357,8 @@ public class MinimaxRunner {
         int yIdx = moveArray[4];
         int threatenedCount = 0;
 
-        for (int xIdxDelta = xIdx - 2; xIdxDelta <= 2; xIdxDelta++) {
-            for (int yIdxDelta = yIdx - 2; yIdxDelta <= 2; yIdxDelta++) {
+        for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
+            for (int yIdxDelta = -2; yIdxDelta <= 2; yIdxDelta++) {
                 if (Math.abs(xIdxDelta) == Math.abs(yIdxDelta) || xIdxDelta == 0 || yIdxDelta == 0) {
                     continue;
                 }
@@ -576,7 +576,7 @@ public class MinimaxRunner {
         int pieceInt;
         int moveIdx = moveIdxArg;
         int otherSidePiecesCount = 0;
-        int[][] otherBoardArray;
+        int[][] otherBoardArray = new int[8][8];
         int[][] otherMoveArray = new int[16][10];
         int otherLocsIdx = 0;
 
@@ -596,7 +596,12 @@ public class MinimaxRunner {
             }
         }
 
-        otherBoardArray = copyBoard(boardAry);
+        for (int otherXIdx = 0; otherXIdx < 8; otherXIdx++) {
+            for (int otherYIdx = 0; otherYIdx < 8; otherYIdx++) {
+                otherBoardArray[otherXIdx][otherYIdx] = boardAry[otherXIdx][otherYIdx];
+            }
+        }
+
         otherBoardArray[xIdx][yIdx] = 0;
 
         for (int xIdxDelta = -1; xIdxDelta <= 1; xIdxDelta++) {
