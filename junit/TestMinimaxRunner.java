@@ -1289,7 +1289,7 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  bp,  0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, 0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  bp,  0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -1297,10 +1297,21 @@ SQLException
         };
 
         method = getIsKingThreatened();
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 3, 0, BLACK);
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 3, 0, BLACK);
         assertTrue("run #35.1", callResult);
 
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 4, 0, BLACK);
+        testBoard = new int[][] {
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  bp,  0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, bp,  0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0}
+        };
+
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 4, 0, BLACK);
         assertFalse("run #35.2", callResult);
     }
 
@@ -1314,7 +1325,7 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   bk, 0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, 0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -1322,10 +1333,21 @@ SQLException
         };
 
         method = getIsKingThreatened();
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 3, 0, BLACK);
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 3, 0, BLACK);
         assertTrue("run #36.1", callResult);
 
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 4, 0, BLACK);
+        testBoard = new int[][] {
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   bk, 0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, 0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0}
+        };
+
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 4, 0, BLACK);
         assertFalse("run #36.2", callResult);
     }
 
@@ -1338,7 +1360,7 @@ SQLException
         int[][] testBoard = new int[][] {
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   bb, 0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, 0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -1347,10 +1369,21 @@ SQLException
         };
 
         method = getIsKingThreatened();
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 3, 0, BLACK);
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 3, 0, BLACK);
         assertTrue("run #37.1", callResult);
 
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 4, 0, BLACK);
+        testBoard = new int[][] {
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   bb, 0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, 0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0}
+        };
+
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 4, 0, BLACK);
         assertFalse("run #37.2", callResult);
     }
 
@@ -1364,7 +1397,7 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   bq, 0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, 0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -1372,10 +1405,21 @@ SQLException
         };
 
         method = getIsKingThreatened();
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 3, 0, BLACK);
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 3, 0, BLACK);
         assertTrue("run #38.1", callResult);
 
-        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, wk, 4, 0, BLACK);
+        testBoard = new int[][] {
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   bq, 0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {wk, 0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,  0,  0,  0,  0}
+        };
+
+        callResult = (boolean) method.invoke(runner, testBoard, testMoveArray, (WHITE | KING), 4, 0, BLACK);
         assertFalse("run #38.2", callResult);
     }
 

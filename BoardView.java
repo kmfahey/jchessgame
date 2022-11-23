@@ -218,7 +218,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         timeRightNow = LocalDateTime.now();
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
 
-        minimaxRunner = new MinimaxRunner(colorPlaying, opposingColor);
+        minimaxRunner = new MinimaxRunner(opposingColor, opposingColor);
 
         try {
             moveToMake = minimaxRunner.algorithmTopLevel(chessboard);
