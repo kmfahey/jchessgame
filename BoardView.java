@@ -205,6 +205,38 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void actionPerformed(final ActionEvent event) {
+        MinimaxRunner minimaxRunner;
+        MinimaxRunner.Move moveToMake;
+        LocalDateTime timeRightNow;
+
+        String opposingColor = colorPlaying.equals("white") ? "black" : "white";
+
+        if (!event.getActionCommand().equals("move")) {
+            return;
+        }
+
+        timeRightNow = LocalDateTime.now();
+        System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
+
+        minimaxRunner = new MinimaxRunner(colorPlaying, opposingColor);
+
+        try {
+            moveToMake = minimaxRunner.algorithmTopLevel(chessboard);
+        } catch (AlgorithmBadArgumentException|AlgorithmInternalError exception) {
+            exception.printStackTrace();
+            System.exit(1);
+            return;
+        }
+
+        chessboard.movePiece(moveToMake.movingPiece(), moveToMake.currentLocation(), moveToMake.moveToLocation());
+
+        timeRightNow = LocalDateTime.now();
+        System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
+
+        repaint();
+    }
+
+    /* public void actionPerformed(final ActionEvent event) {
         Chessboard clonedBoard;
         Piece clonedPiece;
         MinimaxTreeNode treeNode;
@@ -237,7 +269,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
 
         repaint();
-    }
+    } */
 
     /**
      * An implementation of MouseListener.mouseEntered, required because I
