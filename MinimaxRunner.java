@@ -863,18 +863,24 @@ public class MinimaxRunner {
         int X_IDX = 0;
         int Y_IDX = 1;
         int dblpIdx = 0;
+        int maxPawnIndex;
 
-        pawnsCount = 1;
+        pawnsCount = 0;
+
         for (int xIdx = 0, pawnIndex = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 if (boardArray[xIdx][yIdx] == (colorInQuestion | PAWN)) {
                     tallyPawnsCoords[pawnIndex][0] = xIdx;
                     tallyPawnsCoords[pawnIndex][1] = yIdx;
+                    System.out.println("pawnIndex = " + pawnIndex + "; coords = (" + xIdx + ", " + yIdx + ")");
                     pawnIndex++;
                     pawnsCount++;
                 }
             }
         }
+
+        maxPawnIndex = pawnsCount - 1;
+        System.out.println(maxPawnIndex);
 
         /* Normally an isolated pawn is one where its neighboring pawns are each
            more than one file away from them. */
@@ -891,7 +897,6 @@ public class MinimaxRunner {
                 }
             }
             default -> {
-                int maxPawnIndex = pawnsCount - 1;
                 for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
                     int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
 
@@ -911,7 +916,7 @@ public class MinimaxRunner {
                         if (prevPawnXIdx - thisPawnXIdx > 1) {
                             isolatedPawnsCount++;
                         }
-                    } else {
+                    } else if (0 <= pawnIndex - 1 && pawnIndex + 1 <= maxPawnIndex) {
                         int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
                         int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
                         if (nextPawnXIdx - thisPawnXIdx > 1 && thisPawnXIdx - prevPawnXIdx > 1) {
@@ -968,7 +973,7 @@ public class MinimaxRunner {
                 }
 
                 int nextSquareXIdx = thisPawnXIdx;
-                int nextSquareYIdx = thisPawnYIdx + yDiff1;
+                int nextSquareYIdx = thisPawnYIdx + yDiff;
                 int nextSquarePieceInt = boardArray[nextSquareXIdx][nextSquareYIdx];
                 /* If the square ahead of this square is occupied, and it's
                    not a pawn on this side, then this pawn is blocked and
@@ -981,9 +986,9 @@ public class MinimaxRunner {
 
         /* This method returns three doubles, so they're packed into a length-3
            array and that's returned. */
-        retval[DOUBLED] = doubledPawns;
-        retval[BLOCKED] = blockedPawns;
-        retval[ISOLATED] = isolatedPawns;
+        retval[DOUBLED] = doubledPawnsCount;
+        retval[BLOCKED] = blockedPawnsCount;
+        retval[ISOLATED] = isolatedPawnsCount;
         return retval;
     }
 
@@ -1110,6 +1115,8 @@ public class MinimaxRunner {
         int toYIdx = moveArray[4];
         int[][] newBoardArray;
         double retval;
+
+        System.err.println("+1");
 
         /* The same boardArray is passed down the call stack and reused by
            every step of the algorithm, to avoid having to clone it each time.

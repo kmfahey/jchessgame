@@ -10,6 +10,8 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.Objects;
 import javax.swing.JComponent;
@@ -41,6 +43,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
     private String colorPlaying;
     private final int timerDelayMlsec = 500;
+
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
 
     public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr,
                      final CoordinatesManager coordMgr, final Chessboard chessBoard,
@@ -203,12 +207,16 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     public void actionPerformed(final ActionEvent event) {
         MinimaxRunner minimaxRunner;
         MinimaxRunner.Move moveToMake;
+        LocalDateTime timeRightNow;
 
         if (!event.getActionCommand().equals("move")) {
             return;
         }
 
         String opposingColor = colorPlaying.equals("white") ? "black" : "white";
+
+        timeRightNow = LocalDateTime.now();
+        System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
 
         minimaxRunner = new MinimaxRunner(opposingColor, opposingColor);
 
@@ -221,6 +229,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         }
 
         chessboard.movePiece(moveToMake.movingPiece(), moveToMake.currentLocation(), moveToMake.moveToLocation());
+
+        timeRightNow = LocalDateTime.now();
+        System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
 
         repaint();
     }
