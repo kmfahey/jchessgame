@@ -1,5 +1,6 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public class MinimaxRunner {
        new array each time one is called, a spare array is stored to an instance
        variable and reused each time that method is called. */
     private int[][] kingsMovesSpareBoardArray;
-    private int[][] tallyPawnsArray;
+    private int[][] tallyPawnsCoords;
     private int[][] colorMobilitySpareMovesArray;
 
     private HashMap<String, Double> evaluateBoardMemoizeMap;
@@ -74,11 +75,6 @@ public class MinimaxRunner {
     private int colorOfPlayer;
     private int colorOnTop;
     private int algorithmStartingDepth;
-    private Function<Integer, String> indenter = (intval) ->   (intval == 5) ? "                    "
-                                                             : (intval == 4) ? "                "
-                                                             : (intval == 3) ? "            "
-                                                             : (intval == 2) ? "        "
-                                                             : "        ";
 
     public record Move(Piece movingPiece, String currentLocation, String moveToLocation) { };
 
@@ -87,14 +83,14 @@ public class MinimaxRunner {
         colorOfPlayer = colorOfAI == WHITE ? BLACK : WHITE;
         colorOnTop = colorOnTopStr.equals("white") ? WHITE : BLACK;
         kingsMovesSpareBoardArray = new int[8][8];
-        tallyPawnsArray = new int[8][2];
+        tallyPawnsCoords = new int[8][2];
         colorMobilitySpareMovesArray = new int[128][6];
-        algorithmStartingDepth = 4;
+        algorithmStartingDepth = 6;
         evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
 
-    private boolean doesQueensMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
-                                                   final int colorsTurnItIs) {
+    private boolean doesQueenHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                             final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
 
         if (xIdx < 7) {
@@ -173,8 +169,8 @@ public class MinimaxRunner {
         return false;
     }
 
-    private boolean doesBishopsMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
-                                                    final int colorsTurnItIs) {
+    private boolean doesBishopHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                              final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
 
         if (xIdx < 7 && yIdx < 7) {
@@ -217,8 +213,8 @@ public class MinimaxRunner {
         return false;
     }
 
-    private boolean doesKnightsMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
-                                                    final int colorsTurnItIs) {
+    private boolean doesKnightHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                              final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
 
         for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
@@ -246,8 +242,8 @@ public class MinimaxRunner {
         return false;
     }
 
-    private boolean doesRooksMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
-                                                  final int colorsTurnItIs) {
+    private boolean doesRookHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                            final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int[] kingFoundAry = null;
 
@@ -291,8 +287,8 @@ public class MinimaxRunner {
         return false;
     }
 
-    private boolean doesPawnsMoveCheckKing(final int[][] boardArray, final int xIdx,
-                                           final int yIdx, final int colorsTurnItIs) {
+    private boolean doesPawnHaveKingInCheck(final int[][] boardArray, final int xIdx,
+                                            final int yIdx, final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int yIdxMod;
 
@@ -321,9 +317,9 @@ public class MinimaxRunner {
         return false;
     }
 
-    private boolean isKingThreatened(final int[][] boardAry, final int colorThreatening) {
+    private boolean isKingInCheck(final int[][] boardAry, final int colorThreatening) {
         int colorOfKing = (colorThreatening == WHITE) ? BLACK : WHITE;
-        boolean kingIsThreatened = false;
+        boolean kingIsInCheck = false;
         threatsch:
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
@@ -333,30 +329,30 @@ public class MinimaxRunner {
                 }
                 switch (pieceInt ^ colorThreatening) {
                     case PAWN:
-                        kingIsThreatened = doesPawnsMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
+                        kingIsInCheck = doesPawnHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case ROOK:
-                        kingIsThreatened = doesRooksMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
+                        kingIsInCheck = doesRookHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                        kingIsThreatened = doesKnightsMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
+                        kingIsInCheck = doesKnightHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case BISHOP:
-                        kingIsThreatened = doesBishopsMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
+                        kingIsInCheck = doesBishopHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case QUEEN:
-                        kingIsThreatened = doesQueensMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
+                        kingIsInCheck = doesQueenHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     default:
                         break;
                 }
-                if (kingIsThreatened) {
+                if (kingIsInCheck) {
                     break threatsch;
                 }
             }
         }
 
-        return kingIsThreatened;
+        return kingIsInCheck;
     }
 
     private int generateKingsMoves(final int[][] boardAry, final int[][] movesArray, final int moveIdxArg,
@@ -370,7 +366,7 @@ public class MinimaxRunner {
         int otherSidePiecesCount = 0;
         int[][] otherBoardArray = new int[8][8];
         int otherLocsIdx = 0;
-        boolean kingIsThreatenedHere;
+        boolean kingIsInCheckHere;
 
         pieceInt = boardAry[xIdx][yIdx];
 
@@ -402,10 +398,10 @@ public class MinimaxRunner {
 
                 atLocPieceInt = kingsMovesSpareBoardArray[xIdxMod][yIdxMod];
                 kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = kingPieceInt;
-                kingIsThreatenedHere = isKingThreatened(kingsMovesSpareBoardArray, colorThreatening);
+                kingIsInCheckHere = isKingInCheck(kingsMovesSpareBoardArray, colorThreatening);
                 kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = atLocPieceInt;
 
-                if (kingIsThreatenedHere) {
+                if (kingIsInCheckHere) {
                     continue;
                 }
 
@@ -803,14 +799,17 @@ public class MinimaxRunner {
                                          ) throws AlgorithmBadArgumentException {
         int colorOpposing = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int moveIdx = 0;
-        boolean kingIsThreatened;
+        boolean kingIsInCheck;
 
-        kingIsThreatened = isKingThreatened(boardArray, colorOpposing);
+        kingIsInCheck = isKingInCheck(boardArray, colorOpposing);
 
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 int pieceInt = boardArray[xIdx][yIdx];
-                if (pieceInt == 0 || (pieceInt & colorOpposing) != 0 || kingIsThreatened && (pieceInt ^ colorsTurnItIs) != KING) {
+                if (pieceInt == 0 || (pieceInt & colorOpposing) != 0
+                    /* If the king is in check the AI must move their king out
+                       of check, so pieces other than the king are skipped. */
+                    || kingIsInCheck && (pieceInt ^ colorsTurnItIs) != KING) {
                     continue;
                 }
                 moveIdx = generatePieceMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
@@ -853,90 +852,135 @@ public class MinimaxRunner {
         }
     }
 
-    private double[] tallySpecialPawns(final int[][] boardArray, final int colorsTurnItIs) {
-        int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
+    private double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion) {
+        int colorOpposing = colorInQuestion == WHITE ? BLACK : WHITE;
+        int[][] doubledPawnsCoords = new int[8][2];
         double[] retval = new double[3];
-        double doubledPawns = 0;
-        double isolatedPawns = 0;
-        double blockedPawns = 0;
-        int pawnIndex = 0;
+        double doubledPawnsCount = 0;
+        double isolatedPawnsCount = 0;
+        double blockedPawnsCount = 0;
+        int pawnsCount;
+        int X_IDX = 0;
+        int Y_IDX = 1;
+        int dblpIdx = 0;
 
-        for (int xIdx = 0; xIdx < 8; xIdx++) {
+        pawnsCount = 1;
+        for (int xIdx = 0, pawnIndex = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == (colorsTurnItIs | PAWN)) {
-                    tallyPawnsArray[pawnIndex][0] = xIdx;
-                    tallyPawnsArray[pawnIndex][1] = yIdx;
+                if (boardArray[xIdx][yIdx] == (colorInQuestion | PAWN)) {
+                    tallyPawnsCoords[pawnIndex][0] = xIdx;
+                    tallyPawnsCoords[pawnIndex][1] = yIdx;
                     pawnIndex++;
-                }
-            }
-        }
-
-        for (pawnIndex = 0; pawnIndex < 8; pawnIndex++) {
-            if (colorsTurnItIs != colorOnTop && tallyPawnsArray[pawnIndex][1] + 1 < 8) {
-                if ((boardArray[tallyPawnsArray[pawnIndex][0]]
-                                               [tallyPawnsArray[pawnIndex][1] + 1] & colorOpposing) != 0) {
-                    blockedPawns++;
-                }
-            } else if (colorsTurnItIs == colorOnTop && tallyPawnsArray[pawnIndex][1] - 1 > 0) {
-                if ((boardArray[tallyPawnsArray[pawnIndex][0]]
-                               [tallyPawnsArray[pawnIndex][1] - 1] & colorOpposing) != 0) {
-                    blockedPawns++;
+                    pawnsCount++;
                 }
             }
         }
 
         /* Normally an isolated pawn is one where its neighboring pawns are each
-           more than one file away from them. But if there's only 1 pawn left
-           it is by default isolated. */
-        if (pawnIndex == 1) {
-            isolatedPawns++;
-        /* If there's two left, they're both isolated if they're more than 1
-           file apart. */
-        } else if (pawnIndex == 2 && tallyPawnsArray[1][0] - tallyPawnsArray[1][0] > 1) {
-            isolatedPawns += 2;
-        } else {
-            int maxPawnIndex = pawnIndex - 1;
-            for (pawnIndex = 0; pawnIndex < 8; pawnIndex++) {
-                /* If a pawn is the leftmost or rightmost on the board, it's
-                /* isolated if its inward neighbor is more than 1 file away from
-                /* it. */
-                if (pawnIndex == 0 && tallyPawnsArray[pawnIndex + 1][0] - tallyPawnsArray[pawnIndex][0] > 1) {
-                    isolatedPawns++;
-                } else if (pawnIndex == maxPawnIndex
-                           && tallyPawnsArray[pawnIndex][0] - tallyPawnsArray[pawnIndex - 1][0] > 1) {
-                    isolatedPawns++;
-                } else if (pawnIndex != 0 && pawnIndex != maxPawnIndex) {
-                    if (tallyPawnsArray[pawnIndex][0] > tallyPawnsArray[pawnIndex - 1][0]
-                        && tallyPawnsArray[pawnIndex + 1][0] > tallyPawnsArray[pawnIndex][0]) {
-                        isolatedPawns++;
+           more than one file away from them. */
+        switch (pawnsCount) {
+            case 1 -> {
+                /* But if there's only 1 pawn left it is by default isolated. */
+                isolatedPawnsCount++;
+            }
+            case 2 -> {
+                /* If there's two left, they're both isolated if their X indexes
+                   differ by more than 1. */
+                if (tallyPawnsCoords[1][X_IDX] - tallyPawnsCoords[0][X_IDX] > 1) {
+                    isolatedPawnsCount += 2;
+                }
+            }
+            default -> {
+                int maxPawnIndex = pawnsCount - 1;
+                for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
+                    int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
+
+                    /* If a pawn is the leftmost on the board, it's isolated
+                       if the difference between its X index and its right
+                       neighbor's X index is more than 1. */
+                    if (pawnIndex == 0) {
+                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
+                        if (nextPawnXIdx - thisPawnXIdx > 1) {
+                            isolatedPawnsCount++;
+                        }
+                    /* Vice versa, if it's rightmost on the board, it's isolated
+                       if its left neighbor's X index exceeds its X index by
+                       more than 1. */
+                    } else if (pawnIndex == maxPawnIndex) {
+                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
+                        if (prevPawnXIdx - thisPawnXIdx > 1) {
+                            isolatedPawnsCount++;
+                        }
+                    } else {
+                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
+                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
+                        if (nextPawnXIdx - thisPawnXIdx > 1 && thisPawnXIdx - prevPawnXIdx > 1) {
+                            isolatedPawnsCount++;
+                        }
                     }
                 }
             }
         }
-        for (pawnIndex = 0; pawnIndex < 8; pawnIndex++) {
-            if (colorsTurnItIs == colorOnTop) {
-                if (tallyPawnsArray[pawnIndex][0] == 0) {
-                    continue;
+
+        for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
+            int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
+            int thisPawnYIdx = tallyPawnsCoords[pawnIndex][Y_IDX];
+            if (pawnIndex > 0) {
+                int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
+                int prevPawnYIdx = tallyPawnsCoords[pawnIndex - 1][Y_IDX];
+
+                /* The y values in this loop's calculations run two different
+                   ways depending on whether colorInQuestion is playing from
+                   the top of the board (== instance var colorOnTop) or from
+                   the bottom (!= colorOnTop). If on top, yDiff is set to -1,
+                   otherwise +1. A successive piece's y index is calculated by
+                   adding yDiff to the earlier piece's y index. */
+                int yDiff = colorInQuestion == colorOnTop ? -1 : +1;
+
+                /* Two successive pawns are doubled if their x indexes are equal
+                   and the difference between the first y index and the second
+                   equals yDiff (-1 if playing from the top of the board, +1 if
+                   from the bottom). */
+                if (thisPawnXIdx == prevPawnXIdx && thisPawnYIdx - prevPawnYIdx == yDiff) {
+
+                    /* Tripled pawns are a possibility. If two pawns'
+                       coordinates have already been stored to doubledPawnsCoord
+                       (ie. dblpIdx > 1), its last coords are checked for
+                       equality with the first doubled pawn. If they match, only
+                       the second doubled pawn is counted and stored. Otherwise,
+                       both are counted and stored. */
+                    if (dblpIdx > 1 && doubledPawnsCoords[dblpIdx - 1][X_IDX] == prevPawnXIdx
+                                    && doubledPawnsCoords[dblpIdx - 1][Y_IDX] == prevPawnYIdx) {
+                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
+                        dblpIdx++;
+                        doubledPawnsCount++;
+                    } else {
+                        doubledPawnsCoords[dblpIdx][X_IDX] = prevPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][Y_IDX] = prevPawnYIdx;
+                        dblpIdx++;
+                        doubledPawnsCount++;
+                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
+                        dblpIdx++;
+                        doubledPawnsCount++;
+                    }
                 }
-                if (pawnIndex < 7 && tallyPawnsArray[pawnIndex][1] == tallyPawnsArray[pawnIndex + 1][1]
-                    && tallyPawnsArray[pawnIndex][0] == tallyPawnsArray[pawnIndex + 1][0]) {
-                    doubledPawns++;
-                } else if (boardArray[tallyPawnsArray[pawnIndex][0]][tallyPawnsArray[pawnIndex][0] - 1] != 0) {
-                    blockedPawns++;
-                }
-            } else {
-                if (tallyPawnsArray[pawnIndex][0] == 7) {
-                    continue;
-                }
-                if (pawnIndex < 7 && tallyPawnsArray[pawnIndex][1] == tallyPawnsArray[pawnIndex + 1][1]
-                    && tallyPawnsArray[pawnIndex][0] == tallyPawnsArray[pawnIndex + 1][0]) {
-                    doubledPawns++;
-                } else if (boardArray[tallyPawnsArray[pawnIndex][0]][tallyPawnsArray[pawnIndex][0] + 1] != 0) {
-                    blockedPawns++;
+
+                int nextSquareXIdx = thisPawnXIdx;
+                int nextSquareYIdx = thisPawnYIdx + yDiff1;
+                int nextSquarePieceInt = boardArray[nextSquareXIdx][nextSquareYIdx];
+                /* If the square ahead of this square is occupied, and it's
+                   not a pawn on this side, then this pawn is blocked and
+                   blockedPawnsCount is incremented. */
+                if (nextSquarePieceInt != 0 && (nextSquarePieceInt ^ colorInQuestion) != PAWN) {
+                    blockedPawnsCount++;
                 }
             }
         }
 
+        /* This method returns three doubles, so they're packed into a length-3
+           array and that's returned. */
         retval[DOUBLED] = doubledPawns;
         retval[BLOCKED] = blockedPawns;
         retval[ISOLATED] = isolatedPawns;
@@ -945,10 +989,24 @@ public class MinimaxRunner {
 
     private double evaluateBoard(final int[][] boardArray, final int colorsTurnItIs
                                 ) throws AlgorithmBadArgumentException {
-        String boardStr = String.format("%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o"
-            + "%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o"
-            + "%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o%03o"
-            + "%03o%03o%03o%03o%03o%03o%03o%03o",
+        /* This statement derives from the boardArray a string value that is
+           guaranteed to be unique for that board configuraion, so that this
+           method's memoization HashMap evaluateBoardMemoizeMap can store
+           the board's score with that key. The format() statement creates a
+           128-character hexedecimal string that comprises each element of
+           boardArray, in order, in hex. The highest value that occurs in
+           boardArray is a black king at 0260 (176 in decimal, 0xb0 in hex), so
+           only 2 digits are needed for each element.
+
+           Doing it as one big call to String.format avoids the overhead of
+           having to instance a StringJoiner object, and use 2 for loops with 64
+           calls to StringJoiner.add() to populate it. It's ugly but definitely
+           faster, and evaluateBoard get loops and the method calls. It's valid
+           Java and undoubtedly faster, so why not. */
+        String boardStr = String.format("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
+            + "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
+            + "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
+            + "%02x%02x%02x%02x%02x%02x%02x%02x",
             boardArray[0][0], boardArray[0][1], boardArray[0][2], boardArray[0][3],
             boardArray[0][4], boardArray[0][5], boardArray[0][6], boardArray[0][7],
             boardArray[1][0], boardArray[1][1], boardArray[1][2], boardArray[1][3],
@@ -986,8 +1044,8 @@ public class MinimaxRunner {
 
         double[][] piecesCounts = new double[2][6];
 
-        int whiteKingNotInCheckBonus = isKingThreatened(boardArray, BLACK) ? 0 : 1;
-        int blackKingNotInCheckBonus = isKingThreatened(boardArray, WHITE) ? 0 : 1;
+        int whiteKingNotInCheckBonus = isKingInCheck(boardArray, BLACK) ? 0 : 1;
+        int blackKingNotInCheckBonus = isKingInCheck(boardArray, WHITE) ? 0 : 1;
 
         for (int[] boardRow : boardArray) {
             for (int pieceInt : boardRow) {
@@ -1152,7 +1210,7 @@ public class MinimaxRunner {
                 }
             }
 
-            if (isKingThreatened(boardArray, colorOpposing)
+            if (isKingInCheck(boardArray, colorOpposing)
                 && generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorsTurnItIs) == 0) {
                 if (colorOpposing == colorOfPlayer) {
                     return Double.NEGATIVE_INFINITY;
