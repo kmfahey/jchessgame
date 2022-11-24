@@ -1,6 +1,5 @@
 package com.kmfahey.jchessgame;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -627,11 +626,11 @@ public class Chessboard implements Cloneable {
 
     private class ChessboardIterator<Piece> implements Iterator<Piece> {
 
-        Object[] pieceObjArray;
+        private Object[] pieceObjArray;
         private int index;
 
 
-        ChessboardIterator(HashMap<String, Piece> piecesByLocations) {
+        public ChessboardIterator(final HashMap<String, Piece> piecesByLocations) {
             pieceObjArray = piecesByLocations.values()
                                              .stream()
                                              .filter(strval -> !Objects.isNull(strval))

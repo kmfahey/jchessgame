@@ -214,7 +214,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         try {
             moveToMake = minimaxRunner.algorithmTopLevel(chessboard);
-        } catch (AlgorithmBadArgumentException|AlgorithmInternalError exception) {
+        } catch (AlgorithmBadArgumentException | AlgorithmInternalError exception) {
             exception.printStackTrace();
             System.exit(1);
             return;

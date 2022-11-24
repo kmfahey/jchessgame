@@ -3,7 +3,6 @@ package com.kmfahey.jchessgame;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.HashMap;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.StringJoiner;
 import java.util.Random;
@@ -65,11 +64,11 @@ public class MinimaxRunner {
        logic that are used by some methods. In order to avoid instantiating a
        new array each time one is called, a spare array is stored to an instance
        variable and reused each time that method is called. */
-    private int[][] kingsMovesSpareBoardArray;    
-    private int[][] tallyPawnsArray;              
-    private int[][] colorMobilitySpareMovesArray; 
+    private int[][] kingsMovesSpareBoardArray;
+    private int[][] tallyPawnsArray;
+    private int[][] colorMobilitySpareMovesArray;
 
-    private HashMap<String,Double> evaluateBoardMemoizeMap;
+    private HashMap<String, Double> evaluateBoardMemoizeMap;
 
     private int colorOfAI;
     private int colorOfPlayer;
@@ -77,8 +76,8 @@ public class MinimaxRunner {
     private int algorithmStartingDepth;
     private Function<Integer, String> indenter = (intval) ->   (intval == 5) ? "                    "
                                                              : (intval == 4) ? "                "
-                                                             : (intval == 3) ? "            " 
-                                                             : (intval == 2) ? "        " 
+                                                             : (intval == 3) ? "            "
+                                                             : (intval == 2) ? "        "
                                                              : "        ";
 
     public record Move(Piece movingPiece, String currentLocation, String moveToLocation) { };
@@ -91,7 +90,7 @@ public class MinimaxRunner {
         tallyPawnsArray = new int[8][2];
         colorMobilitySpareMovesArray = new int[128][6];
         algorithmStartingDepth = 4;
-        evaluateBoardMemoizeMap = new HashMap<String,Double>();
+        evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
 
     private boolean doesQueensMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
@@ -1043,7 +1042,7 @@ public class MinimaxRunner {
         return totalScore;
     };
 
-    private double algorithmCallExecutor(final int[][] boardArray, boolean maximize,
+    private double algorithmCallExecutor(final int[][] boardArray, final boolean maximize,
                                          final int[] moveArray, final int colorsTurnItIs,
                                          final int depth, final double alpha, final double beta
                                          ) throws AlgorithmBadArgumentException {
@@ -1123,7 +1122,7 @@ public class MinimaxRunner {
         return bestMoveObj;
     }
 
-    private double algorithmLowerLevel(final int[][] boardArray, boolean maximize, final int depth,
+    private double algorithmLowerLevel(final int[][] boardArray, final boolean maximize, final int depth,
                                        final int colorsTurnItIs, final double alphaArg, final double betaArg
                                        ) throws AlgorithmBadArgumentException {
         int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
@@ -1137,7 +1136,7 @@ public class MinimaxRunner {
         int xIdx = 0;
         int yIdx = 0;
         int movesArrayUsedLength;
-        
+
         if (depth == 0) {
             double score = evaluateBoard(boardArray, colorsTurnItIs);
             return score;

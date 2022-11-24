@@ -3,17 +3,11 @@ package com.kmfahey.jchessgame.junit;
 import junit.framework.TestCase;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.logging.FileHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.LogManager;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.StringJoiner;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +38,7 @@ public final class TestMinimaxRunner extends TestCase {
 
     public TestMinimaxRunner() {
         super();
-    
+
         LogManager.getLogManager().reset();
         logger = Logger.getLogger("scraper_main");
         logger.setLevel(Level.INFO);
@@ -168,7 +162,7 @@ SQLException
         assert true;
     } */
 
-    private void log2dArray(int[][] arrayToLog, float runIdx) {
+    private void log2dArray(final int[][] arrayToLog, final float runIdx) {
         StringJoiner outerJoiner = new StringJoiner(",\\n", "new int[][] {\\n", "\\n}\\n");
         for (int outerIndex = 0; outerIndex < arrayToLog.length; outerIndex++) {
             if (arrayToLog[outerIndex][0] == 0) {
@@ -183,7 +177,7 @@ SQLException
         logger.info("run #" + runIdx + ": " + outerJoiner.toString());
     }
 
-    private int[][] trim2dArray(int[][] arrayToTrim, int newLength) {
+    private int[][] trim2dArray(final int[][] arrayToTrim, final int newLength) {
         int[][] newArray = new int[newLength][arrayToTrim[0].length];
 
         for (int idx = 0; idx < newLength; idx++) {
@@ -211,7 +205,10 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wp, 1, 1, 1, 2, 0}, new int[] {wp, 1, 1, 1, 3, 0} };
+        int[][] expectedMoves = new int[][] {
+            new int[] {wp, 1, 1, 1, 2, 0},
+            new int[] {wp, 1, 1, 1, 3, 0}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 1, WHITE);
@@ -241,7 +238,9 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wp, 1, 2, 1, 3, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wp, 1, 2, 1, 3, 0}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 2, WHITE);
@@ -272,7 +271,11 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wp, 1, 2, 1, 3, 0}, new int[] {wp, 1, 2, 2, 3, bp}, new int[] {wp, 1, 2, 0, 3, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wp, 1, 2, 1, 3, 0},
+            new int[] {wp, 1, 2, 2, 3, bp},
+            new int[] {wp, 1, 2, 0, 3, bp}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 2, WHITE);
@@ -304,7 +307,7 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { };
+        int[][] expectedMoves = new int[][] {};
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 2, WHITE);
@@ -334,7 +337,10 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {bp, 1, 6, 1, 5, 0}, new int[] {bp, 1, 6, 1, 4, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {bp, 1, 6, 1, 5, 0},
+            new int[] {bp, 1, 6, 1, 4, 0}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 6, BLACK);
@@ -364,7 +370,9 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {bp, 1, 5, 1, 4, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {bp, 1, 5, 1, 4, 0}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 5, BLACK);
@@ -394,7 +402,9 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {bp, 1, 5, 1, 4, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {bp, 1, 5, 1, 4, 0}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 5, BLACK);
@@ -425,7 +435,9 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wp, 1, 2, 1, 3, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wp, 1, 2, 1, 3, 0}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 2, WHITE);
@@ -456,7 +468,10 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {bp, 1, 6, 1, 5, 0}, new int[] {bp, 1, 6, 1, 4, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {bp, 1, 6, 1, 5, 0},
+            new int[] {bp, 1, 6, 1, 4, 0}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 6, BLACK);
@@ -487,7 +502,11 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {bp, 1, 6, 1, 5, 0}, new int[] {bp, 1, 6, 2, 5, wp}, new int[] {bp, 1, 6, 0, 5, wp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {bp, 1, 6, 1, 5, 0},
+            new int[] {bp, 1, 6, 2, 5, wp},
+            new int[] {bp, 1, 6, 0, 5, wp}
+        };
 
         method = getGeneratePawnsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 6, BLACK);
@@ -517,7 +536,22 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wr, 0, 0, 0, 1, 0}, new int[] {wr, 0, 0, 0, 2, 0}, new int[] {wr, 0, 0, 0, 3, 0}, new int[] {wr, 0, 0, 0, 4, 0}, new int[] {wr, 0, 0, 0, 5, 0}, new int[] {wr, 0, 0, 0, 6, 0}, new int[] {wr, 0, 0, 0, 7, 0}, new int[] {wr, 0, 0, 1, 0, 0}, new int[] {wr, 0, 0, 2, 0, 0}, new int[] {wr, 0, 0, 3, 0, 0}, new int[] {wr, 0, 0, 4, 0, 0}, new int[] {wr, 0, 0, 5, 0, 0}, new int[] {wr, 0, 0, 6, 0, 0}, new int[] {wr, 0, 0, 7, 0, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wr, 0, 0, 0, 1, 0},
+            new int[] {wr, 0, 0, 0, 2, 0},
+            new int[] {wr, 0, 0, 0, 3, 0},
+            new int[] {wr, 0, 0, 0, 4, 0},
+            new int[] {wr, 0, 0, 0, 5, 0},
+            new int[] {wr, 0, 0, 0, 6, 0},
+            new int[] {wr, 0, 0, 0, 7, 0},
+            new int[] {wr, 0, 0, 1, 0, 0},
+            new int[] {wr, 0, 0, 2, 0, 0},
+            new int[] {wr, 0, 0, 3, 0, 0},
+            new int[] {wr, 0, 0, 4, 0, 0},
+            new int[] {wr, 0, 0, 5, 0, 0},
+            new int[] {wr, 0, 0, 6, 0, 0},
+            new int[] {wr, 0, 0, 7, 0, 0}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 0, WHITE);
@@ -547,7 +581,22 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wr, 0, 3, 0, 4, 0}, new int[] {wr, 0, 3, 0, 5, 0}, new int[] {wr, 0, 3, 0, 6, 0}, new int[] {wr, 0, 3, 0, 7, 0}, new int[] {wr, 0, 3, 0, 2, 0}, new int[] {wr, 0, 3, 0, 1, 0}, new int[] {wr, 0, 3, 0, 0, 0}, new int[] {wr, 0, 3, 1, 3, 0}, new int[] {wr, 0, 3, 2, 3, 0}, new int[] {wr, 0, 3, 3, 3, 0}, new int[] {wr, 0, 3, 4, 3, 0}, new int[] {wr, 0, 3, 5, 3, 0}, new int[] {wr, 0, 3, 6, 3, 0}, new int[] {wr, 0, 3, 7, 3, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wr, 0, 3, 0, 4, 0},
+            new int[] {wr, 0, 3, 0, 5, 0},
+            new int[] {wr, 0, 3, 0, 6, 0},
+            new int[] {wr, 0, 3, 0, 7, 0},
+            new int[] {wr, 0, 3, 0, 2, 0},
+            new int[] {wr, 0, 3, 0, 1, 0},
+            new int[] {wr, 0, 3, 0, 0, 0},
+            new int[] {wr, 0, 3, 1, 3, 0},
+            new int[] {wr, 0, 3, 2, 3, 0},
+            new int[] {wr, 0, 3, 3, 3, 0},
+            new int[] {wr, 0, 3, 4, 3, 0},
+            new int[] {wr, 0, 3, 5, 3, 0},
+            new int[] {wr, 0, 3, 6, 3, 0},
+            new int[] {wr, 0, 3, 7, 3, 0}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 3, WHITE);
@@ -578,7 +627,15 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wr, 0, 3, 0, 4, 0}, new int[] {wr, 0, 3, 0, 5, 0}, new int[] {wr, 0, 3, 0, 2, 0}, new int[] {wr, 0, 3, 1, 3, 0}, new int[] {wr, 0, 3, 2, 3, 0}, new int[] {wr, 0, 3, 3, 3, 0}, new int[] {wr, 0, 3, 4, 3, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wr, 0, 3, 0, 4, 0},
+            new int[] {wr, 0, 3, 0, 5, 0},
+            new int[] {wr, 0, 3, 0, 2, 0},
+            new int[] {wr, 0, 3, 1, 3, 0},
+            new int[] {wr, 0, 3, 2, 3, 0},
+            new int[] {wr, 0, 3, 3, 3, 0},
+            new int[] {wr, 0, 3, 4, 3, 0}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 3, WHITE);
@@ -610,7 +667,18 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wr, 0, 3, 0, 4, 0}, new int[] {wr, 0, 3, 0, 5, 0}, new int[] {wr, 0, 3, 0, 6, bp}, new int[] {wr, 0, 3, 0, 2, 0}, new int[] {wr, 0, 3, 0, 1, bp}, new int[] {wr, 0, 3, 1, 3, 0}, new int[] {wr, 0, 3, 2, 3, 0}, new int[] {wr, 0, 3, 3, 3, 0}, new int[] {wr, 0, 3, 4, 3, 0}, new int[] {wr, 0, 3, 5, 3, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wr, 0, 3, 0, 4, 0},
+            new int[] {wr, 0, 3, 0, 5, 0},
+            new int[] {wr, 0, 3, 0, 6, bp},
+            new int[] {wr, 0, 3, 0, 2, 0},
+            new int[] {wr, 0, 3, 0, 1, bp},
+            new int[] {wr, 0, 3, 1, 3, 0},
+            new int[] {wr, 0, 3, 2, 3, 0},
+            new int[] {wr, 0, 3, 3, 3, 0},
+            new int[] {wr, 0, 3, 4, 3, 0},
+            new int[] {wr, 0, 3, 5, 3, bp}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 3, WHITE);
@@ -642,7 +710,18 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wr, 0, 3, 0, 4, 0}, new int[] {wr, 0, 3, 0, 5, 0}, new int[] {wr, 0, 3, 0, 6, bp}, new int[] {wr, 0, 3, 0, 2, 0}, new int[] {wr, 0, 3, 0, 1, bp}, new int[] {wr, 0, 3, 1, 3, 0}, new int[] {wr, 0, 3, 2, 3, 0}, new int[] {wr, 0, 3, 3, 3, 0}, new int[] {wr, 0, 3, 4, 3, 0}, new int[] {wr, 0, 3, 5, 3, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wr, 0, 3, 0, 4, 0},
+            new int[] {wr, 0, 3, 0, 5, 0},
+            new int[] {wr, 0, 3, 0, 6, bp},
+            new int[] {wr, 0, 3, 0, 2, 0},
+            new int[] {wr, 0, 3, 0, 1, bp},
+            new int[] {wr, 0, 3, 1, 3, 0},
+            new int[] {wr, 0, 3, 2, 3, 0},
+            new int[] {wr, 0, 3, 3, 3, 0},
+            new int[] {wr, 0, 3, 4, 3, 0},
+            new int[] {wr, 0, 3, 5, 3, bp}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 3, WHITE);
@@ -674,7 +753,18 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wr, 0, 3, 0, 4, 0}, new int[] {wr, 0, 3, 0, 5, 0}, new int[] {wr, 0, 3, 0, 6, bp}, new int[] {wr, 0, 3, 0, 2, 0}, new int[] {wr, 0, 3, 0, 1, bp}, new int[] {wr, 0, 3, 1, 3, 0}, new int[] {wr, 0, 3, 2, 3, 0}, new int[] {wr, 0, 3, 3, 3, 0}, new int[] {wr, 0, 3, 4, 3, 0}, new int[] {wr, 0, 3, 5, 3, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wr, 0, 3, 0, 4, 0},
+            new int[] {wr, 0, 3, 0, 5, 0},
+            new int[] {wr, 0, 3, 0, 6, bp},
+            new int[] {wr, 0, 3, 0, 2, 0},
+            new int[] {wr, 0, 3, 0, 1, bp},
+            new int[] {wr, 0, 3, 1, 3, 0},
+            new int[] {wr, 0, 3, 2, 3, 0},
+            new int[] {wr, 0, 3, 3, 3, 0},
+            new int[] {wr, 0, 3, 4, 3, 0},
+            new int[] {wr, 0, 3, 5, 3, bp}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 3, WHITE);
@@ -704,7 +794,22 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {br, 0, 7, 0, 6, 0}, new int[] {br, 0, 7, 0, 5, 0}, new int[] {br, 0, 7, 0, 4, 0}, new int[] {br, 0, 7, 0, 3, 0}, new int[] {br, 0, 7, 0, 2, 0}, new int[] {br, 0, 7, 0, 1, 0}, new int[] {br, 0, 7, 0, 0, 0}, new int[] {br, 0, 7, 1, 7, 0}, new int[] {br, 0, 7, 2, 7, 0}, new int[] {br, 0, 7, 3, 7, 0}, new int[] {br, 0, 7, 4, 7, 0}, new int[] {br, 0, 7, 5, 7, 0}, new int[] {br, 0, 7, 6, 7, 0}, new int[] {br, 0, 7, 7, 7, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {br, 0, 7, 0, 6, 0},
+            new int[] {br, 0, 7, 0, 5, 0},
+            new int[] {br, 0, 7, 0, 4, 0},
+            new int[] {br, 0, 7, 0, 3, 0},
+            new int[] {br, 0, 7, 0, 2, 0},
+            new int[] {br, 0, 7, 0, 1, 0},
+            new int[] {br, 0, 7, 0, 0, 0},
+            new int[] {br, 0, 7, 1, 7, 0},
+            new int[] {br, 0, 7, 2, 7, 0},
+            new int[] {br, 0, 7, 3, 7, 0},
+            new int[] {br, 0, 7, 4, 7, 0},
+            new int[] {br, 0, 7, 5, 7, 0},
+            new int[] {br, 0, 7, 6, 7, 0},
+            new int[] {br, 0, 7, 7, 7, 0}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 7, BLACK);
@@ -734,7 +839,22 @@ SQLException
             new int[] {0,  0,  0,  0, br,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {br, 7, 4, 7, 5, 0}, new int[] {br, 7, 4, 7, 6, 0}, new int[] {br, 7, 4, 7, 7, 0}, new int[] {br, 7, 4, 7, 3, 0}, new int[] {br, 7, 4, 7, 2, 0}, new int[] {br, 7, 4, 7, 1, 0}, new int[] {br, 7, 4, 7, 0, 0}, new int[] {br, 7, 4, 6, 4, 0}, new int[] {br, 7, 4, 5, 4, 0}, new int[] {br, 7, 4, 4, 4, 0}, new int[] {br, 7, 4, 3, 4, 0}, new int[] {br, 7, 4, 2, 4, 0}, new int[] {br, 7, 4, 1, 4, 0}, new int[] {br, 7, 4, 0, 4, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {br, 7, 4, 7, 5, 0},
+            new int[] {br, 7, 4, 7, 6, 0},
+            new int[] {br, 7, 4, 7, 7, 0},
+            new int[] {br, 7, 4, 7, 3, 0},
+            new int[] {br, 7, 4, 7, 2, 0},
+            new int[] {br, 7, 4, 7, 1, 0},
+            new int[] {br, 7, 4, 7, 0, 0},
+            new int[] {br, 7, 4, 6, 4, 0},
+            new int[] {br, 7, 4, 5, 4, 0},
+            new int[] {br, 7, 4, 4, 4, 0},
+            new int[] {br, 7, 4, 3, 4, 0},
+            new int[] {br, 7, 4, 2, 4, 0},
+            new int[] {br, 7, 4, 1, 4, 0},
+            new int[] {br, 7, 4, 0, 4, 0}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 7, 4, BLACK);
@@ -765,7 +885,15 @@ SQLException
             new int[] {0,  bp, 0,  0,  br, 0,  bp, 0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {br, 7, 4, 7, 5, 0}, new int[] {br, 7, 4, 7, 3, 0}, new int[] {br, 7, 4, 7, 2, 0}, new int[] {br, 7, 4, 6, 4, 0}, new int[] {br, 7, 4, 5, 4, 0}, new int[] {br, 7, 4, 4, 4, 0}, new int[] {br, 7, 4, 3, 4, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {br, 7, 4, 7, 5, 0},
+            new int[] {br, 7, 4, 7, 3, 0},
+            new int[] {br, 7, 4, 7, 2, 0},
+            new int[] {br, 7, 4, 6, 4, 0},
+            new int[] {br, 7, 4, 5, 4, 0},
+            new int[] {br, 7, 4, 4, 4, 0},
+            new int[] {br, 7, 4, 3, 4, 0}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 7, 4, BLACK);
@@ -797,7 +925,18 @@ SQLException
             new int[] {0,  wp, 0,  0,  br, 0,  wp, 0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {br, 7, 4, 7, 5, 0}, new int[] {br, 7, 4, 7, 6, wp}, new int[] {br, 7, 4, 7, 3, 0}, new int[] {br, 7, 4, 7, 2, 0}, new int[] {br, 7, 4, 7, 1, wp}, new int[] {br, 7, 4, 6, 4, 0}, new int[] {br, 7, 4, 5, 4, 0}, new int[] {br, 7, 4, 4, 4, 0}, new int[] {br, 7, 4, 3, 4, 0}, new int[] {br, 7, 4, 2, 4, wp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {br, 7, 4, 7, 5, 0},
+            new int[] {br, 7, 4, 7, 6, wp},
+            new int[] {br, 7, 4, 7, 3, 0},
+            new int[] {br, 7, 4, 7, 2, 0},
+            new int[] {br, 7, 4, 7, 1, wp},
+            new int[] {br, 7, 4, 6, 4, 0},
+            new int[] {br, 7, 4, 5, 4, 0},
+            new int[] {br, 7, 4, 4, 4, 0},
+            new int[] {br, 7, 4, 3, 4, 0},
+            new int[] {br, 7, 4, 2, 4, wp}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 7, 4, BLACK);
@@ -829,7 +968,18 @@ SQLException
             new int[] {0,  wp, 0,  0,  br, 0,  wp, 0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {br, 7, 4, 7, 5, 0}, new int[] {br, 7, 4, 7, 6, wp}, new int[] {br, 7, 4, 7, 3, 0}, new int[] {br, 7, 4, 7, 2, 0}, new int[] {br, 7, 4, 7, 1, wp}, new int[] {br, 7, 4, 6, 4, 0}, new int[] {br, 7, 4, 5, 4, 0}, new int[] {br, 7, 4, 4, 4, 0}, new int[] {br, 7, 4, 3, 4, 0}, new int[] {br, 7, 4, 2, 4, wp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {br, 7, 4, 7, 5, 0},
+            new int[] {br, 7, 4, 7, 6, wp},
+            new int[] {br, 7, 4, 7, 3, 0},
+            new int[] {br, 7, 4, 7, 2, 0},
+            new int[] {br, 7, 4, 7, 1, wp},
+            new int[] {br, 7, 4, 6, 4, 0},
+            new int[] {br, 7, 4, 5, 4, 0},
+            new int[] {br, 7, 4, 4, 4, 0},
+            new int[] {br, 7, 4, 3, 4, 0},
+            new int[] {br, 7, 4, 2, 4, wp}
+        };
 
         method = getGenerateRooksMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 7, 4, BLACK);
@@ -859,7 +1009,16 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 4, 1, 3, 0}, new int[] {wk, 3, 4, 1, 5, 0}, new int[] {wk, 3, 4, 2, 2, 0}, new int[] {wk, 3, 4, 2, 6, 0}, new int[] {wk, 3, 4, 4, 2, 0}, new int[] {wk, 3, 4, 4, 6, 0}, new int[] {wk, 3, 4, 5, 3, 0}, new int[] {wk, 3, 4, 5, 5, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 4, 1, 3, 0},
+            new int[] {wk, 3, 4, 1, 5, 0},
+            new int[] {wk, 3, 4, 2, 2, 0},
+            new int[] {wk, 3, 4, 2, 6, 0},
+            new int[] {wk, 3, 4, 4, 2, 0},
+            new int[] {wk, 3, 4, 4, 6, 0},
+            new int[] {wk, 3, 4, 5, 3, 0},
+            new int[] {wk, 3, 4, 5, 5, 0}
+        };
 
         method = getGenerateKnightsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 4, WHITE);
@@ -890,7 +1049,12 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 1, 1, 0, 3, 0}, new int[] {wk, 1, 1, 2, 3, 0}, new int[] {wk, 1, 1, 3, 0, 0}, new int[] {wk, 1, 1, 3, 2, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 1, 1, 0, 3, 0},
+            new int[] {wk, 1, 1, 2, 3, 0},
+            new int[] {wk, 1, 1, 3, 0, 0},
+            new int[] {wk, 1, 1, 3, 2, 0}
+        };
 
         method = getGenerateKnightsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 1, WHITE);
@@ -911,17 +1075,22 @@ SQLException
         int[][] trimmedMovesArray;
 
         int[][] testBoard = new int[][] {
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  wkn, 0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  bkg,0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0}
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0},
+            new int[] {0,  wkn, 0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  bkg, 0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wkn, 1, 1, 0, 3, 0}, new int[] {wkn, 1, 1, 2, 3, 0}, new int[] {wkn, 1, 1, 3, 0, 0}, new int[] {wkn, 1, 1, 3, 2, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wkn, 1, 1, 0, 3, 0},
+            new int[] {wkn, 1, 1, 2, 3, 0},
+            new int[] {wkn, 1, 1, 3, 0, 0},
+            new int[] {wkn, 1, 1, 3, 2, 0}
+        };
 
         method = getGenerateKnightsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 1, WHITE);
@@ -944,17 +1113,20 @@ SQLException
         int[][] trimmedMovesArray;
 
         int[][] testBoard = new int[][] {
-            new int[] {0,  0,   0,  wp, 0,  0,  0,  0},
-            new int[] {0,  wkn, 0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  bp, 0,  0,  0,  0},
-            new int[] {wp, 0,   bp, 0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  bkg,0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0},
-            new int[] {0,  0,   0,  0,  0,  0,  0,  0}
+            new int[] {0,  0,   0,  wp,  0,  0,  0,  0},
+            new int[] {0,  wkn, 0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  bp,  0,  0,  0,  0},
+            new int[] {wp, 0,   bp, 0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  bkg, 0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0},
+            new int[] {0,  0,   0,  0,   0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wkn, 1, 1, 2, 3, bp}, new int[] {wkn, 1, 1, 3, 2, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wkn, 1, 1, 2, 3, bp},
+            new int[] {wkn, 1, 1, 3, 2, bp}
+        };
 
         method = getGenerateKnightsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 1, WHITE);
@@ -984,7 +1156,15 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wb, 0, 0, 1, 1, 0}, new int[] {wb, 0, 0, 2, 2, 0}, new int[] {wb, 0, 0, 3, 3, 0}, new int[] {wb, 0, 0, 4, 4, 0}, new int[] {wb, 0, 0, 5, 5, 0}, new int[] {wb, 0, 0, 6, 6, 0}, new int[] {wb, 0, 0, 7, 7, 0} };
+        int[][] expectedMoves = new int[][] {
+            new int[] {wb, 0, 0, 1, 1, 0},
+            new int[] {wb, 0, 0, 2, 2, 0},
+            new int[] {wb, 0, 0, 3, 3, 0},
+            new int[] {wb, 0, 0, 4, 4, 0},
+            new int[] {wb, 0, 0, 5, 5, 0},
+            new int[] {wb, 0, 0, 6, 6, 0},
+            new int[] {wb, 0, 0, 7, 7, 0}
+        };
 
         method = getGenerateBishopsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 0, WHITE);
@@ -1014,7 +1194,21 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wb, 3, 3, 4, 4, 0}, new int[] {wb, 3, 3, 5, 5, 0}, new int[] {wb, 3, 3, 6, 6, 0}, new int[] {wb, 3, 3, 7, 7, 0}, new int[] {wb, 3, 3, 2, 4, 0}, new int[] {wb, 3, 3, 1, 5, 0}, new int[] {wb, 3, 3, 0, 6, 0}, new int[] {wb, 3, 3, 4, 2, 0}, new int[] {wb, 3, 3, 5, 1, 0}, new int[] {wb, 3, 3, 6, 0, 0}, new int[] {wb, 3, 3, 2, 2, 0}, new int[] {wb, 3, 3, 1, 1, 0}, new int[] {wb, 3, 3, 0, 0, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wb, 3, 3, 4, 4, 0},
+            new int[] {wb, 3, 3, 5, 5, 0},
+            new int[] {wb, 3, 3, 6, 6, 0},
+            new int[] {wb, 3, 3, 7, 7, 0},
+            new int[] {wb, 3, 3, 2, 4, 0},
+            new int[] {wb, 3, 3, 1, 5, 0},
+            new int[] {wb, 3, 3, 0, 6, 0},
+            new int[] {wb, 3, 3, 4, 2, 0},
+            new int[] {wb, 3, 3, 5, 1, 0},
+            new int[] {wb, 3, 3, 6, 0, 0},
+            new int[] {wb, 3, 3, 2, 2, 0},
+            new int[] {wb, 3, 3, 1, 1, 0},
+            new int[] {wb, 3, 3, 0, 0, 0}
+        };
 
         method = getGenerateBishopsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 3, WHITE);
@@ -1045,7 +1239,17 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wb, 3, 3, 4, 4, 0}, new int[] {wb, 3, 3, 5, 5, 0}, new int[] {wb, 3, 3, 6, 6, bp}, new int[] {wb, 3, 3, 2, 4, 0}, new int[] {wb, 3, 3, 1, 5, bp}, new int[] {wb, 3, 3, 4, 2, 0}, new int[] {wb, 3, 3, 5, 1, bp}, new int[] {wb, 3, 3, 2, 2, 0}, new int[] {wb, 3, 3, 1, 1, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wb, 3, 3, 4, 4, 0},
+            new int[] {wb, 3, 3, 5, 5, 0},
+            new int[] {wb, 3, 3, 6, 6, bp},
+            new int[] {wb, 3, 3, 2, 4, 0},
+            new int[] {wb, 3, 3, 1, 5, bp},
+            new int[] {wb, 3, 3, 4, 2, 0},
+            new int[] {wb, 3, 3, 5, 1, bp},
+            new int[] {wb, 3, 3, 2, 2, 0},
+            new int[] {wb, 3, 3, 1, 1, bp}
+        };
 
         method = getGenerateBishopsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 3, WHITE);
@@ -1077,7 +1281,17 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wb, 3, 3, 4, 4, 0}, new int[] {wb, 3, 3, 5, 5, 0}, new int[] {wb, 3, 3, 6, 6, bp}, new int[] {wb, 3, 3, 2, 4, 0}, new int[] {wb, 3, 3, 1, 5, bp}, new int[] {wb, 3, 3, 4, 2, 0}, new int[] {wb, 3, 3, 5, 1, bp}, new int[] {wb, 3, 3, 2, 2, 0}, new int[] {wb, 3, 3, 1, 1, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wb, 3, 3, 4, 4, 0},
+            new int[] {wb, 3, 3, 5, 5, 0},
+            new int[] {wb, 3, 3, 6, 6, bp},
+            new int[] {wb, 3, 3, 2, 4, 0},
+            new int[] {wb, 3, 3, 1, 5, bp},
+            new int[] {wb, 3, 3, 4, 2, 0},
+            new int[] {wb, 3, 3, 5, 1, bp},
+            new int[] {wb, 3, 3, 2, 2, 0},
+            new int[] {wb, 3, 3, 1, 1, bp}
+        };
 
         method = getGenerateBishopsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 3, WHITE);
@@ -1108,7 +1322,13 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wb, 3, 3, 4, 4, 0}, new int[] {wb, 3, 3, 5, 5, 0}, new int[] {wb, 3, 3, 2, 4, 0}, new int[] {wb, 3, 3, 4, 2, 0}, new int[] {wb, 3, 3, 2, 2, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wb, 3, 3, 4, 4, 0},
+            new int[] {wb, 3, 3, 5, 5, 0},
+            new int[] {wb, 3, 3, 2, 4, 0},
+            new int[] {wb, 3, 3, 4, 2, 0},
+            new int[] {wb, 3, 3, 2, 2, 0}
+        };
 
         method = getGenerateBishopsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 3, WHITE);
@@ -1138,7 +1358,29 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wq, 3, 0, 4, 0, 0}, new int[] {wq, 3, 0, 5, 0, 0}, new int[] {wq, 3, 0, 6, 0, 0}, new int[] {wq, 3, 0, 7, 0, 0}, new int[] {wq, 3, 0, 4, 1, 0}, new int[] {wq, 3, 0, 5, 2, 0}, new int[] {wq, 3, 0, 6, 3, 0}, new int[] {wq, 3, 0, 7, 4, 0}, new int[] {wq, 3, 0, 3, 1, 0}, new int[] {wq, 3, 0, 3, 2, 0}, new int[] {wq, 3, 0, 3, 3, 0}, new int[] {wq, 3, 0, 3, 4, 0}, new int[] {wq, 3, 0, 3, 5, 0}, new int[] {wq, 3, 0, 3, 6, 0}, new int[] {wq, 3, 0, 3, 7, 0}, new int[] {wq, 3, 0, 2, 0, 0}, new int[] {wq, 3, 0, 1, 0, 0}, new int[] {wq, 3, 0, 0, 0, 0}, new int[] {wq, 3, 0, 2, 1, 0}, new int[] {wq, 3, 0, 1, 2, 0}, new int[] {wq, 3, 0, 0, 3, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wq, 3, 0, 4, 0, 0},
+            new int[] {wq, 3, 0, 5, 0, 0},
+            new int[] {wq, 3, 0, 6, 0, 0},
+            new int[] {wq, 3, 0, 7, 0, 0},
+            new int[] {wq, 3, 0, 4, 1, 0},
+            new int[] {wq, 3, 0, 5, 2, 0},
+            new int[] {wq, 3, 0, 6, 3, 0},
+            new int[] {wq, 3, 0, 7, 4, 0},
+            new int[] {wq, 3, 0, 3, 1, 0},
+            new int[] {wq, 3, 0, 3, 2, 0},
+            new int[] {wq, 3, 0, 3, 3, 0},
+            new int[] {wq, 3, 0, 3, 4, 0},
+            new int[] {wq, 3, 0, 3, 5, 0},
+            new int[] {wq, 3, 0, 3, 6, 0},
+            new int[] {wq, 3, 0, 3, 7, 0},
+            new int[] {wq, 3, 0, 2, 0, 0},
+            new int[] {wq, 3, 0, 1, 0, 0},
+            new int[] {wq, 3, 0, 0, 0, 0},
+            new int[] {wq, 3, 0, 2, 1, 0},
+            new int[] {wq, 3, 0, 1, 2, 0},
+            new int[] {wq, 3, 0, 0, 3, 0}
+        };
 
         method = getGenerateQueensMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1170,7 +1412,18 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wq, 3, 0, 4, 0, 0}, new int[] {wq, 3, 0, 5, 0, 0}, new int[] {wq, 3, 0, 4, 1, 0}, new int[] {wq, 3, 0, 5, 2, 0}, new int[] {wq, 3, 0, 3, 1, 0}, new int[] {wq, 3, 0, 3, 2, 0}, new int[] {wq, 3, 0, 2, 0, 0}, new int[] {wq, 3, 0, 1, 0, 0}, new int[] {wq, 3, 0, 2, 1, 0}, new int[] {wq, 3, 0, 1, 2, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wq, 3, 0, 4, 0, 0},
+            new int[] {wq, 3, 0, 5, 0, 0},
+            new int[] {wq, 3, 0, 4, 1, 0},
+            new int[] {wq, 3, 0, 5, 2, 0},
+            new int[] {wq, 3, 0, 3, 1, 0},
+            new int[] {wq, 3, 0, 3, 2, 0},
+            new int[] {wq, 3, 0, 2, 0, 0},
+            new int[] {wq, 3, 0, 1, 0, 0},
+            new int[] {wq, 3, 0, 2, 1, 0},
+            new int[] {wq, 3, 0, 1, 2, 0}
+        };
 
         method = getGenerateQueensMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1201,7 +1454,23 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wq, 3, 0, 4, 0, 0}, new int[] {wq, 3, 0, 5, 0, 0}, new int[] {wq, 3, 0, 6, 0, bp}, new int[] {wq, 3, 0, 4, 1, 0}, new int[] {wq, 3, 0, 5, 2, 0}, new int[] {wq, 3, 0, 6, 3, bp}, new int[] {wq, 3, 0, 3, 1, 0}, new int[] {wq, 3, 0, 3, 2, 0}, new int[] {wq, 3, 0, 3, 3, bp}, new int[] {wq, 3, 0, 2, 0, 0}, new int[] {wq, 3, 0, 1, 0, 0}, new int[] {wq, 3, 0, 0, 0, bp}, new int[] {wq, 3, 0, 2, 1, 0}, new int[] {wq, 3, 0, 1, 2, 0}, new int[] {wq, 3, 0, 0, 3, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wq, 3, 0, 4, 0, 0},
+            new int[] {wq, 3, 0, 5, 0, 0},
+            new int[] {wq, 3, 0, 6, 0, bp},
+            new int[] {wq, 3, 0, 4, 1, 0},
+            new int[] {wq, 3, 0, 5, 2, 0},
+            new int[] {wq, 3, 0, 6, 3, bp},
+            new int[] {wq, 3, 0, 3, 1, 0},
+            new int[] {wq, 3, 0, 3, 2, 0},
+            new int[] {wq, 3, 0, 3, 3, bp},
+            new int[] {wq, 3, 0, 2, 0, 0},
+            new int[] {wq, 3, 0, 1, 0, 0},
+            new int[] {wq, 3, 0, 0, 0, bp},
+            new int[] {wq, 3, 0, 2, 1, 0},
+            new int[] {wq, 3, 0, 1, 2, 0},
+            new int[] {wq, 3, 0, 0, 3, bp}
+        };
 
         method = getGenerateQueensMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1233,7 +1502,23 @@ SQLException
             new int[] {0,  0,   0,  0,  bk, 0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wq, 3, 0, 4, 0, 0}, new int[] {wq, 3, 0, 5, 0, 0}, new int[] {wq, 3, 0, 6, 0, bp}, new int[] {wq, 3, 0, 4, 1, 0}, new int[] {wq, 3, 0, 5, 2, 0}, new int[] {wq, 3, 0, 6, 3, bp}, new int[] {wq, 3, 0, 3, 1, 0}, new int[] {wq, 3, 0, 3, 2, 0}, new int[] {wq, 3, 0, 3, 3, bp}, new int[] {wq, 3, 0, 2, 0, 0}, new int[] {wq, 3, 0, 1, 0, 0}, new int[] {wq, 3, 0, 0, 0, bp}, new int[] {wq, 3, 0, 2, 1, 0}, new int[] {wq, 3, 0, 1, 2, 0}, new int[] {wq, 3, 0, 0, 3, bp}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wq, 3, 0, 4, 0, 0},
+            new int[] {wq, 3, 0, 5, 0, 0},
+            new int[] {wq, 3, 0, 6, 0, bp},
+            new int[] {wq, 3, 0, 4, 1, 0},
+            new int[] {wq, 3, 0, 5, 2, 0},
+            new int[] {wq, 3, 0, 6, 3, bp},
+            new int[] {wq, 3, 0, 3, 1, 0},
+            new int[] {wq, 3, 0, 3, 2, 0},
+            new int[] {wq, 3, 0, 3, 3, bp},
+            new int[] {wq, 3, 0, 2, 0, 0},
+            new int[] {wq, 3, 0, 1, 0, 0},
+            new int[] {wq, 3, 0, 0, 0, bp},
+            new int[] {wq, 3, 0, 2, 1, 0},
+            new int[] {wq, 3, 0, 1, 2, 0},
+            new int[] {wq, 3, 0, 0, 3, bp}
+        };
 
         method = getGenerateQueensMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1425,7 +1710,13 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 0, 2, 0, 0}, new int[] {wk, 3, 0, 2, 1, 0}, new int[] {wk, 3, 0, 3, 1, 0}, new int[] {wk, 3, 0, 4, 0, 0}, new int[] {wk, 3, 0, 4, 1, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 0, 2, 0, 0},
+            new int[] {wk, 3, 0, 2, 1, 0},
+            new int[] {wk, 3, 0, 3, 1, 0},
+            new int[] {wk, 3, 0, 4, 0, 0},
+            new int[] {wk, 3, 0, 4, 1, 0}
+        };
 
         method = getGenerateKingsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1456,7 +1747,11 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 0, 2, 0, 0}, new int[] {wk, 3, 0, 3, 1, 0}, new int[] {wk, 3, 0, 4, 0, 0} };
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 0, 2, 0, 0},
+            new int[] {wk, 3, 0, 3, 1, 0},
+            new int[] {wk, 3, 0, 4, 0, 0}
+        };
 
         method = getGenerateKingsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1487,7 +1782,11 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 0, 2, 0, 0}, new int[] {wk, 3, 0, 3, 1, 0}, new int[] {wk, 3, 0, 4, 0, 0} };
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 0, 2, 0, 0},
+            new int[] {wk, 3, 0, 3, 1, 0},
+            new int[] {wk, 3, 0, 4, 0, 0}
+        };
 
         method = getGenerateKingsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1518,7 +1817,12 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 0, 2, 0, 0}, new int[] {wk, 3, 0, 2, 1, 0}, new int[] {wk, 3, 0, 4, 0, 0}, new int[] {wk, 3, 0, 4, 1, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 0, 2, 0, 0},
+            new int[] {wk, 3, 0, 2, 1, 0},
+            new int[] {wk, 3, 0, 4, 0, 0},
+            new int[] {wk, 3, 0, 4, 1, 0}
+        };
 
         method = getGenerateKingsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1549,7 +1853,11 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 0, 3, 1, 0}, new int[] {wk, 3, 0, 4, 0, 0}, new int[] {wk, 3, 0, 4, 1, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 0, 3, 1, 0},
+            new int[] {wk, 3, 0, 4, 0, 0},
+            new int[] {wk, 3, 0, 4, 1, 0}
+        };
 
         method = getGenerateKingsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1580,7 +1888,11 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 0, 2, 0, 0}, new int[] {wk, 3, 0, 2, 1, 0}, new int[] {wk, 3, 0, 4, 1, 0} };
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 0, 2, 0, 0},
+            new int[] {wk, 3, 0, 2, 1, 0},
+            new int[] {wk, 3, 0, 4, 1, 0}
+        };
 
         method = getGenerateKingsMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1610,7 +1922,10 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wp, 1, 1, 1, 2, 0}, new int[] {wp, 1, 1, 1, 3, 0} };
+        int[][] expectedMoves = new int[][] {
+            new int[] {wp, 1, 1, 1, 2, 0},
+            new int[] {wp, 1, 1, 1, 3, 0}
+        };
 
         method = getGeneratePieceMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 1, 1, WHITE);
@@ -1640,7 +1955,22 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wr, 0, 0, 0, 1, 0}, new int[] {wr, 0, 0, 0, 2, 0}, new int[] {wr, 0, 0, 0, 3, 0}, new int[] {wr, 0, 0, 0, 4, 0}, new int[] {wr, 0, 0, 0, 5, 0}, new int[] {wr, 0, 0, 0, 6, 0}, new int[] {wr, 0, 0, 0, 7, 0}, new int[] {wr, 0, 0, 1, 0, 0}, new int[] {wr, 0, 0, 2, 0, 0}, new int[] {wr, 0, 0, 3, 0, 0}, new int[] {wr, 0, 0, 4, 0, 0}, new int[] {wr, 0, 0, 5, 0, 0}, new int[] {wr, 0, 0, 6, 0, 0}, new int[] {wr, 0, 0, 7, 0, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wr, 0, 0, 0, 1, 0},
+            new int[] {wr, 0, 0, 0, 2, 0},
+            new int[] {wr, 0, 0, 0, 3, 0},
+            new int[] {wr, 0, 0, 0, 4, 0},
+            new int[] {wr, 0, 0, 0, 5, 0},
+            new int[] {wr, 0, 0, 0, 6, 0},
+            new int[] {wr, 0, 0, 0, 7, 0},
+            new int[] {wr, 0, 0, 1, 0, 0},
+            new int[] {wr, 0, 0, 2, 0, 0},
+            new int[] {wr, 0, 0, 3, 0, 0},
+            new int[] {wr, 0, 0, 4, 0, 0},
+            new int[] {wr, 0, 0, 5, 0, 0},
+            new int[] {wr, 0, 0, 6, 0, 0},
+            new int[] {wr, 0, 0, 7, 0, 0}
+        };
 
         method = getGeneratePieceMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 0, WHITE);
@@ -1670,7 +2000,16 @@ SQLException
             new int[] {0,  0,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 4, 1, 3, 0}, new int[] {wk, 3, 4, 1, 5, 0}, new int[] {wk, 3, 4, 2, 2, 0}, new int[] {wk, 3, 4, 2, 6, 0}, new int[] {wk, 3, 4, 4, 2, 0}, new int[] {wk, 3, 4, 4, 6, 0}, new int[] {wk, 3, 4, 5, 3, 0}, new int[] {wk, 3, 4, 5, 5, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 4, 1, 3, 0},
+            new int[] {wk, 3, 4, 1, 5, 0},
+            new int[] {wk, 3, 4, 2, 2, 0},
+            new int[] {wk, 3, 4, 2, 6, 0},
+            new int[] {wk, 3, 4, 4, 2, 0},
+            new int[] {wk, 3, 4, 4, 6, 0},
+            new int[] {wk, 3, 4, 5, 3, 0},
+            new int[] {wk, 3, 4, 5, 5, 0}
+        };
 
         method = getGeneratePieceMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 4, WHITE);
@@ -1701,7 +2040,15 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wb, 0, 0, 1, 1, 0}, new int[] {wb, 0, 0, 2, 2, 0}, new int[] {wb, 0, 0, 3, 3, 0}, new int[] {wb, 0, 0, 4, 4, 0}, new int[] {wb, 0, 0, 5, 5, 0}, new int[] {wb, 0, 0, 6, 6, 0}, new int[] {wb, 0, 0, 7, 7, 0} };
+        int[][] expectedMoves = new int[][] {
+            new int[] {wb, 0, 0, 1, 1, 0},
+            new int[] {wb, 0, 0, 2, 2, 0},
+            new int[] {wb, 0, 0, 3, 3, 0},
+            new int[] {wb, 0, 0, 4, 4, 0},
+            new int[] {wb, 0, 0, 5, 5, 0},
+            new int[] {wb, 0, 0, 6, 6, 0},
+            new int[] {wb, 0, 0, 7, 7, 0}
+        };
 
         method = getGeneratePieceMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 0, 0, WHITE);
@@ -1731,7 +2078,29 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wq, 3, 0, 4, 0, 0}, new int[] {wq, 3, 0, 5, 0, 0}, new int[] {wq, 3, 0, 6, 0, 0}, new int[] {wq, 3, 0, 7, 0, 0}, new int[] {wq, 3, 0, 4, 1, 0}, new int[] {wq, 3, 0, 5, 2, 0}, new int[] {wq, 3, 0, 6, 3, 0}, new int[] {wq, 3, 0, 7, 4, 0}, new int[] {wq, 3, 0, 3, 1, 0}, new int[] {wq, 3, 0, 3, 2, 0}, new int[] {wq, 3, 0, 3, 3, 0}, new int[] {wq, 3, 0, 3, 4, 0}, new int[] {wq, 3, 0, 3, 5, 0}, new int[] {wq, 3, 0, 3, 6, 0}, new int[] {wq, 3, 0, 3, 7, 0}, new int[] {wq, 3, 0, 2, 0, 0}, new int[] {wq, 3, 0, 1, 0, 0}, new int[] {wq, 3, 0, 0, 0, 0}, new int[] {wq, 3, 0, 2, 1, 0}, new int[] {wq, 3, 0, 1, 2, 0}, new int[] {wq, 3, 0, 0, 3, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wq, 3, 0, 4, 0, 0},
+            new int[] {wq, 3, 0, 5, 0, 0},
+            new int[] {wq, 3, 0, 6, 0, 0},
+            new int[] {wq, 3, 0, 7, 0, 0},
+            new int[] {wq, 3, 0, 4, 1, 0},
+            new int[] {wq, 3, 0, 5, 2, 0},
+            new int[] {wq, 3, 0, 6, 3, 0},
+            new int[] {wq, 3, 0, 7, 4, 0},
+            new int[] {wq, 3, 0, 3, 1, 0},
+            new int[] {wq, 3, 0, 3, 2, 0},
+            new int[] {wq, 3, 0, 3, 3, 0},
+            new int[] {wq, 3, 0, 3, 4, 0},
+            new int[] {wq, 3, 0, 3, 5, 0},
+            new int[] {wq, 3, 0, 3, 6, 0},
+            new int[] {wq, 3, 0, 3, 7, 0},
+            new int[] {wq, 3, 0, 2, 0, 0},
+            new int[] {wq, 3, 0, 1, 0, 0},
+            new int[] {wq, 3, 0, 0, 0, 0},
+            new int[] {wq, 3, 0, 2, 1, 0},
+            new int[] {wq, 3, 0, 1, 2, 0},
+            new int[] {wq, 3, 0, 0, 3, 0}
+        };
 
         method = getGeneratePieceMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1761,7 +2130,13 @@ SQLException
             new int[] {0,  0,   0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {wk, 3, 0, 2, 0, 0}, new int[] {wk, 3, 0, 2, 1, 0}, new int[] {wk, 3, 0, 3, 1, 0}, new int[] {wk, 3, 0, 4, 0, 0}, new int[] {wk, 3, 0, 4, 1, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {wk, 3, 0, 2, 0, 0},
+            new int[] {wk, 3, 0, 2, 1, 0},
+            new int[] {wk, 3, 0, 3, 1, 0},
+            new int[] {wk, 3, 0, 4, 0, 0},
+            new int[] {wk, 3, 0, 4, 1, 0}
+        };
 
         method = getGeneratePieceMoves();
         moveIdx = (int) method.invoke(runner, testBoard, movesArray, moveIdx, 3, 0, WHITE);
@@ -1797,7 +2172,28 @@ SQLException
             new int[] {wr,   wp,  0,  0,  0,  0,  0,  0}
         };
 
-        int[][] expectedMoves = new int[][] { new int[] {72, 0, 1, 0, 2, 0}, new int[] {72, 0, 1, 0, 3, 0}, new int[] {89, 1, 0, 0, 2, 0}, new int[] {89, 1, 0, 2, 2, 0}, new int[] {72, 1, 1, 1, 2, 0}, new int[] {72, 1, 1, 1, 3, 0}, new int[] {72, 2, 1, 2, 2, 0}, new int[] {72, 2, 1, 2, 3, 0}, new int[] {72, 3, 1, 3, 2, 0}, new int[] {72, 3, 1, 3, 3, 0}, new int[] {72, 4, 1, 4, 2, 0}, new int[] {72, 4, 1, 4, 3, 0}, new int[] {72, 5, 1, 5, 2, 0}, new int[] {72, 5, 1, 5, 3, 0}, new int[] {90, 6, 0, 5, 2, 0}, new int[] {90, 6, 0, 7, 2, 0}, new int[] {72, 6, 1, 6, 2, 0}, new int[] {72, 6, 1, 6, 3, 0}, new int[] {72, 7, 1, 7, 2, 0}, new int[] {72, 7, 1, 7, 3, 0}};
+        int[][] expectedMoves = new int[][] {
+            new int[] {72, 0, 1, 0, 2, 0},
+            new int[] {72, 0, 1, 0, 3, 0},
+            new int[] {89, 1, 0, 0, 2, 0},
+            new int[] {89, 1, 0, 2, 2, 0},
+            new int[] {72, 1, 1, 1, 2, 0},
+            new int[] {72, 1, 1, 1, 3, 0},
+            new int[] {72, 2, 1, 2, 2, 0},
+            new int[] {72, 2, 1, 2, 3, 0},
+            new int[] {72, 3, 1, 3, 2, 0},
+            new int[] {72, 3, 1, 3, 3, 0},
+            new int[] {72, 4, 1, 4, 2, 0},
+            new int[] {72, 4, 1, 4, 3, 0},
+            new int[] {72, 5, 1, 5, 2, 0},
+            new int[] {72, 5, 1, 5, 3, 0},
+            new int[] {90, 6, 0, 5, 2, 0},
+            new int[] {90, 6, 0, 7, 2, 0},
+            new int[] {72, 6, 1, 6, 2, 0},
+            new int[] {72, 6, 1, 6, 3, 0},
+            new int[] {72, 7, 1, 7, 2, 0},
+            new int[] {72, 7, 1, 7, 3, 0}
+        };
 
         method = getGeneratePossibleMoves();
         movesArray = (int[][]) method.invoke(runner, testBoard, WHITE);

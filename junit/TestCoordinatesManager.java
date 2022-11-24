@@ -25,7 +25,7 @@ public final class TestCoordinatesManager extends TestCase {
         Dimension beigeMarginDimensions = coordinatesManager.getBeigeMarginDimensions();
         Insets innerBlackBorderInsets = coordinatesManager.getInnerBlackBorderInsets();
         Dimension innerBlackBorderDimensions = coordinatesManager.getInnerBlackBorderDimensions();
-        Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets() ;
+        Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension boardSquareFieldDimensions = coordinatesManager.getBoardSquareFieldDimensions();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
 
