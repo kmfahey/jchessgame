@@ -42,8 +42,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private String colorPlaying;
     private final int timerDelayMlsec = 500;
 
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
-
     public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr,
                      final CoordinatesManager coordMgr, final Chessboard chessBoard,
                      final String playingColor) {
@@ -205,7 +203,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     public void actionPerformed(final ActionEvent event) {
         MinimaxRunner minimaxRunner;
         MinimaxRunner.Move moveToMake;
-        LocalDateTime timeRightNow;
 
         if (!event.getActionCommand().equals("move")) {
             return;
