@@ -1188,7 +1188,7 @@ public class MinimaxRunner {
             kingsch:
             for (xIdx = 0; xIdx < 8; xIdx++) {
                 for (yIdx = 0; yIdx < 8; yIdx++) {
-                    if (boardArray[xIdx][yIdx] == (colorOpposing | KING)) {
+                    if (boardArray[xIdx][yIdx] == (colorsTurnItIs | KING)) {
                         break kingsch;
                     }
                 }
