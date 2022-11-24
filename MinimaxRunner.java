@@ -89,133 +89,413 @@ public class MinimaxRunner {
         evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
 
-    private boolean doesQueenHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
-                                             final int colorsTurnItIs) {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
 
-        if (xIdx < 7) {
-            for (int xIdxMod = xIdx + 1; xIdxMod < 8; xIdxMod++) {
-                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdx] != 0) {
-                    break;
-                }
+    public Move algorithmTopLevel(final Chessboard chessboard
+                                 ) throws AlgorithmBadArgumentException, AlgorithmInternalError {
+        int[][] boardArray = new int[8][8];
+        int[][] movesArray = new int[128][6];
+        double bestScore;
+        int[] bestMoveArray = null;
+        int movesArrayUsedLength;
+        double alpha;
+        double beta;
+        Move bestMoveObj;
+        Iterator<Piece> boardIter = chessboard.iterator();
+        Random randomSource = new Random();
+
+        alpha = Double.NEGATIVE_INFINITY;
+        beta = Double.POSITIVE_INFINITY;
+        bestScore = Double.NEGATIVE_INFINITY;
+
+        while (boardIter.hasNext()) {
+            Piece nextPiece = boardIter.next();
+            int[] pieceCoords = chessboard.algNotnLocToNumericIndexes(nextPiece.getLocation());
+            int pieceNumber = pieceIdentitiesToInts.get(nextPiece.getIdentity());
+            boardArray[pieceCoords[0]][pieceCoords[1]] = pieceNumber;
+        }
+
+        movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOfAI);
+
+        for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
+            double thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx], colorOfAI,
+                                                     algorithmStartingDepth, alpha, beta);
+            if (thisScore > bestScore) {
+                bestScore = thisScore;
+                bestMoveArray = movesArray[moveIdx];
             }
-            if (yIdx < 7) {
-                for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod < 8 && yIdxMod < 8; xIdxMod++, yIdxMod++) {
-                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                        return true;
-                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        break;
+            if (thisScore > alpha) {
+                alpha = thisScore;
+            }
+        }
+        if (Objects.isNull(bestMoveArray)) {
+            throw new AlgorithmInternalError("algorithm top-level execution failed to find best move");
+        }
+
+        String bestMoveFromLoc = chessboard.numericIndexesToAlgNotnLoc(bestMoveArray[1], bestMoveArray[2]);
+        String bestMoveToLoc = chessboard.numericIndexesToAlgNotnLoc(bestMoveArray[3], bestMoveArray[4]);
+        Piece bestMovePiece = chessboard.getPieceAtLocation(bestMoveFromLoc);
+
+        bestMoveObj = new Move(bestMovePiece, bestMoveFromLoc, bestMoveToLoc);
+
+        return bestMoveObj;
+    }
+
+
+    private double algorithmLowerLevel(final int[][] boardArray, final boolean maximize, final int depth,
+                                       final int colorsTurnItIs, final double alphaArg, final double betaArg
+                                       ) throws AlgorithmBadArgumentException {
+        int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
+        double bestScore;
+        double thisScore;
+        double alpha = alphaArg;
+        double beta = betaArg;
+        int[][] movesArray = new int[128][6];
+        int thisColorKingsMovesCount;
+        int otherColorKingsMovesCount;
+        int xIdx = 0;
+        int yIdx = 0;
+        int movesArrayUsedLength;
+
+        if (depth == 0) {
+            double score = evaluateBoard(boardArray, colorsTurnItIs);
+            return score;
+        } else if (algorithmStartingDepth - depth >= 2) {
+            /* This is just to locate the coordinates of this side's King on the
+               board so I can call generateKingsMoves() with them. */
+            kingsch:
+            for (xIdx = 0; xIdx < 8; xIdx++) {
+                for (yIdx = 0; yIdx < 8; yIdx++) {
+                    if (boardArray[xIdx][yIdx] == (colorsTurnItIs | KING)) {
+                        break kingsch;
                     }
                 }
             }
-            if (yIdx > 0) {
-                for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
-                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                        return true;
-                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        break;
-                    }
+
+            if (isKingInCheck(boardArray, colorOpposing)
+                && generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorsTurnItIs) == 0) {
+                if (colorOpposing == colorOfPlayer) {
+                    return Double.NEGATIVE_INFINITY;
+                } else {
+                    return Double.POSITIVE_INFINITY;
                 }
             }
         }
+
+        bestScore = maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+
+        movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOpposing);
+
+        for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
+            thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx], colorOpposing, depth, alpha, beta);
+            if (maximize && thisScore == Double.POSITIVE_INFINITY || thisScore == Double.NEGATIVE_INFINITY) {
+                return thisScore;
+            }
+            if (maximize && thisScore > alpha) {
+                alpha = thisScore;
+            } else if (!maximize && thisScore < beta) {
+                beta = thisScore;
+            }
+            if (maximize && thisScore >= beta || thisScore <= alpha) {
+                return thisScore;
+            }
+            if (maximize && thisScore > bestScore || thisScore < bestScore) {
+                bestScore = thisScore;
+            }
+        }
+
+        return bestScore;
+    }
+
+
+    private double algorithmCallExecutor(final int[][] boardArray, final boolean maximize,
+                                         final int[] moveArray, final int colorsTurnItIs,
+                                         final int depth, final double alpha, final double beta
+                                         ) throws AlgorithmBadArgumentException {
+        int fromXIdx = moveArray[1];
+        int fromYIdx = moveArray[2];
+        int toXIdx = moveArray[3];
+        int toYIdx = moveArray[4];
+        int[][] newBoardArray;
+        double retval;
+
+        System.err.println("+1");
+
+        /* The same boardArray is passed down the call stack and reused by
+           every step of the algorithm, to avoid having to clone it each time.
+           That means I need to execute this moveArray's move on the board,
+           execute the recursive call, and then undo the move so the board can
+           be reused. savedPiece holds whatever was at the square the piece
+           was moved to so it can be restored. */
+
+        int savedPiece = boardArray[toXIdx][toYIdx];
+        boardArray[toXIdx][toYIdx] = moveArray[0];
+        boardArray[fromXIdx][fromYIdx] = 0;
+
+        retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
+
+        boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
+        boardArray[toXIdx][toYIdx] = savedPiece;
+
+        return retval;
+    }
+
+
+    private int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray, final int colorsTurnItIs
+                                         ) throws AlgorithmBadArgumentException {
+        int colorOpposing = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+        int moveIdx = 0;
+        boolean kingIsInCheck;
+
+        kingIsInCheck = isKingInCheck(boardArray, colorOpposing);
+
+        for (int xIdx = 0; xIdx < 8; xIdx++) {
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                int pieceInt = boardArray[xIdx][yIdx];
+                if (pieceInt == 0 || (pieceInt & colorOpposing) != 0
+                    /* If the king is in check the AI must move their king out
+                       of check, so pieces other than the king are skipped. */
+                    || kingIsInCheck && (pieceInt ^ colorsTurnItIs) != KING) {
+                    continue;
+                }
+                moveIdx = generatePieceMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+            }
+        }
+
+        return moveIdx;
+    }
+
+
+    private int generatePieceMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
+                                  final int xIdx, final int yIdx, final int colorsTurnItIs
+                                  ) throws AlgorithmBadArgumentException {
+        int pieceInt = boardArray[xIdx][yIdx];
+        int moveIdx = moveIdxArg;
+
+        switch (pieceInt ^ colorsTurnItIs) {
+            case PAWN:
+                moveIdx = generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                break;
+            case ROOK:
+                moveIdx = generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                break;
+            case KNIGHT | LEFT: case KNIGHT | RIGHT:
+                moveIdx = generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                break;
+            case BISHOP:
+                moveIdx = generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                break;
+            case QUEEN:
+                moveIdx = generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                break;
+            case KING:
+                moveIdx = generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                break;
+            default:
+                break;
+        }
+
+        return moveIdx;
+    }
+
+
+    private int generatePawnsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
+                                  final int xIdx, final int yIdx, final int colorsTurnItIs
+                                  ) throws AlgorithmBadArgumentException {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+        int pawnPieceInt;
+        int yIdxMod;
+        int moveIdx = moveIdxArg;
+
+        pawnPieceInt = boardArray[xIdx][yIdx];
+
+        if (pawnPieceInt != (colorsTurnItIs | PAWN)) {
+            throw new AlgorithmBadArgumentException("generatePawnsMoves() called with coordinates that point to cell "
+                                                    + "on board that's not a pawn or not the color whose turn it is");
+        }
+
+        if (yIdx < 7 && (colorOnTop == WHITE && colorsTurnItIs == WHITE
+                         || colorOnTop == BLACK && colorsTurnItIs == BLACK)) {
+            yIdxMod = yIdx + 1;
+        } else if (yIdx > 0 && (colorOnTop == WHITE && colorsTurnItIs == BLACK
+                                || colorOnTop == BLACK && colorsTurnItIs == WHITE)) {
+            yIdxMod = yIdx - 1;
+        } else {
+            return moveIdx;
+        }
+
+        if (boardArray[xIdx][yIdxMod] == 0) {
+            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0);
+            moveIdx++;
+        }
+        if (xIdx < 7 && (boardArray[xIdx + 1][yIdxMod] & otherColor) != 0) {
+            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                                boardArray[xIdx + 1][yIdxMod]);
+            moveIdx++;
+        }
+        if (xIdx > 0 && (boardArray[xIdx - 1][yIdxMod] & otherColor) != 0) {
+            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                                boardArray[xIdx - 1][yIdxMod]);
+            moveIdx++;
+        }
+
+        if (yIdx == 6 && boardArray[xIdx][yIdx - 2] == 0) {
+            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdx - 2, 0);
+            moveIdx++;
+        } else if (yIdx == 1 && boardArray[xIdx][yIdx + 2] == 0) {
+            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdx + 2, 0);
+            moveIdx++;
+        }
+
+        return moveIdx;
+    }
+
+
+    private int generateRooksMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
+                                  final int xIdx, final int yIdx, final int colorsTurnItIs
+                                  ) throws AlgorithmBadArgumentException {
+        int rookPieceInt;
+        int moveIdx = moveIdxArg;
+
+        rookPieceInt = boardArray[xIdx][yIdx];
+
+        if (rookPieceInt != (colorsTurnItIs | ROOK)) {
+            throw new AlgorithmBadArgumentException("generateRooksMoves() called with coordinates that point to cell "
+                                                    + "on board that's not a rook or not the color whose turn it is");
+        }
+
         if (yIdx < 7) {
-            for (int yIdxMod = yIdx + 1; yIdxMod < 8; yIdxMod++) {
-                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdx][yIdxMod] != 0) {
+            for (int yIdxMod = yIdx + 1;
+                 yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
+                 yIdxMod++, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                    boardArray[xIdx][yIdxMod]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
                     break;
                 }
             }
         }
         if (yIdx > 0) {
-            for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdx][yIdxMod] != 0) {
+            for (int yIdxMod = yIdx - 1;
+                 yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
+                 yIdxMod--, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                    boardArray[xIdx][yIdxMod]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
+                    break;
+                }
+            }
+        }
+        if (xIdx < 7) {
+            for (int xIdxMod = xIdx + 1;
+                 xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
+                 xIdxMod++, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                    boardArray[xIdxMod][yIdx]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
                     break;
                 }
             }
         }
         if (xIdx > 0) {
-            for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdx] != 0) {
+            for (int xIdxMod = xIdx - 1;
+                 xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
+                 xIdxMod--, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                    boardArray[xIdxMod][yIdx]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
                     break;
-                }
-            }
-            if (yIdx < 7) {
-                for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod < 8; xIdxMod--, yIdxMod++) {
-                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                        return true;
-                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        break;
-                    }
-                }
-            }
-            if (yIdx > 0) {
-                for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
-                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                        return true;
-                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        break;
-                    }
                 }
             }
         }
 
-        return false;
+        return moveIdx;
     }
 
-    private boolean doesBishopHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
-                                              final int colorsTurnItIs) {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+
+    private int generateBishopsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
+                                    final int xIdx, final int yIdx, final int colorsTurnItIs
+                                    ) throws AlgorithmBadArgumentException {
+        int bishopPieceInt;
+        int moveIdx = moveIdxArg;
+
+        bishopPieceInt = boardArray[xIdx][yIdx];
+
+        if (bishopPieceInt != (colorsTurnItIs | BISHOP)) {
+            throw new AlgorithmBadArgumentException("generateBishopsMoves() called with coordinates that point to "
+                                                    + "cell on board that's not a bishop or not the color whose turn "
+                                                    + "it is");
+        }
 
         if (xIdx < 7 && yIdx < 7) {
-            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod < 8 && yIdxMod < 8; xIdxMod++, yIdxMod++) {
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1;
+                xIdxMod < 8 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
+                xIdxMod++, yIdxMod++, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                    boardArray[xIdxMod][yIdxMod]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
                     break;
                 }
             }
         }
         if (xIdx > 0 && yIdx < 7) {
-            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod < 8; xIdxMod--, yIdxMod++) {
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1;
+                xIdxMod >= 0 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
+                xIdxMod--, yIdxMod++, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                    boardArray[xIdxMod][yIdxMod]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
                     break;
                 }
             }
         }
         if (xIdx < 7 && yIdx > 0) {
-            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1;
+                xIdxMod < 8 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
+                xIdxMod++, yIdxMod--, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                    boardArray[xIdxMod][yIdxMod]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
                     break;
                 }
             }
         }
         if (xIdx > 0 && yIdx > 0) {
-            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1;
+                xIdxMod >= 0 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
+                xIdxMod--, yIdxMod--, moveIdx++) {
+                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                    boardArray[xIdxMod][yIdxMod]);
+                if (movesArray[moveIdx][5] != 0) {
+                    moveIdx++;
                     break;
                 }
             }
         }
 
-        return false;
+        return moveIdx;
     }
 
-    private boolean doesKnightHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
-                                              final int colorsTurnItIs) {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+
+    private int generateKnightsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
+                                    final int xIdx, final int yIdx, final int colorsTurnItIs
+                                    ) throws AlgorithmBadArgumentException {
+        int knightPieceInt;
+        int moveIdx = moveIdxArg;
+
+        knightPieceInt = boardArray[xIdx][yIdx];
+
+        if (knightPieceInt != (colorsTurnItIs | KNIGHT | LEFT) && knightPieceInt != (colorsTurnItIs | KNIGHT | RIGHT)) {
+            throw new AlgorithmBadArgumentException("generateKnightsMoves() called with coordinates that point to "
+                                                    + "cell on board that's not a knight or not the color whose turn "
+                                                    + "it is");
+        }
 
         for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
             for (int yIdxDelta = -2; yIdxDelta <= 2; yIdxDelta++) {
@@ -231,190 +511,15 @@ public class MinimaxRunner {
                     continue;
                 }
 
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    break;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean doesRookHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
-                                            final int colorsTurnItIs) {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[] kingFoundAry = null;
-
-        if (yIdx < 7) {
-            for (int yIdxMod = yIdx + 1; yIdxMod < 8; yIdxMod++) {
-                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdx][yIdxMod] != 0) {
-                    break;
-                }
-            }
-        }
-        if (yIdx > 0) {
-            for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdx][yIdxMod] != 0) {
-                    break;
-                }
-            }
-        }
-        if (xIdx < 7) {
-            for (int xIdxMod = xIdx + 1; xIdxMod < 8; xIdxMod++) {
-                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdx] != 0) {
-                    break;
-                }
-            }
-        }
-        if (xIdx > 0) {
-            for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                    return true;
-                } else if (boardArray[xIdxMod][yIdx] != 0) {
-                    break;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean doesPawnHaveKingInCheck(final int[][] boardArray, final int xIdx,
-                                            final int yIdx, final int colorsTurnItIs) {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int yIdxMod;
-
-        if (yIdx < 7 && (colorOnTop == WHITE && colorsTurnItIs == WHITE
-            || colorOnTop == BLACK && colorsTurnItIs == BLACK)) {
-            yIdxMod = yIdx + 1;
-        } else if (yIdx > 0 && (colorOnTop == BLACK && colorsTurnItIs == WHITE
-            || colorOnTop == WHITE && colorsTurnItIs == BLACK)) {
-            yIdxMod = yIdx - 1;
-        } else {
-            return false;
-        }
-
-        for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod += 2) {
-            if (xIdxMod < 0 || xIdxMod > 7) {
-                continue;
-            }
-
-            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                return true;
-            } else if (boardArray[xIdxMod][yIdxMod] != 0) {
-                break;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isKingInCheck(final int[][] boardAry, final int colorThreatening) {
-        int colorOfKing = (colorThreatening == WHITE) ? BLACK : WHITE;
-        boolean kingIsInCheck = false;
-        threatsch:
-        for (int xIdx = 0; xIdx < 8; xIdx++) {
-            for (int yIdx = 0; yIdx < 8; yIdx++) {
-                int pieceInt = boardAry[xIdx][yIdx];
-                if (pieceInt == 0 || (pieceInt & colorOfKing) != 0) {
-                    continue;
-                }
-                switch (pieceInt ^ colorThreatening) {
-                    case PAWN:
-                        kingIsInCheck = doesPawnHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
-                        break;
-                    case ROOK:
-                        kingIsInCheck = doesRookHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
-                        break;
-                    case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                        kingIsInCheck = doesKnightHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
-                        break;
-                    case BISHOP:
-                        kingIsInCheck = doesBishopHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
-                        break;
-                    case QUEEN:
-                        kingIsInCheck = doesQueenHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
-                        break;
-                    default:
-                        break;
-                }
-                if (kingIsInCheck) {
-                    break threatsch;
-                }
-            }
-        }
-
-        return kingIsInCheck;
-    }
-
-    private int generateKingsMoves(final int[][] boardAry, final int[][] movesArray, final int moveIdxArg,
-                                   final int xIdx, final int yIdx, final int colorsTurnItIs
-                                   ) throws AlgorithmBadArgumentException {
-        int colorThreatening = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int pieceInt;
-        int atLocPieceInt;
-        int kingPieceInt;
-        int moveIdx = moveIdxArg;
-        int otherSidePiecesCount = 0;
-        int[][] otherBoardArray = new int[8][8];
-        int otherLocsIdx = 0;
-        boolean kingIsInCheckHere;
-
-        pieceInt = boardAry[xIdx][yIdx];
-
-        if (pieceInt != (colorsTurnItIs | KING)) {
-            throw new AlgorithmBadArgumentException("generateKingsMoves() called with coordinates that point to cell "
-                                                    + "on board that's not a king or not the color whose turn it is");
-        }
-
-        for (int otherXIdx = 0; otherXIdx < 8; otherXIdx++) {
-            for (int otherYIdx = 0; otherYIdx < 8; otherYIdx++) {
-                kingsMovesSpareBoardArray[otherXIdx][otherYIdx] = boardAry[otherXIdx][otherYIdx];
-            }
-        }
-
-        kingPieceInt = kingsMovesSpareBoardArray[xIdx][yIdx];
-        kingsMovesSpareBoardArray[xIdx][yIdx] = 0;
-
-        for (int xIdxDelta = -1; xIdxDelta <= 1; xIdxDelta++) {
-            for (int yIdxDelta = -1; yIdxDelta <= 1; yIdxDelta++) {
-                if (xIdxDelta == 0 && yIdxDelta == 0) {
-                    continue;
-                }
-                int xIdxMod = xIdx + xIdxDelta;
-                int yIdxMod = yIdx + yIdxDelta;
-                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
-                    || (boardAry[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
-                    continue;
-                }
-
-                atLocPieceInt = kingsMovesSpareBoardArray[xIdxMod][yIdxMod];
-                kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = kingPieceInt;
-                kingIsInCheckHere = isKingInCheck(kingsMovesSpareBoardArray, colorThreatening);
-                kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = atLocPieceInt;
-
-                if (kingIsInCheckHere) {
-                    continue;
-                }
-
-                if (movesArray != null) {
-                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardAry[xIdxMod][yIdxMod]);
-                }
+                setMoveToMovesArray(movesArray, moveIdx, knightPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                    boardArray[xIdxMod][yIdxMod]);
                 moveIdx++;
             }
         }
 
         return moveIdx;
     }
+
 
     private int generateQueensMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                    final int xIdx, final int yIdx, final int colorsTurnItIs
@@ -528,102 +633,61 @@ public class MinimaxRunner {
         return moveIdx;
     }
 
-    private int generateBishopsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
-                                    final int xIdx, final int yIdx, final int colorsTurnItIs
-                                    ) throws AlgorithmBadArgumentException {
-        int bishopPieceInt;
+
+    private int generateKingsMoves(final int[][] boardAry, final int[][] movesArray, final int moveIdxArg,
+                                   final int xIdx, final int yIdx, final int colorsTurnItIs
+                                   ) throws AlgorithmBadArgumentException {
+        int colorThreatening = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+        int pieceInt;
+        int atLocPieceInt;
+        int kingPieceInt;
         int moveIdx = moveIdxArg;
+        int otherSidePiecesCount = 0;
+        int[][] otherBoardArray = new int[8][8];
+        int otherLocsIdx = 0;
+        boolean kingIsInCheckHere;
 
-        bishopPieceInt = boardArray[xIdx][yIdx];
+        pieceInt = boardAry[xIdx][yIdx];
 
-        if (bishopPieceInt != (colorsTurnItIs | BISHOP)) {
-            throw new AlgorithmBadArgumentException("generateBishopsMoves() called with coordinates that point to "
-                                                    + "cell on board that's not a bishop or not the color whose turn "
-                                                    + "it is");
+        if (pieceInt != (colorsTurnItIs | KING)) {
+            throw new AlgorithmBadArgumentException("generateKingsMoves() called with coordinates that point to cell "
+                                                    + "on board that's not a king or not the color whose turn it is");
         }
 
-        if (xIdx < 7 && yIdx < 7) {
-            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1;
-                xIdxMod < 8 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod++, yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
-            }
-        }
-        if (xIdx > 0 && yIdx < 7) {
-            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1;
-                xIdxMod >= 0 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod--, yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
-            }
-        }
-        if (xIdx < 7 && yIdx > 0) {
-            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1;
-                xIdxMod < 8 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod++, yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
-            }
-        }
-        if (xIdx > 0 && yIdx > 0) {
-            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1;
-                xIdxMod >= 0 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod--, yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
+        for (int otherXIdx = 0; otherXIdx < 8; otherXIdx++) {
+            for (int otherYIdx = 0; otherYIdx < 8; otherYIdx++) {
+                kingsMovesSpareBoardArray[otherXIdx][otherYIdx] = boardAry[otherXIdx][otherYIdx];
             }
         }
 
-        return moveIdx;
-    }
+        kingPieceInt = kingsMovesSpareBoardArray[xIdx][yIdx];
+        kingsMovesSpareBoardArray[xIdx][yIdx] = 0;
 
-    private int generateKnightsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
-                                    final int xIdx, final int yIdx, final int colorsTurnItIs
-                                    ) throws AlgorithmBadArgumentException {
-        int knightPieceInt;
-        int moveIdx = moveIdxArg;
-
-        knightPieceInt = boardArray[xIdx][yIdx];
-
-        if (knightPieceInt != (colorsTurnItIs | KNIGHT | LEFT) && knightPieceInt != (colorsTurnItIs | KNIGHT | RIGHT)) {
-            throw new AlgorithmBadArgumentException("generateKnightsMoves() called with coordinates that point to "
-                                                    + "cell on board that's not a knight or not the color whose turn "
-                                                    + "it is");
-        }
-
-        for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
-            for (int yIdxDelta = -2; yIdxDelta <= 2; yIdxDelta++) {
-                if (Math.abs(xIdxDelta) == Math.abs(yIdxDelta) || xIdxDelta == 0 || yIdxDelta == 0) {
+        for (int xIdxDelta = -1; xIdxDelta <= 1; xIdxDelta++) {
+            for (int yIdxDelta = -1; yIdxDelta <= 1; yIdxDelta++) {
+                if (xIdxDelta == 0 && yIdxDelta == 0) {
                     continue;
                 }
-
                 int xIdxMod = xIdx + xIdxDelta;
                 int yIdxMod = yIdx + yIdxDelta;
-
-                if (xIdxMod > 7 || xIdxMod < 0 || yIdxMod > 7 || yIdxMod < 0
-                    || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
+                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
+                    || (boardAry[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
                     continue;
                 }
 
-                setMoveToMovesArray(movesArray, moveIdx, knightPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
+                atLocPieceInt = kingsMovesSpareBoardArray[xIdxMod][yIdxMod];
+                kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = kingPieceInt;
+                kingIsInCheckHere = isKingInCheck(kingsMovesSpareBoardArray, colorThreatening);
+                kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = atLocPieceInt;
+
+                if (kingIsInCheckHere) {
+                    continue;
+                }
+
+                if (movesArray != null) {
+                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                        boardAry[xIdxMod][yIdxMod]);
+                }
                 moveIdx++;
             }
         }
@@ -631,121 +695,6 @@ public class MinimaxRunner {
         return moveIdx;
     }
 
-    private int generateRooksMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
-                                  final int xIdx, final int yIdx, final int colorsTurnItIs
-                                  ) throws AlgorithmBadArgumentException {
-        int rookPieceInt;
-        int moveIdx = moveIdxArg;
-
-        rookPieceInt = boardArray[xIdx][yIdx];
-
-        if (rookPieceInt != (colorsTurnItIs | ROOK)) {
-            throw new AlgorithmBadArgumentException("generateRooksMoves() called with coordinates that point to cell "
-                                                    + "on board that's not a rook or not the color whose turn it is");
-        }
-
-        if (yIdx < 7) {
-            for (int yIdxMod = yIdx + 1;
-                 yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
-                 yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                    boardArray[xIdx][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
-            }
-        }
-        if (yIdx > 0) {
-            for (int yIdxMod = yIdx - 1;
-                 yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
-                 yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                    boardArray[xIdx][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
-            }
-        }
-        if (xIdx < 7) {
-            for (int xIdxMod = xIdx + 1;
-                 xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
-                 xIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                    boardArray[xIdxMod][yIdx]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
-            }
-        }
-        if (xIdx > 0) {
-            for (int xIdxMod = xIdx - 1;
-                 xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
-                 xIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                    boardArray[xIdxMod][yIdx]);
-                if (movesArray[moveIdx][5] != 0) {
-                    moveIdx++;
-                    break;
-                }
-            }
-        }
-
-        return moveIdx;
-    }
-
-    private int generatePawnsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
-                                  final int xIdx, final int yIdx, final int colorsTurnItIs
-                                  ) throws AlgorithmBadArgumentException {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int pawnPieceInt;
-        int yIdxMod;
-        int moveIdx = moveIdxArg;
-
-        pawnPieceInt = boardArray[xIdx][yIdx];
-
-        if (pawnPieceInt != (colorsTurnItIs | PAWN)) {
-            throw new AlgorithmBadArgumentException("generatePawnsMoves() called with coordinates that point to cell "
-                                                    + "on board that's not a pawn or not the color whose turn it is");
-        }
-
-        if (yIdx < 7 && (colorOnTop == WHITE && colorsTurnItIs == WHITE
-                         || colorOnTop == BLACK && colorsTurnItIs == BLACK)) {
-            yIdxMod = yIdx + 1;
-        } else if (yIdx > 0 && (colorOnTop == WHITE && colorsTurnItIs == BLACK
-                                || colorOnTop == BLACK && colorsTurnItIs == WHITE)) {
-            yIdxMod = yIdx - 1;
-        } else {
-            return moveIdx;
-        }
-
-        if (boardArray[xIdx][yIdxMod] == 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0);
-            moveIdx++;
-        }
-        if (xIdx < 7 && (boardArray[xIdx + 1][yIdxMod] & otherColor) != 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                                boardArray[xIdx + 1][yIdxMod]);
-            moveIdx++;
-        }
-        if (xIdx > 0 && (boardArray[xIdx - 1][yIdxMod] & otherColor) != 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                                boardArray[xIdx - 1][yIdxMod]);
-            moveIdx++;
-        }
-
-        if (yIdx == 6 && boardArray[xIdx][yIdx - 2] == 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdx - 2, 0);
-            moveIdx++;
-        } else if (yIdx == 1 && boardArray[xIdx][yIdx + 2] == 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdx + 2, 0);
-            moveIdx++;
-        }
-
-        return moveIdx;
-    }
 
     private void setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
                                      final int startXIdx, final int startYIdx, final int endXIdx, final int endYIdx,
@@ -763,234 +712,278 @@ public class MinimaxRunner {
         movesArray[moveIdx][5] = capturedPiece;
     }
 
-    private int generatePieceMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
-                                  final int xIdx, final int yIdx, final int colorsTurnItIs
-                                  ) throws AlgorithmBadArgumentException {
-        int pieceInt = boardArray[xIdx][yIdx];
-        int moveIdx = moveIdxArg;
 
-        switch (pieceInt ^ colorsTurnItIs) {
-            case PAWN:
-                moveIdx = generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
-            case ROOK:
-                moveIdx = generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
-            case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                moveIdx = generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
-            case BISHOP:
-                moveIdx = generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
-            case QUEEN:
-                moveIdx = generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
-            case KING:
-                moveIdx = generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
-            default:
-                break;
-        }
-
-        return moveIdx;
-    }
-
-    private int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray, final int colorsTurnItIs
-                                         ) throws AlgorithmBadArgumentException {
-        int colorOpposing = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int moveIdx = 0;
-        boolean kingIsInCheck;
-
-        kingIsInCheck = isKingInCheck(boardArray, colorOpposing);
-
+    private boolean isKingInCheck(final int[][] boardAry, final int colorThreatening) {
+        int colorOfKing = (colorThreatening == WHITE) ? BLACK : WHITE;
+        boolean kingIsInCheck = false;
+        threatsch:
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
-                int pieceInt = boardArray[xIdx][yIdx];
-                if (pieceInt == 0 || (pieceInt & colorOpposing) != 0
-                    /* If the king is in check the AI must move their king out
-                       of check, so pieces other than the king are skipped. */
-                    || kingIsInCheck && (pieceInt ^ colorsTurnItIs) != KING) {
+                int pieceInt = boardAry[xIdx][yIdx];
+                if (pieceInt == 0 || (pieceInt & colorOfKing) != 0) {
                     continue;
                 }
-                moveIdx = generatePieceMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                switch (pieceInt ^ colorThreatening) {
+                    case PAWN:
+                        kingIsInCheck = doesPawnHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
+                        break;
+                    case ROOK:
+                        kingIsInCheck = doesRookHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
+                        break;
+                    case KNIGHT | LEFT: case KNIGHT | RIGHT:
+                        kingIsInCheck = doesKnightHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
+                        break;
+                    case BISHOP:
+                        kingIsInCheck = doesBishopHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
+                        break;
+                    case QUEEN:
+                        kingIsInCheck = doesQueenHaveKingInCheck(boardAry, xIdx, yIdx, colorThreatening);
+                        break;
+                    default:
+                        break;
+                }
+                if (kingIsInCheck) {
+                    break threatsch;
+                }
             }
         }
 
-        return moveIdx;
+        return kingIsInCheck;
     }
 
-    private double totalColorMobility(final int[][] boardArray, final int colorsTurnItIs
-                                ) throws AlgorithmBadArgumentException {
-        int moveIdx = 0;
-        for (int xIdx = 0; xIdx < 8; xIdx++) {
-            for (int yIdx = 0; yIdx < 8; yIdx++) {
-                if ((boardArray[xIdx][yIdx] & colorsTurnItIs) == 0) {
+
+    private boolean doesPawnHaveKingInCheck(final int[][] boardArray, final int xIdx,
+                                            final int yIdx, final int colorsTurnItIs) {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+        int yIdxMod;
+
+        if (yIdx < 7 && (colorOnTop == WHITE && colorsTurnItIs == WHITE
+            || colorOnTop == BLACK && colorsTurnItIs == BLACK)) {
+            yIdxMod = yIdx + 1;
+        } else if (yIdx > 0 && (colorOnTop == BLACK && colorsTurnItIs == WHITE
+            || colorOnTop == WHITE && colorsTurnItIs == BLACK)) {
+            yIdxMod = yIdx - 1;
+        } else {
+            return false;
+        }
+
+        for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod += 2) {
+            if (xIdxMod < 0 || xIdxMod > 7) {
+                continue;
+            }
+
+            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                return true;
+            } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+
+    private boolean doesRookHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                            final int colorsTurnItIs) {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+        int[] kingFoundAry = null;
+
+        if (yIdx < 7) {
+            for (int yIdxMod = yIdx + 1; yIdxMod < 8; yIdxMod++) {
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
+                }
+            }
+        }
+        if (yIdx > 0) {
+            for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
+                }
+            }
+        }
+        if (xIdx < 7) {
+            for (int xIdxMod = xIdx + 1; xIdxMod < 8; xIdxMod++) {
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
+                }
+            }
+        }
+        if (xIdx > 0) {
+            for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    private boolean doesKnightHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                              final int colorsTurnItIs) {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+
+        for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
+            for (int yIdxDelta = -2; yIdxDelta <= 2; yIdxDelta++) {
+                if (Math.abs(xIdxDelta) == Math.abs(yIdxDelta) || xIdxDelta == 0 || yIdxDelta == 0) {
                     continue;
                 }
-                moveIdx = generatePieceMoves(boardArray, colorMobilitySpareMovesArray, moveIdx, xIdx, yIdx,
-                                             colorsTurnItIs);
-            }
-        }
 
-        for (int newMoveIdx = 0; newMoveIdx < moveIdx; newMoveIdx++) {
-            for (int moveArrayIdx = 0; moveArrayIdx < colorMobilitySpareMovesArray[newMoveIdx].length; moveArrayIdx++) {
-                colorMobilitySpareMovesArray[newMoveIdx][moveArrayIdx] = 0;
-            }
-        }
+                int xIdxMod = xIdx + xIdxDelta;
+                int yIdxMod = yIdx + yIdxDelta;
 
-        return (double) moveIdx;
-    }
+                if (xIdxMod > 7 || xIdxMod < 0 || yIdxMod > 7 || yIdxMod < 0
+                    || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
+                    continue;
+                }
 
-    private void printBoard(final int[][] boardArray) {
-        StringJoiner outerJoiner = new StringJoiner(",\\n", "new int[][] {\\n", "\\n}\\n");
-        for (int outerIndex = 0; outerIndex < 8; outerIndex++) {
-            StringJoiner innerJoiner = new StringJoiner(", ", "new int[] {", "}");
-            for (int innerIndex = 0; innerIndex < 8; innerIndex++) {
-                innerJoiner.add(String.valueOf(boardArray[outerIndex][innerIndex]));
-            }
-            outerJoiner.add(innerJoiner.toString());
-        }
-    }
-
-    private double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion) {
-        int colorOpposing = colorInQuestion == WHITE ? BLACK : WHITE;
-        int[][] doubledPawnsCoords = new int[8][2];
-        double[] retval = new double[3];
-        double doubledPawnsCount = 0;
-        double isolatedPawnsCount = 0;
-        double blockedPawnsCount = 0;
-        int pawnsCount;
-        int X_IDX = 0;
-        int Y_IDX = 1;
-        int dblpIdx = 0;
-        int maxPawnIndex;
-
-        pawnsCount = 0;
-
-        for (int xIdx = 0, pawnIndex = 0; xIdx < 8; xIdx++) {
-            for (int yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == (colorInQuestion | PAWN)) {
-                    tallyPawnsCoords[pawnIndex][0] = xIdx;
-                    tallyPawnsCoords[pawnIndex][1] = yIdx;
-                    System.out.println("pawnIndex = " + pawnIndex + "; coords = (" + xIdx + ", " + yIdx + ")");
-                    pawnIndex++;
-                    pawnsCount++;
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
 
-        maxPawnIndex = pawnsCount - 1;
-        System.out.println(maxPawnIndex);
+        return false;
+    }
 
-        /* Normally an isolated pawn is one where its neighboring pawns are each
-           more than one file away from them. */
-        switch (pawnsCount) {
-            case 1 -> {
-                /* But if there's only 1 pawn left it is by default isolated. */
-                isolatedPawnsCount++;
-            }
-            case 2 -> {
-                /* If there's two left, they're both isolated if their X indexes
-                   differ by more than 1. */
-                if (tallyPawnsCoords[1][X_IDX] - tallyPawnsCoords[0][X_IDX] > 1) {
-                    isolatedPawnsCount += 2;
+
+    private boolean doesBishopHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                              final int colorsTurnItIs) {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+
+        if (xIdx < 7 && yIdx < 7) {
+            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod < 8 && yIdxMod < 8; xIdxMod++, yIdxMod++) {
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
                 }
             }
-            default -> {
-                for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
-                    int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
+        }
+        if (xIdx > 0 && yIdx < 7) {
+            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod < 8; xIdxMod--, yIdxMod++) {
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
+                }
+            }
+        }
+        if (xIdx < 7 && yIdx > 0) {
+            for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
+                }
+            }
+        }
+        if (xIdx > 0 && yIdx > 0) {
+            for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
+                }
+            }
+        }
 
-                    /* If a pawn is the leftmost on the board, it's isolated
-                       if the difference between its X index and its right
-                       neighbor's X index is more than 1. */
-                    if (pawnIndex == 0) {
-                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
-                        if (nextPawnXIdx - thisPawnXIdx > 1) {
-                            isolatedPawnsCount++;
-                        }
-                    /* Vice versa, if it's rightmost on the board, it's isolated
-                       if its left neighbor's X index exceeds its X index by
-                       more than 1. */
-                    } else if (pawnIndex == maxPawnIndex) {
-                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
-                        if (prevPawnXIdx - thisPawnXIdx > 1) {
-                            isolatedPawnsCount++;
-                        }
-                    } else if (0 <= pawnIndex - 1 && pawnIndex + 1 <= maxPawnIndex) {
-                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
-                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
-                        if (nextPawnXIdx - thisPawnXIdx > 1 && thisPawnXIdx - prevPawnXIdx > 1) {
-                            isolatedPawnsCount++;
-                        }
+        return false;
+    }
+
+
+    private boolean doesQueenHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                             final int colorsTurnItIs) {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+
+        if (xIdx < 7) {
+            for (int xIdxMod = xIdx + 1; xIdxMod < 8; xIdxMod++) {
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
+                }
+            }
+            if (yIdx < 7) {
+                for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod < 8 && yIdxMod < 8; xIdxMod++, yIdxMod++) {
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
+                    }
+                }
+            }
+            if (yIdx > 0) {
+                for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (yIdx < 7) {
+            for (int yIdxMod = yIdx + 1; yIdxMod < 8; yIdxMod++) {
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
+                }
+            }
+        }
+        if (yIdx > 0) {
+            for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
+                }
+            }
+        }
+        if (xIdx > 0) {
+            for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
+                }
+            }
+            if (yIdx < 7) {
+                for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod < 8; xIdxMod--, yIdxMod++) {
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
+                    }
+                }
+            }
+            if (yIdx > 0) {
+                for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
                     }
                 }
             }
         }
 
-        for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
-            int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
-            int thisPawnYIdx = tallyPawnsCoords[pawnIndex][Y_IDX];
-            if (pawnIndex > 0) {
-                int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
-                int prevPawnYIdx = tallyPawnsCoords[pawnIndex - 1][Y_IDX];
-
-                /* The y values in this loop's calculations run two different
-                   ways depending on whether colorInQuestion is playing from
-                   the top of the board (== instance var colorOnTop) or from
-                   the bottom (!= colorOnTop). If on top, yDiff is set to -1,
-                   otherwise +1. A successive piece's y index is calculated by
-                   adding yDiff to the earlier piece's y index. */
-                int yDiff = colorInQuestion == colorOnTop ? -1 : +1;
-
-                /* Two successive pawns are doubled if their x indexes are equal
-                   and the difference between the first y index and the second
-                   equals yDiff (-1 if playing from the top of the board, +1 if
-                   from the bottom). */
-                if (thisPawnXIdx == prevPawnXIdx && thisPawnYIdx - prevPawnYIdx == yDiff) {
-
-                    /* Tripled pawns are a possibility. If two pawns'
-                       coordinates have already been stored to doubledPawnsCoord
-                       (ie. dblpIdx > 1), its last coords are checked for
-                       equality with the first doubled pawn. If they match, only
-                       the second doubled pawn is counted and stored. Otherwise,
-                       both are counted and stored. */
-                    if (dblpIdx > 1 && doubledPawnsCoords[dblpIdx - 1][X_IDX] == prevPawnXIdx
-                                    && doubledPawnsCoords[dblpIdx - 1][Y_IDX] == prevPawnYIdx) {
-                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
-                        dblpIdx++;
-                        doubledPawnsCount++;
-                    } else {
-                        doubledPawnsCoords[dblpIdx][X_IDX] = prevPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][Y_IDX] = prevPawnYIdx;
-                        dblpIdx++;
-                        doubledPawnsCount++;
-                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
-                        dblpIdx++;
-                        doubledPawnsCount++;
-                    }
-                }
-
-                int nextSquareXIdx = thisPawnXIdx;
-                int nextSquareYIdx = thisPawnYIdx + yDiff;
-                int nextSquarePieceInt = boardArray[nextSquareXIdx][nextSquareYIdx];
-                /* If the square ahead of this square is occupied, and it's
-                   not a pawn on this side, then this pawn is blocked and
-                   blockedPawnsCount is incremented. */
-                if (nextSquarePieceInt != 0 && (nextSquarePieceInt ^ colorInQuestion) != PAWN) {
-                    blockedPawnsCount++;
-                }
-            }
-        }
-
-        /* This method returns three doubles, so they're packed into a length-3
-           array and that's returned. */
-        retval[DOUBLED] = doubledPawnsCount;
-        retval[BLOCKED] = blockedPawnsCount;
-        retval[ISOLATED] = isolatedPawnsCount;
-        return retval;
+        return false;
     }
+
 
     private double evaluateBoard(final int[][] boardArray, final int colorsTurnItIs
                                 ) throws AlgorithmBadArgumentException {
@@ -1105,150 +1098,178 @@ public class MinimaxRunner {
         return totalScore;
     };
 
-    private double algorithmCallExecutor(final int[][] boardArray, final boolean maximize,
-                                         final int[] moveArray, final int colorsTurnItIs,
-                                         final int depth, final double alpha, final double beta
-                                         ) throws AlgorithmBadArgumentException {
-        int fromXIdx = moveArray[1];
-        int fromYIdx = moveArray[2];
-        int toXIdx = moveArray[3];
-        int toYIdx = moveArray[4];
-        int[][] newBoardArray;
-        double retval;
 
-        System.err.println("+1");
+    private double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion) {
+        int colorOpposing = colorInQuestion == WHITE ? BLACK : WHITE;
+        int[][] doubledPawnsCoords = new int[8][2];
+        double[] retval = new double[3];
+        double doubledPawnsCount = 0;
+        double isolatedPawnsCount = 0;
+        double blockedPawnsCount = 0;
+        int pawnsCount;
+        int X_IDX = 0;
+        int Y_IDX = 1;
+        int dblpIdx = 0;
+        int maxPawnIndex;
 
-        /* The same boardArray is passed down the call stack and reused by
-           every step of the algorithm, to avoid having to clone it each time.
-           That means I need to execute this moveArray's move on the board,
-           execute the recursive call, and then undo the move so the board can
-           be reused. savedPiece holds whatever was at the square the piece
-           was moved to so it can be restored. */
+        pawnsCount = 0;
 
-        int savedPiece = boardArray[toXIdx][toYIdx];
-        boardArray[toXIdx][toYIdx] = moveArray[0];
-        boardArray[fromXIdx][fromYIdx] = 0;
-
-        retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
-
-        boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
-        boardArray[toXIdx][toYIdx] = savedPiece;
-
-        return retval;
-    }
-
-    public Move algorithmTopLevel(final Chessboard chessboard
-                                 ) throws AlgorithmBadArgumentException, AlgorithmInternalError {
-        int[][] boardArray = new int[8][8];
-        int[][] movesArray = new int[128][6];
-        double bestScore;
-        int[] bestMoveArray = null;
-        int movesArrayUsedLength;
-        double alpha;
-        double beta;
-        Move bestMoveObj;
-        Iterator<Piece> boardIter = chessboard.iterator();
-        Random randomSource = new Random();
-
-        alpha = Double.NEGATIVE_INFINITY;
-        beta = Double.POSITIVE_INFINITY;
-        bestScore = Double.NEGATIVE_INFINITY;
-
-        while (boardIter.hasNext()) {
-            Piece nextPiece = boardIter.next();
-            int[] pieceCoords = chessboard.algNotnLocToNumericIndexes(nextPiece.getLocation());
-            int pieceNumber = pieceIdentitiesToInts.get(nextPiece.getIdentity());
-            boardArray[pieceCoords[0]][pieceCoords[1]] = pieceNumber;
-        }
-
-        movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOfAI);
-
-        for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            double thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx], colorOfAI,
-                                                     algorithmStartingDepth, alpha, beta);
-            if (thisScore > bestScore) {
-                bestScore = thisScore;
-                bestMoveArray = movesArray[moveIdx];
-            }
-            if (thisScore > alpha) {
-                alpha = thisScore;
+        for (int xIdx = 0, pawnIndex = 0; xIdx < 8; xIdx++) {
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                if (boardArray[xIdx][yIdx] == (colorInQuestion | PAWN)) {
+                    tallyPawnsCoords[pawnIndex][0] = xIdx;
+                    tallyPawnsCoords[pawnIndex][1] = yIdx;
+                    pawnIndex++;
+                    pawnsCount++;
+                }
             }
         }
-        if (Objects.isNull(bestMoveArray)) {
-            throw new AlgorithmInternalError("algorithm top-level execution failed to find best move");
-        }
 
-        String bestMoveFromLoc = chessboard.numericIndexesToAlgNotnLoc(bestMoveArray[1], bestMoveArray[2]);
-        String bestMoveToLoc = chessboard.numericIndexesToAlgNotnLoc(bestMoveArray[3], bestMoveArray[4]);
-        Piece bestMovePiece = chessboard.getPieceAtLocation(bestMoveFromLoc);
+        maxPawnIndex = pawnsCount - 1;
 
-        bestMoveObj = new Move(bestMovePiece, bestMoveFromLoc, bestMoveToLoc);
+        /* Normally an isolated pawn is one where its neighboring pawns are each
+           more than one file away from them. */
+        switch (pawnsCount) {
+            case 1 -> {
+                /* But if there's only 1 pawn left it is by default isolated. */
+                isolatedPawnsCount++;
+            }
+            case 2 -> {
+                /* If there's two left, they're both isolated if their X indexes
+                   differ by more than 1. */
+                if (tallyPawnsCoords[1][X_IDX] - tallyPawnsCoords[0][X_IDX] > 1) {
+                    isolatedPawnsCount += 2;
+                }
+            }
+            default -> {
+                for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
+                    int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
 
-        return bestMoveObj;
-    }
-
-    private double algorithmLowerLevel(final int[][] boardArray, final boolean maximize, final int depth,
-                                       final int colorsTurnItIs, final double alphaArg, final double betaArg
-                                       ) throws AlgorithmBadArgumentException {
-        int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
-        double bestScore;
-        double thisScore;
-        double alpha = alphaArg;
-        double beta = betaArg;
-        int[][] movesArray = new int[128][6];
-        int thisColorKingsMovesCount;
-        int otherColorKingsMovesCount;
-        int xIdx = 0;
-        int yIdx = 0;
-        int movesArrayUsedLength;
-
-        if (depth == 0) {
-            double score = evaluateBoard(boardArray, colorsTurnItIs);
-            return score;
-        } else if (algorithmStartingDepth - depth >= 2) {
-            /* This is just to locate the coordinates of this side's King on the
-               board so I can call generateKingsMoves() with them. */
-            kingsch:
-            for (xIdx = 0; xIdx < 8; xIdx++) {
-                for (yIdx = 0; yIdx < 8; yIdx++) {
-                    if (boardArray[xIdx][yIdx] == (colorsTurnItIs | KING)) {
-                        break kingsch;
+                    /* If a pawn is the leftmost on the board, it's isolated
+                       if the difference between its X index and its right
+                       neighbor's X index is more than 1. */
+                    if (pawnIndex == 0) {
+                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
+                        if (nextPawnXIdx - thisPawnXIdx > 1) {
+                            isolatedPawnsCount++;
+                        }
+                    /* Vice versa, if it's rightmost on the board, it's isolated
+                       if its left neighbor's X index exceeds its X index by
+                       more than 1. */
+                    } else if (pawnIndex == maxPawnIndex) {
+                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
+                        if (prevPawnXIdx - thisPawnXIdx > 1) {
+                            isolatedPawnsCount++;
+                        }
+                    } else if (0 <= pawnIndex - 1 && pawnIndex + 1 <= maxPawnIndex) {
+                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
+                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
+                        if (nextPawnXIdx - thisPawnXIdx > 1 && thisPawnXIdx - prevPawnXIdx > 1) {
+                            isolatedPawnsCount++;
+                        }
                     }
                 }
             }
+        }
 
-            if (isKingInCheck(boardArray, colorOpposing)
-                && generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorsTurnItIs) == 0) {
-                if (colorOpposing == colorOfPlayer) {
-                    return Double.NEGATIVE_INFINITY;
-                } else {
-                    return Double.POSITIVE_INFINITY;
+        for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
+            int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
+            int thisPawnYIdx = tallyPawnsCoords[pawnIndex][Y_IDX];
+            if (pawnIndex > 0) {
+                int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
+                int prevPawnYIdx = tallyPawnsCoords[pawnIndex - 1][Y_IDX];
+
+                /* The y values in this loop's calculations run two different
+                   ways depending on whether colorInQuestion is playing from
+                   the top of the board (== instance var colorOnTop) or from
+                   the bottom (!= colorOnTop). If on top, yDiff is set to -1,
+                   otherwise +1. A successive piece's y index is calculated by
+                   adding yDiff to the earlier piece's y index. */
+                int yDiff = colorInQuestion == colorOnTop ? -1 : +1;
+
+                /* Two successive pawns are doubled if their x indexes are equal
+                   and the difference between the first y index and the second
+                   equals yDiff (-1 if playing from the top of the board, +1 if
+                   from the bottom). */
+                if (thisPawnXIdx == prevPawnXIdx && thisPawnYIdx - prevPawnYIdx == yDiff) {
+
+                    /* Tripled pawns are a possibility. If two pawns'
+                       coordinates have already been stored to doubledPawnsCoord
+                       (ie. dblpIdx > 1), its last coords are checked for
+                       equality with the first doubled pawn. If they match, only
+                       the second doubled pawn is counted and stored. Otherwise,
+                       both are counted and stored. */
+                    if (dblpIdx > 1 && doubledPawnsCoords[dblpIdx - 1][X_IDX] == prevPawnXIdx
+                                    && doubledPawnsCoords[dblpIdx - 1][Y_IDX] == prevPawnYIdx) {
+                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
+                        dblpIdx++;
+                        doubledPawnsCount++;
+                    } else {
+                        doubledPawnsCoords[dblpIdx][X_IDX] = prevPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][Y_IDX] = prevPawnYIdx;
+                        dblpIdx++;
+                        doubledPawnsCount++;
+                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
+                        dblpIdx++;
+                        doubledPawnsCount++;
+                    }
+                }
+
+                int nextSquareXIdx = thisPawnXIdx;
+                int nextSquareYIdx = thisPawnYIdx + yDiff;
+                int nextSquarePieceInt = boardArray[nextSquareXIdx][nextSquareYIdx];
+                /* If the square ahead of this square is occupied, and it's
+                   not a pawn on this side, then this pawn is blocked and
+                   blockedPawnsCount is incremented. */
+                if (nextSquarePieceInt != 0 && (nextSquarePieceInt ^ colorInQuestion) != PAWN) {
+                    blockedPawnsCount++;
                 }
             }
         }
 
-        bestScore = maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+        /* This method returns three doubles, so they're packed into a length-3
+           array and that's returned. */
+        retval[DOUBLED] = doubledPawnsCount;
+        retval[BLOCKED] = blockedPawnsCount;
+        retval[ISOLATED] = isolatedPawnsCount;
+        return retval;
+    }
 
-        movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOpposing);
 
-        for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx], colorOpposing, depth, alpha, beta);
-            if (maximize && thisScore == Double.POSITIVE_INFINITY || thisScore == Double.NEGATIVE_INFINITY) {
-                return thisScore;
-            }
-            if (maximize && thisScore > alpha) {
-                alpha = thisScore;
-            } else if (!maximize && thisScore < beta) {
-                beta = thisScore;
-            }
-            if (maximize && thisScore >= beta || thisScore <= alpha) {
-                return thisScore;
-            }
-            if (maximize && thisScore > bestScore || thisScore < bestScore) {
-                bestScore = thisScore;
+    private double totalColorMobility(final int[][] boardArray, final int colorsTurnItIs
+                                ) throws AlgorithmBadArgumentException {
+        int moveIdx = 0;
+        for (int xIdx = 0; xIdx < 8; xIdx++) {
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                if ((boardArray[xIdx][yIdx] & colorsTurnItIs) == 0) {
+                    continue;
+                }
+                moveIdx = generatePieceMoves(boardArray, colorMobilitySpareMovesArray, moveIdx, xIdx, yIdx,
+                                             colorsTurnItIs);
             }
         }
 
-        return bestScore;
+        for (int newMoveIdx = 0; newMoveIdx < moveIdx; newMoveIdx++) {
+            for (int moveArrayIdx = 0; moveArrayIdx < colorMobilitySpareMovesArray[newMoveIdx].length; moveArrayIdx++) {
+                colorMobilitySpareMovesArray[newMoveIdx][moveArrayIdx] = 0;
+            }
+        }
+
+        return (double) moveIdx;
+    }
+
+
+    private void printBoard(final int[][] boardArray) {
+        StringJoiner outerJoiner = new StringJoiner(",\\n", "new int[][] {\\n", "\\n}\\n");
+        for (int outerIndex = 0; outerIndex < 8; outerIndex++) {
+            StringJoiner innerJoiner = new StringJoiner(", ", "new int[] {", "}");
+            for (int innerIndex = 0; innerIndex < 8; innerIndex++) {
+                innerJoiner.add(String.valueOf(boardArray[outerIndex][innerIndex]));
+            }
+            outerJoiner.add(innerJoiner.toString());
+        }
     }
 }
+
