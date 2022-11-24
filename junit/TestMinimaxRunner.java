@@ -19,8 +19,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
 import com.kmfahey.jchessgame.MinimaxRunner;
-import com.kmfahey.jchessgame.LogFormatter;
-import com.kmfahey.jchessgame.LogFormatter;
 import com.kmfahey.jchessgame.AlgorithmBadArgumentException;
 
 public final class TestMinimaxRunner extends TestCase {

@@ -1,4 +1,4 @@
-package com.kmfahey.jchessgame;
+package com.kmfahey.jchessgame.junit;
 
 import java.util.Date;
 import java.util.logging.Formatter;
