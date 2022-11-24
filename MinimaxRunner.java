@@ -4,7 +4,9 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.HashMap;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.StringJoiner;
+import java.util.Random;
 
 public class MinimaxRunner {
 
@@ -69,6 +71,11 @@ public class MinimaxRunner {
     private int colorOfPlayer;
     private int colorOnTop;
     private int algorithmStartingDepth;
+    private Function<Integer, String> indenter = (intval) ->   (intval == 5) ? "                    "
+                                                             : (intval == 4) ? "                "
+                                                             : (intval == 3) ? "            " 
+                                                             : (intval == 2) ? "        " 
+                                                             : "        ";
 
     public record Move(Piece movingPiece, String currentLocation, String moveToLocation) { };
 
@@ -1055,9 +1062,9 @@ public class MinimaxRunner {
         return newBoardArray;
     }
 
-    private double algorithmCallExecutor(final int[][] boardArray, final int[] moveArray,
-                                         final int colorsTurnItIs,
-                                         final int depth
+    private double algorithmCallExecutor(final int[][] boardArray, boolean maximize,
+                                         final int[] moveArray, final int colorsTurnItIs,
+                                         final int depth, final double alpha, final double beta
                                          ) throws AlgorithmBadArgumentException {
         int fromXIdx = moveArray[1];
         int fromYIdx = moveArray[2];
@@ -1077,7 +1084,7 @@ public class MinimaxRunner {
         boardArray[toXIdx][toYIdx] = moveArray[0];
         boardArray[fromXIdx][fromYIdx] = 0;
 
-        retval = algorithmLowerLevel(boardArray, depth - 1, colorsTurnItIs);
+        retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
         boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
         boardArray[toXIdx][toYIdx] = savedPiece;
@@ -1092,10 +1099,15 @@ public class MinimaxRunner {
         double bestScore;
         int[] bestMoveArray = null;
         int movesArrayUsedLength;
+        double alpha;
+        double beta;
         Move bestMoveObj;
         Iterator<Piece> boardIter = chessboard.iterator();
         BiFunction<Double, Double, Boolean> comparator = (score, bestScoreVal) -> (score > bestScoreVal);
+        Random randomSource = new Random();
 
+        alpha = Double.NEGATIVE_INFINITY;
+        beta = Double.POSITIVE_INFINITY;
         bestScore = Double.NEGATIVE_INFINITY;
 
         while (boardIter.hasNext()) {
@@ -1108,16 +1120,27 @@ public class MinimaxRunner {
         movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOfAI);
 
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            double thisScore = algorithmCallExecutor(boardArray, movesArray[moveIdx], colorOfAI,
-                                                     algorithmStartingDepth);
-            System.err.println("depth = " + algorithmStartingDepth + "; thisScore = " + thisScore);
+            double thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx], colorOfAI,
+                                                     algorithmStartingDepth, alpha, beta);
+            if (thisScore != 0.0) {
+                System.err.println(indenter.apply(algorithmStartingDepth) + "depth = " + algorithmStartingDepth + "; thisScore = " + thisScore);
+            }
             if (comparator.apply(thisScore, bestScore)) {
                 bestScore = thisScore;
                 bestMoveArray = movesArray[moveIdx];
+            } else if (thisScore == bestScore && randomSource.nextInt(2) == 1) {
+                /* Introduces some indeterminacy into the algorithm. */
+                bestMoveArray = movesArray[moveIdx];
+            }
+
+            if (comparator.apply(thisScore, alpha)) {
+                alpha = thisScore;
             }
         }
 
-        System.err.println("depth = " + algorithmStartingDepth + "; bestScore = " + bestScore);
+        if (bestScore != 0.0) {
+            System.err.println(indenter.apply(algorithmStartingDepth) + "depth = " + algorithmStartingDepth + "; bestScore = " + bestScore);
+        }
 
         if (Objects.isNull(bestMoveArray)) {
             throw new AlgorithmInternalError("algorithm top-level execution failed to find best move");
@@ -1132,31 +1155,27 @@ public class MinimaxRunner {
         return bestMoveObj;
     }
 
-    private double algorithmLowerLevel(final int[][] boardArray, final int depth, final int colorsTurnItIs
-                                      ) throws AlgorithmBadArgumentException {
+    private double algorithmLowerLevel(final int[][] boardArray, boolean maximize, final int depth,
+                                       final int colorsTurnItIs, final double alphaArg, final double betaArg
+                                       ) throws AlgorithmBadArgumentException {
         int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
         double bestScore;
         double thisScore;
+        double alpha = alphaArg;
+        double beta = betaArg;
         int[][] movesArray = new int[128][6];
         int thisColorKingsMovesCount;
         int otherColorKingsMovesCount;
         int xIdx = 0;
         int yIdx = 0;
         int movesArrayUsedLength;
-        BiFunction<Double, Double, Boolean> comparator;
 
         if (depth == 0) {
             double score = evaluateBoard(boardArray, colorsTurnItIs);
             return score;
         }
 
-        if (colorOfAI == colorsTurnItIs) {
-            bestScore = Double.NEGATIVE_INFINITY;
-            comparator = (score, bestScoreVal) -> (score > bestScoreVal);
-        } else {
-            bestScore = Double.POSITIVE_INFINITY;
-            comparator = (score, bestScoreVal) -> (score < bestScoreVal);
-        }
+        bestScore = maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
 
         /* This is just to locate the coordinates of this side's King on the
            board so I can call generateKingsMoves() with them. */
@@ -1169,7 +1188,7 @@ public class MinimaxRunner {
             }
         }
 
-        if (isKingThreatened(boardArray, colorOpposing)
+        if (isKingThreatened(boardArray, colorOfPlayer)
             && generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorOfAI) == 0) {
             return Double.NEGATIVE_INFINITY;
         }
@@ -1185,7 +1204,7 @@ public class MinimaxRunner {
             }
         }
 
-        if (isKingThreatened(boardArray, colorsTurnItIs)
+        if (isKingThreatened(boardArray, colorOfAI)
             && generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorOfPlayer) == 0) {
             return Double.POSITIVE_INFINITY;
         }
@@ -1193,14 +1212,33 @@ public class MinimaxRunner {
         movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOpposing);
 
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            thisScore = algorithmCallExecutor(boardArray, movesArray[moveIdx], colorOpposing, depth);
-            System.err.println("depth = " + depth + "; thisScore = " + thisScore);
-            if (comparator.apply(thisScore, bestScore)) {
+            thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx], colorOpposing, depth, alpha, beta);
+            if (thisScore != 0.0) {
+                System.err.println(indenter.apply(depth) + "depth = " + depth + "; thisScore = " + thisScore);
+            }
+            if (maximize && thisScore > bestScore || thisScore < bestScore) {
                 bestScore = thisScore;
+            }
+            if (maximize && thisScore < beta) {
+                beta = thisScore;
+            } else if (!maximize && thisScore < alpha) {
+                alpha = thisScore;
+            }
+            if (maximize && thisScore > beta || thisScore < alpha) {
+                return bestScore;
+            }
+            if (maximize && thisScore > beta) {
+                System.err.println(indenter.apply(depth) + "depth = " + algorithmStartingDepth + "; thisScore = " + thisScore + " exceeds beta = " + beta + "; pruning this recursion");
+                return bestScore;
+            } else if (!maximize && thisScore < alpha) {
+                System.err.println(indenter.apply(depth) + "depth = " + algorithmStartingDepth + "; thisScore = " + thisScore + " falls short of alpha = " + alpha + "; pruning this recursion");
+                return bestScore;
             }
         }
 
-        System.err.println("depth = " + algorithmStartingDepth + "; bestScore = " + bestScore);
+        if (bestScore != 0.0) {
+            System.err.println(indenter.apply(depth) + "depth = " + algorithmStartingDepth + "; bestScore = " + bestScore);
+        }
 
         return bestScore;
     }
