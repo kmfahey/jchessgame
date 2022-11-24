@@ -511,7 +511,8 @@ public class Chessboard implements Cloneable {
         String kingLocation = kingPiece.getLocation();
         Piece retval = null;
         if (kingPiece.isInCheck()) {
-            HashSet<String> kingInCheckByPcsLocs = kingPiece.getInCheckByPcsAtLocs();
+            @SuppressWarnings("unchecked")
+            HashSet<String> kingInCheckByPcsLocs = (HashSet<String>) kingPiece.getInCheckByPcsAtLocs().clone();
             for (String threateningPieceLocation : kingInCheckByPcsLocs) {
                 Piece threateningPiece = piecesLocations.get(threateningPieceLocation);
                 if (!getValidMoveSet(threateningPiece).contains(kingLocation)) {

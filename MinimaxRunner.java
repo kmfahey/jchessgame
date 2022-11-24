@@ -1,10 +1,10 @@
 package com.kmfahey.jchessgame;
 
 import java.util.Iterator;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.HashMap;
 import java.util.function.BiFunction;
+import java.util.StringJoiner;
 
 public class MinimaxRunner {
 
@@ -59,331 +59,158 @@ public class MinimaxRunner {
         this.put((BLACK | PAWN), "black-pawn");
     }};
 
-    private int[][] kingsMovesSpareBoardArray;    /* These are alternate versions of main arrays in the                 */
-    private int[][] kingsMovesSpareMovesArray;    /* int-array-based board logic that are used by some methods. In      */
-    private int[][] tallyPawnsArray;              /* order to avoid instantiating a new array each time one is          */
-    private int[][] colorMobilitySpareMovesArray; /* called, a spare array is stored to an instance variable and reused */
-    private int[][] algorithmSpareMovesArray;     /* each time that method is called.                                   */
+    private int[][] kingsMovesSpareBoardArray;    /* These are alternate versions of main arrays in the             */
+    private int[][] kingsMovesSpareMovesArray;    /* int-array-based board logic that are used by some methods. In  */
+    private int[][] tallyPawnsArray;              /* order to avoid instantiating a new array each time one is      */
+    private int[][] colorMobilitySpareMovesArray; /* called, a spare array is stored to an instance variable        */
+    private int[][] algorithmSpareMovesArray;     /* and reused each time that method is called.                    */
 
-    private int colorPlaying;
-    private int colorOpposing;
+    private int colorOfAI;
+    private int colorOfPlayer;
     private int colorOnTop;
     private int algorithmStartingDepth;
 
     public record Move(Piece movingPiece, String currentLocation, String moveToLocation) { };
 
-    public MinimaxRunner(final String colorPlayingStr, final String colorOnTopStr) {
-        colorPlaying = colorPlayingStr.equals("white") ? WHITE : BLACK;
-        colorOpposing = colorPlaying == WHITE ? BLACK : WHITE;
+    public MinimaxRunner(final String colorOfAIStr, final String colorOnTopStr) {
+        colorOfAI = colorOfAIStr.equals("white") ? WHITE : BLACK;
+        colorOfPlayer = colorOfAI == WHITE ? BLACK : WHITE;
         colorOnTop = colorOnTopStr.equals("white") ? WHITE : BLACK;
         kingsMovesSpareBoardArray = new int[8][8];
-        kingsMovesSpareMovesArray = new int[16][10];
+        kingsMovesSpareMovesArray = new int[16][6];
         tallyPawnsArray = new int[8][2];
-        colorMobilitySpareMovesArray = new int[128][10];
-        algorithmSpareMovesArray = new int[8][10];
+        colorMobilitySpareMovesArray = new int[128][6];
+        algorithmSpareMovesArray = new int[8][6];
         algorithmStartingDepth = 4;
     }
 
-    private void surveyKingsMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                  final int colorsTurnItIs) {
+    private boolean doesQueensMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
+                                                   final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[] kingFoundArray = null;
-        int xIdx = moveArray[3];
-        int yIdx = moveArray[4];
-        int threatenedCount = 0;
-
-        if (xIdx < 7 && (boardArray[xIdx + 1][yIdx] & otherColor) != 0) {
-            threatenedCount++;
-            if (yIdx < 7 && (boardArray[xIdx + 1][yIdx + 1] & otherColor) != 0) {
-                threatenedCount++;
-            }
-            if (yIdx > 0 && (boardArray[xIdx + 1][yIdx - 1] & otherColor) != 0) {
-                threatenedCount++;
-            }
-        }
-        if (yIdx < 7 && (boardArray[xIdx][yIdx + 1] & otherColor) != 0) {
-            threatenedCount++;
-        }
-        if (yIdx > 0 && (boardArray[xIdx + 1][yIdx - 1] & otherColor) != 0) {
-            threatenedCount++;
-        }
-        if (xIdx > 0 && (boardArray[xIdx - 1][yIdx] & otherColor) != 0) {
-            threatenedCount++;
-            if (yIdx < 7 && (boardArray[xIdx + 1][yIdx - 1] & otherColor) != 0) {
-                threatenedCount++;
-            }
-            if (yIdx > 0 && (boardArray[xIdx - 1][yIdx - 1] & otherColor) != 0) {
-                threatenedCount++;
-            }
-        }
-
-        moveArray[9] = threatenedCount;
-    }
-
-    private void surveyQueensMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                   final int colorsTurnItIs, final int xIdxOrig, final int yIdxOrig) {
-        surveyQueensMoveThreatenedSquares(boardArray, moveArray, colorsTurnItIs, xIdxOrig, yIdxOrig, false);
-    }
-
-    private void surveyQueensMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                   final int colorsTurnItIs, final int xIdxOrig, final int yIdxOrig,
-                                                   final boolean checkOnly) {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[] kingFoundArray = null;
-        int xIdx = moveArray[3];
-        int yIdx = moveArray[4];
-        int threatenedCount = 0;
 
         if (xIdx < 7) {
             for (int xIdxMod = xIdx + 1; xIdxMod < 8; xIdxMod++) {
-                if (boardArray[xIdxMod][yIdx] != 0) {
-                    if ((boardArray[xIdxMod][yIdx] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdx], xIdxMod, yIdx);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdx == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
                 }
             }
             if (yIdx < 7) {
                 for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod < 8 && yIdxMod < 8; xIdxMod++, yIdxMod++) {
-                    if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                                setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                                if (checkOnly) {
-                                    return;
-                                }
-                            }
-                            threatenedCount++;
-                        }
-                        if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                            break;
-                        }
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
                     }
                 }
             }
             if (yIdx > 0) {
                 for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
-                    if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                                setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                                if (checkOnly) {
-                                    return;
-                                }
-                            }
-                            threatenedCount++;
-                        }
-                        if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                            break;
-                        }
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
                     }
                 }
             }
         }
         if (yIdx < 7) {
             for (int yIdxMod = yIdx + 1; yIdxMod < 8; yIdxMod++) {
-                if (boardArray[xIdx][yIdxMod] != 0) {
-                    if ((boardArray[xIdx][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdx][yIdxMod], xIdx, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdx == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
         if (yIdx > 0) {
             for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-                if (boardArray[xIdx][yIdxMod] != 0) {
-                    if ((boardArray[xIdx][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdx][yIdxMod], xIdx, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdx == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
         if (xIdx > 0) {
             for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-                if (boardArray[xIdxMod][yIdx] != 0) {
-                    if ((boardArray[xIdxMod][yIdx] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdx], xIdxMod, yIdx);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdx == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
                 }
             }
             if (yIdx < 7) {
                 for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod < 8; xIdxMod--, yIdxMod++) {
-                    if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                                setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                                if (checkOnly) {
-                                    return;
-                                }
-                            }
-                            threatenedCount++;
-                        }
-                        if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                            break;
-                        }
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
                     }
                 }
             }
             if (yIdx > 0) {
                 for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
-                    if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                                setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                                if (checkOnly) {
-                                    return;
-                                }
-                            }
-                            threatenedCount++;
-                        }
-                        if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                            break;
-                        }
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                        return true;
+                    } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                        break;
                     }
                 }
             }
         }
 
-        moveArray[9] = threatenedCount;
+        return false;
     }
 
-    private void surveyBishopsMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                    final int colorsTurnItIs, final int xIdxOrig, final int yIdxOrig) {
-        surveyBishopsMoveThreatenedSquares(boardArray, moveArray, colorsTurnItIs, xIdxOrig, yIdxOrig, false);
-    }
-
-    private void surveyBishopsMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                    final int colorsTurnItIs, final int xIdxOrig, final int yIdxOrig,
-                                                    final boolean checkOnly) {
+    private boolean doesBishopsMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
+                                                    final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[] kingFoundArray = null;
-        int xIdx = moveArray[3];
-        int yIdx = moveArray[4];
-        int threatenedCount = 0;
 
         if (xIdx < 7 && yIdx < 7) {
             for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod < 8 && yIdxMod < 8; xIdxMod++, yIdxMod++) {
-                if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
         if (xIdx > 0 && yIdx < 7) {
             for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod < 8; xIdxMod--, yIdxMod++) {
-                if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
         if (xIdx < 7 && yIdx > 0) {
             for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
-                if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
         if (xIdx > 0 && yIdx > 0) {
             for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
-                if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
 
-        moveArray[9] = threatenedCount;
+        return false;
     }
 
-    private void surveyKnightsMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
+    private boolean doesKnightsMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
                                                     final int colorsTurnItIs) {
-        surveyKnightsMoveThreatenedSquares(boardArray, moveArray, colorsTurnItIs, false);
-    }
-
-    private void surveyKnightsMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                    final int colorsTurnItIs, final boolean checkOnly) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[] kingFoundArray = null;
-        int xIdx = moveArray[3];
-        int yIdx = moveArray[4];
-        int threatenedCount = 0;
 
         for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
             for (int yIdxDelta = -2; yIdxDelta <= 2; yIdxDelta++) {
@@ -399,123 +226,66 @@ public class MinimaxRunner {
                     continue;
                 }
 
-                if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                        setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                        if (checkOnly) {
-                            return;
-                        }
-                    }
-                    threatenedCount++;
+                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
 
-        moveArray[9] = threatenedCount;
+        return false;
     }
 
-    private void surveyRooksMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                  final int colorsTurnItIs, final int xIdxOrig, final int yIdxOrig) {
-        surveyRooksMoveThreatenedSquares(boardArray, moveArray, colorsTurnItIs, xIdxOrig, yIdxOrig, false);
-    }
-
-    private void surveyRooksMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray,
-                                                  final int colorsTurnItIs, final int xIdxOrig, final int yIdxOrig,
-                                                  final boolean checkOnly) {
+    private boolean doesRooksMoveCheckKing(final int[][] boardArray, final int xIdx, final int yIdx,
+                                                  final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[] kingFoundArray = null;
-        int xIdx = moveArray[3];
-        int yIdx = moveArray[4];
-        int threatenedCount = 0;
+        int[] kingFoundAry = null;
 
         if (yIdx < 7) {
             for (int yIdxMod = yIdx + 1; yIdxMod < 8; yIdxMod++) {
-                if (boardArray[xIdx][yIdxMod] != 0) {
-                    if ((boardArray[xIdx][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdx][yIdxMod], xIdx, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdx == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
         if (yIdx > 0) {
             for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-                if (boardArray[xIdx][yIdxMod] != 0) {
-                    if ((boardArray[xIdx][yIdxMod] & otherColor) != 0) {
-                        if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdx][yIdxMod], xIdx, yIdxMod);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdx == xIdxOrig && yIdxMod == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdx][yIdxMod] != 0) {
+                    break;
                 }
             }
         }
         if (xIdx < 7) {
             for (int xIdxMod = xIdx + 1; xIdxMod < 8; xIdxMod++) {
-                if (boardArray[xIdxMod][yIdx] != 0) {
-                    if ((boardArray[xIdxMod][yIdx] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdx], xIdxMod, yIdx);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdx == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
                 }
             }
         }
         if (xIdx > 0) {
             for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-                if (boardArray[xIdxMod][yIdx] != 0) {
-                    if ((boardArray[xIdxMod][yIdx] & otherColor) != 0) {
-                        if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
-                            setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdx], xIdxMod, yIdx);
-                            if (checkOnly) {
-                                return;
-                            }
-                        }
-                        threatenedCount++;
-                    }
-                    if (!(xIdxMod == xIdxOrig && yIdx == yIdxOrig)) {
-                        break;
-                    }
+                if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                    return true;
+                } else if (boardArray[xIdxMod][yIdx] != 0) {
+                    break;
                 }
             }
         }
 
-        moveArray[9] = threatenedCount;
+        return false;
     }
 
-    private void surveyPawnsMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray, final int colorsTurnItIs) {
-        surveyPawnsMoveThreatenedSquares(boardArray, moveArray, colorsTurnItIs, false);
-    }
-
-    private void surveyPawnsMoveThreatenedSquares(final int[][] boardArray, final int[] moveArray, final int colorsTurnItIs,
-                                                  final boolean checkOnly) {
+    private boolean doesPawnsMoveCheckKing(final int[][] boardArray, final int xIdx,
+                                           final int yIdx, final int colorsTurnItIs) {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[] kingFoundArray = null;
-        int xIdx = moveArray[3];
-        int yIdx = moveArray[4];
         int yIdxMod;
-        int threatenedCount = 0;
 
         if (yIdx < 7 && (colorOnTop == WHITE && colorsTurnItIs == WHITE
             || colorOnTop == BLACK && colorsTurnItIs == BLACK)) {
@@ -524,7 +294,7 @@ public class MinimaxRunner {
             || colorOnTop == WHITE && colorsTurnItIs == BLACK)) {
             yIdxMod = yIdx - 1;
         } else {
-            return;
+            return false;
         }
 
         for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod += 2) {
@@ -532,111 +302,82 @@ public class MinimaxRunner {
                 continue;
             }
 
-            if ((boardArray[xIdxMod][yIdxMod] & otherColor) != 0) {
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
-                    setMoveArrayKingInCheck(moveArray, boardArray[xIdxMod][yIdxMod], xIdxMod, yIdxMod);
-                    if (checkOnly) {
-                        return;
-                    }
-                }
-                threatenedCount++;
+            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                return true;
+            } else if (boardArray[xIdxMod][yIdxMod] != 0) {
+                break;
             }
         }
 
-        moveArray[9] = threatenedCount;
+        return false;
     }
 
-    private void setMoveArrayKingInCheck(final int[] moveArray, final int pieceInt, final int pieceXIdx, final int pieceYIdx) {
-        moveArray[6] = pieceInt;
-        moveArray[7] = pieceXIdx;
-        moveArray[8] = pieceYIdx;
-    }
-
-    private boolean isKingThreatened(final int[][] boardAry, final int[][] moveArray, final int kingPieceInt, final int xIdx, final int yIdx, final int colorsTurnItIs) {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+    private boolean isKingThreatened(final int[][] boardAry, final int colorThreatening) {
+        int colorOfKing = (colorThreatening == WHITE) ? BLACK : WHITE;
         boolean kingIsThreatened = false;
-        boardAry[xIdx][yIdx] = kingPieceInt;
-        int moveIdx = 0;
-        for (int otherXIdx = 0; otherXIdx < 8; otherXIdx++) {
-            for (int otherYIdx = 0; otherYIdx < 8; otherYIdx++) {
-                int otherPieceInt = boardAry[otherXIdx][otherYIdx];
-                if (otherPieceInt == 0 || (otherPieceInt & otherColor) != 0) {
+        threatsch:
+        for (int xIdx = 0; xIdx < 8; xIdx++) {
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                int pieceInt = boardAry[xIdx][yIdx];
+                if (pieceInt == 0 || (pieceInt & colorOfKing) != 0) {
                     continue;
                 }
-                moveArray[moveIdx][0] = otherPieceInt;
-                moveArray[moveIdx][3] = otherXIdx;
-                moveArray[moveIdx][4] = otherYIdx;
-                switch (otherPieceInt ^ colorsTurnItIs) {
+                switch (pieceInt ^ colorThreatening) {
                     case PAWN:
-                        surveyPawnsMoveThreatenedSquares(boardAry, moveArray[moveIdx], colorsTurnItIs);
+                        kingIsThreatened = doesPawnsMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case ROOK:
-                        surveyRooksMoveThreatenedSquares(boardAry, moveArray[moveIdx], colorsTurnItIs, otherXIdx, otherYIdx);
+                        kingIsThreatened = doesRooksMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                        surveyKnightsMoveThreatenedSquares(boardAry, moveArray[moveIdx], colorsTurnItIs);
+                        kingIsThreatened = doesKnightsMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case BISHOP:
-                        surveyBishopsMoveThreatenedSquares(boardAry, moveArray[moveIdx], colorsTurnItIs, otherXIdx, otherYIdx);
+                        kingIsThreatened = doesBishopsMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     case QUEEN:
-                        surveyQueensMoveThreatenedSquares(boardAry, moveArray[moveIdx], colorsTurnItIs, otherXIdx, otherYIdx);
+                        kingIsThreatened = doesQueensMoveCheckKing(boardAry, xIdx, yIdx, colorThreatening);
                         break;
                     default:
                         break;
                 }
-                if (moveArray[moveIdx][6] == kingPieceInt) {
-                    kingIsThreatened = true;
-                    moveArray[moveIdx][6] = 0;
-                    moveArray[moveIdx][7] = 0;
-                    moveArray[moveIdx][8] = 0;
-                    break;
+                if (kingIsThreatened) {
+                    break threatsch;
                 }
-                moveIdx++;
             }
         }
-        boardAry[xIdx][yIdx] = 0;
-        for (int newMoveIdx = 0; newMoveIdx < moveIdx; newMoveIdx++) {
-            moveArray[newMoveIdx][0] = 0;
-            moveArray[newMoveIdx][3] = 0;
-            moveArray[newMoveIdx][4] = 0;
-        }
+
         return kingIsThreatened;
     }
 
     private int generateKingsMoves(final int[][] boardAry, final int[][] movesArray, final int moveIdxArg,
-                                      final int xIdx, final int yIdx, final int colorsTurnItIs) throws AlgorithmBadArgumentException {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+                                   final int xIdx, final int yIdx, final int colorsTurnItIs
+                                   ) throws AlgorithmBadArgumentException {
+        int colorThreatening = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int pieceInt;
+        int atLocPieceInt;
+        int kingPieceInt;
         int moveIdx = moveIdxArg;
         int otherSidePiecesCount = 0;
         int[][] otherBoardArray = new int[8][8];
-        int[][] otherMoveArray = new int[16][10];
         int otherLocsIdx = 0;
+        boolean kingIsThreatenedHere;
 
         pieceInt = boardAry[xIdx][yIdx];
 
         if (pieceInt != (colorsTurnItIs | KING)) {
-            throw new AlgorithmBadArgumentException("generateKingsMoves() called with coordinates that point to cell on board that's not a king or not the color whose turn it is");
+            throw new AlgorithmBadArgumentException("generateKingsMoves() called with coordinates that point to cell "
+                                                    + "on board that's not a king or not the color whose turn it is");
         }
 
         for (int otherXIdx = 0; otherXIdx < 8; otherXIdx++) {
             for (int otherYIdx = 0; otherYIdx < 8; otherYIdx++) {
-                if ((boardAry[otherXIdx][otherYIdx] & otherColor) != 0) {
-                    otherMoveArray[otherLocsIdx][0] = boardAry[otherXIdx][otherYIdx];
-                    otherMoveArray[otherLocsIdx][3] = otherXIdx;
-                    otherMoveArray[otherLocsIdx][4] = otherXIdx;
-                }
+                kingsMovesSpareBoardArray[otherXIdx][otherYIdx] = boardAry[otherXIdx][otherYIdx];
             }
         }
 
-        for (int otherXIdx = 0; otherXIdx < 8; otherXIdx++) {
-            for (int otherYIdx = 0; otherYIdx < 8; otherYIdx++) {
-                otherBoardArray[otherXIdx][otherYIdx] = boardAry[otherXIdx][otherYIdx];
-            }
-        }
-
-        otherBoardArray[xIdx][yIdx] = 0;
+        kingPieceInt = kingsMovesSpareBoardArray[xIdx][yIdx];
+        kingsMovesSpareBoardArray[xIdx][yIdx] = 0;
 
         for (int xIdxDelta = -1; xIdxDelta <= 1; xIdxDelta++) {
             for (int yIdxDelta = -1; yIdxDelta <= 1; yIdxDelta++) {
@@ -645,19 +386,26 @@ public class MinimaxRunner {
                 }
                 int xIdxMod = xIdx + xIdxDelta;
                 int yIdxMod = yIdx + yIdxDelta;
-                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7 || (boardAry[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
+                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
+                    || (boardAry[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
                     continue;
                 }
-                if (isKingThreatened(otherBoardArray, otherMoveArray, pieceInt, xIdxMod, yIdxMod, otherColor)) {
+
+                atLocPieceInt = kingsMovesSpareBoardArray[xIdxMod][yIdxMod];
+                kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = kingPieceInt;
+                kingIsThreatenedHere = isKingThreatened(kingsMovesSpareBoardArray, colorThreatening);
+                kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = atLocPieceInt;
+
+                if (kingIsThreatenedHere) {
                     continue;
                 }
-                setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, xIdxMod, yIdxMod, boardAry[xIdxMod][yIdxMod]);
+
+                if (movesArray != null) {
+                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                        boardAry[xIdxMod][yIdxMod]);
+                }
                 moveIdx++;
             }
-        }
-
-        for (int newMoveIdx = moveIdxArg; newMoveIdx < moveIdx; newMoveIdx++) {
-            surveyKingsMoveThreatenedSquares(boardAry, movesArray[newMoveIdx], colorsTurnItIs);
         }
 
         return moveIdx;
@@ -680,7 +428,8 @@ public class MinimaxRunner {
             for (int xIdxMod = xIdx + 1;
                 xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                 xIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx, boardArray[xIdxMod][yIdx]);
+                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                    boardArray[xIdxMod][yIdx]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
@@ -714,7 +463,8 @@ public class MinimaxRunner {
             for (int yIdxMod = yIdx + 1;
                  yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod, boardArray[xIdx][yIdxMod]);
+                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                    boardArray[xIdx][yIdxMod]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
@@ -725,7 +475,8 @@ public class MinimaxRunner {
             for (int yIdxMod = yIdx - 1;
                  yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod, boardArray[xIdx][yIdxMod]);
+                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                    boardArray[xIdx][yIdxMod]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
@@ -736,7 +487,8 @@ public class MinimaxRunner {
             for (int xIdxMod = xIdx - 1;
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx, boardArray[xIdxMod][yIdx]);
+                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                    boardArray[xIdxMod][yIdx]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
@@ -768,10 +520,6 @@ public class MinimaxRunner {
             }
         }
 
-        for (int newMoveIdx = moveIdxArg; newMoveIdx < moveIdx; newMoveIdx++) {
-            surveyQueensMoveThreatenedSquares(boardArray, movesArray[newMoveIdx], colorsTurnItIs, xIdx, yIdx);
-        }
-
         return moveIdx;
     }
 
@@ -785,7 +533,8 @@ public class MinimaxRunner {
 
         if (bishopPieceInt != (colorsTurnItIs | BISHOP)) {
             throw new AlgorithmBadArgumentException("generateBishopsMoves() called with coordinates that point to "
-                                                    + "cell on board that's not a bishop or not the color whose turn it is");
+                                                    + "cell on board that's not a bishop or not the color whose turn "
+                                                    + "it is");
         }
 
         if (xIdx < 7 && yIdx < 7) {
@@ -837,10 +586,6 @@ public class MinimaxRunner {
             }
         }
 
-        for (int newMoveIdx = moveIdxArg; newMoveIdx < moveIdx; newMoveIdx++) {
-            surveyBishopsMoveThreatenedSquares(boardArray, movesArray[newMoveIdx], colorsTurnItIs, xIdx, yIdx);
-        }
-
         return moveIdx;
     }
 
@@ -854,7 +599,8 @@ public class MinimaxRunner {
 
         if (knightPieceInt != (colorsTurnItIs | KNIGHT | LEFT) && knightPieceInt != (colorsTurnItIs | KNIGHT | RIGHT)) {
             throw new AlgorithmBadArgumentException("generateKnightsMoves() called with coordinates that point to "
-                                                    + "cell on board that's not a knight or not the color whose turn it is");
+                                                    + "cell on board that's not a knight or not the color whose turn "
+                                                    + "it is");
         }
 
         for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
@@ -877,10 +623,6 @@ public class MinimaxRunner {
             }
         }
 
-        for (int newMoveIdx = moveIdxArg; newMoveIdx < moveIdx; newMoveIdx++) {
-            surveyKnightsMoveThreatenedSquares(boardArray, movesArray[newMoveIdx], colorsTurnItIs);
-        }
-
         return moveIdx;
     }
 
@@ -901,7 +643,8 @@ public class MinimaxRunner {
             for (int yIdxMod = yIdx + 1;
                  yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod, boardArray[xIdx][yIdxMod]);
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                    boardArray[xIdx][yIdxMod]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
@@ -912,7 +655,8 @@ public class MinimaxRunner {
             for (int yIdxMod = yIdx - 1;
                  yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod, boardArray[xIdx][yIdxMod]);
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                    boardArray[xIdx][yIdxMod]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
@@ -923,7 +667,8 @@ public class MinimaxRunner {
             for (int xIdxMod = xIdx + 1;
                  xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx, boardArray[xIdxMod][yIdx]);
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                    boardArray[xIdxMod][yIdx]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
@@ -934,16 +679,13 @@ public class MinimaxRunner {
             for (int xIdxMod = xIdx - 1;
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx, boardArray[xIdxMod][yIdx]);
+                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                    boardArray[xIdxMod][yIdx]);
                 if (movesArray[moveIdx][5] != 0) {
                     moveIdx++;
                     break;
                 }
             }
-        }
-
-        for (int newMoveIdx = moveIdxArg; newMoveIdx < moveIdx; newMoveIdx++) {
-            surveyRooksMoveThreatenedSquares(boardArray, movesArray[newMoveIdx], colorsTurnItIs, xIdx, yIdx);
         }
 
         return moveIdx;
@@ -997,10 +739,6 @@ public class MinimaxRunner {
             moveIdx++;
         }
 
-        for (int newMoveIdx = moveIdxArg; newMoveIdx < moveIdx; newMoveIdx++) {
-            surveyPawnsMoveThreatenedSquares(boardArray, movesArray[newMoveIdx], colorsTurnItIs);
-        }
-
         return moveIdx;
     }
 
@@ -1052,23 +790,31 @@ public class MinimaxRunner {
         return moveIdx;
     }
 
-    private int[][] generatePossibleMoves(final int[][] boardArray, final int colorsTurnItIs
+    private int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray, final int colorsTurnItIs
                                          ) throws AlgorithmBadArgumentException {
-        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int[][] movesArray = new int[128][10];
+        int colorOpposing = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int moveIdx = 0;
+        boolean kingIsThreatened;
+
+        kingIsThreatened = isKingThreatened(boardArray, colorOpposing);
+        if (kingIsThreatened) {
+            System.out.println("KING IS THREATENED");
+        }
 
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 int pieceInt = boardArray[xIdx][yIdx];
-                if (pieceInt == 0 || (pieceInt & otherColor) != 0) {
+                if (pieceInt == 0 || (pieceInt & colorOpposing) != 0) {
+                    continue;
+                } else if (kingIsThreatened && (pieceInt ^ colorsTurnItIs) != KING) {
+                    System.out.println("skipping moves planning for piece [" + pieceInt + "] bc king is in check");
                     continue;
                 }
                 moveIdx = generatePieceMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
             }
         }
 
-        return movesArray;
+        return moveIdx;
     }
 
     private int movesArrayFindUsedLength(final int[][] movesArray) {
@@ -1097,14 +843,16 @@ public class MinimaxRunner {
         return -1;
     }
 
-    private double colorMobility(final int[][] boardArray, final int colorsTurnItIs) throws AlgorithmBadArgumentException {
+    private double colorMobility(final int[][] boardArray, final int colorsTurnItIs
+                                ) throws AlgorithmBadArgumentException {
         int moveIdx = 0;
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 if ((boardArray[xIdx][yIdx] & colorsTurnItIs) == 0) {
                     continue;
                 }
-                moveIdx = generatePieceMoves(boardArray, colorMobilitySpareMovesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+                moveIdx = generatePieceMoves(boardArray, colorMobilitySpareMovesArray, moveIdx, xIdx, yIdx,
+                                             colorsTurnItIs);
             }
         }
 
@@ -1117,8 +865,19 @@ public class MinimaxRunner {
         return (double) moveIdx;
     }
 
+    private void printBoard(final int[][] boardArray) {
+        StringJoiner outerJoiner = new StringJoiner(",\\n", "new int[][] {\\n", "\\n}\\n");
+        for (int outerIndex = 0; outerIndex < 8; outerIndex++) {
+            StringJoiner innerJoiner = new StringJoiner(", ", "new int[] {", "}");
+            for (int innerIndex = 0; innerIndex < 8; innerIndex++) {
+                innerJoiner.add(String.valueOf(boardArray[outerIndex][innerIndex]));
+            }
+            outerJoiner.add(innerJoiner.toString());
+        }
+    }
+
     private double[] tallySpecialPawns(final int[][] boardArray, final int colorsTurnItIs) {
-        int otherColor = colorsTurnItIs == WHITE ? BLACK : WHITE;
+        int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
         double[] retval = new double[3];
         double doubledPawns = 0;
         double isolatedPawns = 0;
@@ -1137,11 +896,13 @@ public class MinimaxRunner {
 
         for (pawnIndex = 0; pawnIndex < 8; pawnIndex++) {
             if (colorsTurnItIs != colorOnTop && tallyPawnsArray[pawnIndex][1] + 1 < 8) {
-                if ((boardArray[tallyPawnsArray[pawnIndex][0]][tallyPawnsArray[pawnIndex][1] + 1] & otherColor) != 0) {
+                if ((boardArray[tallyPawnsArray[pawnIndex][0]]
+                                               [tallyPawnsArray[pawnIndex][1] + 1] & colorOpposing) != 0) {
                     blockedPawns++;
                 }
             } else if (colorsTurnItIs == colorOnTop && tallyPawnsArray[pawnIndex][1] - 1 > 0) {
-                if ((boardArray[tallyPawnsArray[pawnIndex][0]][tallyPawnsArray[pawnIndex][1] - 1] & otherColor) != 0) {
+                if ((boardArray[tallyPawnsArray[pawnIndex][0]]
+                               [tallyPawnsArray[pawnIndex][1] - 1] & colorOpposing) != 0) {
                     blockedPawns++;
                 }
             }
@@ -1164,7 +925,8 @@ public class MinimaxRunner {
                 /* it. */
                 if (pawnIndex == 0 && tallyPawnsArray[pawnIndex + 1][0] - tallyPawnsArray[pawnIndex][0] > 1) {
                     isolatedPawns++;
-                } else if (pawnIndex == maxPawnIndex && tallyPawnsArray[pawnIndex][0] - tallyPawnsArray[pawnIndex - 1][0] > 1) {
+                } else if (pawnIndex == maxPawnIndex
+                           && tallyPawnsArray[pawnIndex][0] - tallyPawnsArray[pawnIndex - 1][0] > 1) {
                     isolatedPawns++;
                 } else if (pawnIndex != 0 && pawnIndex != maxPawnIndex) {
                     if (tallyPawnsArray[pawnIndex][0] > tallyPawnsArray[pawnIndex - 1][0]
@@ -1175,12 +937,12 @@ public class MinimaxRunner {
             }
         }
         for (pawnIndex = 0; pawnIndex < 8; pawnIndex++) {
-            if (colorPlaying == colorOnTop) {
+            if (colorsTurnItIs == colorOnTop) {
                 if (tallyPawnsArray[pawnIndex][0] == 0) {
                     continue;
                 }
-                if (tallyPawnsArray[pawnIndex][1] == tallyPawnsArray[pawnIndex + 1][1]
-                    && tallyPawnsArray[pawnIndex][0] - 1 == tallyPawnsArray[pawnIndex + 1][0]) {
+                if (pawnIndex < 7 && tallyPawnsArray[pawnIndex][1] == tallyPawnsArray[pawnIndex + 1][1]
+                    && tallyPawnsArray[pawnIndex][0] == tallyPawnsArray[pawnIndex + 1][0]) {
                     doubledPawns++;
                 } else if (boardArray[tallyPawnsArray[pawnIndex][0]][tallyPawnsArray[pawnIndex][0] - 1] != 0) {
                     blockedPawns++;
@@ -1189,8 +951,8 @@ public class MinimaxRunner {
                 if (tallyPawnsArray[pawnIndex][0] == 7) {
                     continue;
                 }
-                if (tallyPawnsArray[pawnIndex][1] == tallyPawnsArray[pawnIndex + 1][1]
-                    && tallyPawnsArray[pawnIndex][0] + 1 == tallyPawnsArray[pawnIndex + 1][0]) {
+                if (pawnIndex < 7 && tallyPawnsArray[pawnIndex][1] == tallyPawnsArray[pawnIndex + 1][1]
+                    && tallyPawnsArray[pawnIndex][0] == tallyPawnsArray[pawnIndex + 1][0]) {
                     doubledPawns++;
                 } else if (boardArray[tallyPawnsArray[pawnIndex][0]][tallyPawnsArray[pawnIndex][0] + 1] != 0) {
                     blockedPawns++;
@@ -1204,7 +966,8 @@ public class MinimaxRunner {
         return retval;
     }
 
-    private double evaluateBoard(final int[][] boardArray, final int colorsTurnItIs) throws AlgorithmBadArgumentException {
+    private double evaluateBoard(final int[][] boardArray, final int colorsTurnItIs
+                                ) throws AlgorithmBadArgumentException {
         int otherColor = colorsTurnItIs == WHITE ? BLACK : WHITE;
         int whiteIndex = 0;
         int blackIndex = 1;
@@ -1222,25 +985,8 @@ public class MinimaxRunner {
 
         double[][] piecesCounts = new double[2][6];
 
-        kingsch:
-        for (xIdx = 0; xIdx < 8; xIdx++) {
-            for (yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == (WHITE | KING)) {
-                    break kingsch;
-                }
-            }
-        }
-        int whiteKingNotInCheckBonus = isKingThreatened(boardArray, kingsMovesSpareMovesArray, (WHITE | KING), xIdx, yIdx, BLACK) ? 0 : 1;
-
-        kingsch:
-        for (xIdx = 0; xIdx < 8; xIdx++) {
-            for (yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == (BLACK | KING)) {
-                    break kingsch;
-                }
-            }
-        }
-        int blackKingNotInCheckBonus = isKingThreatened(boardArray, kingsMovesSpareMovesArray, (BLACK | KING), xIdx, yIdx, WHITE) ? 0 : 1;
+        int whiteKingNotInCheckBonus = isKingThreatened(boardArray, BLACK) ? 0 : 1;
+        int blackKingNotInCheckBonus = isKingThreatened(boardArray, WHITE) ? 0 : 1;
 
         for (int[] boardRow : boardArray) {
             for (int pieceInt : boardRow) {
@@ -1259,22 +1005,23 @@ public class MinimaxRunner {
                     case BLACK | KNIGHT | RIGHT: piecesCounts[blackIndex][knightIndex]++; break;
                     case BLACK | KNIGHT | LEFT:  piecesCounts[blackIndex][knightIndex]++; break;
                     case BLACK | PAWN:           piecesCounts[blackIndex][pawnIndex]++; break;
+                    default: break;
                 }
             }
         }
 
-        double[] colorPlayingSpecialPawnsTallies = tallySpecialPawns(boardArray, colorPlaying);
+        double[] colorOfAISpecialPawnsTallies = tallySpecialPawns(boardArray, colorOfAI);
         double[] otherColorSpecialPawnsTallies = tallySpecialPawns(boardArray, otherColor);
-        double isolatedPawnDifference = colorPlayingSpecialPawnsTallies[ISOLATED]
+        double isolatedPawnDifference = colorOfAISpecialPawnsTallies[ISOLATED]
                                        - otherColorSpecialPawnsTallies[ISOLATED];
-        double blockedPawnDifference = colorPlayingSpecialPawnsTallies[BLOCKED]
+        double blockedPawnDifference = colorOfAISpecialPawnsTallies[BLOCKED]
                                       - otherColorSpecialPawnsTallies[BLOCKED];
-        double doubledPawnDifference = colorPlayingSpecialPawnsTallies[DOUBLED]
+        double doubledPawnDifference = colorOfAISpecialPawnsTallies[DOUBLED]
                                       - otherColorSpecialPawnsTallies[DOUBLED];
         double specialPawnScore = 0.5F * (isolatedPawnDifference + blockedPawnDifference
                                          + doubledPawnDifference);
 
-        double thisMobility = colorMobility(boardArray, colorPlaying);
+        double thisMobility = colorMobility(boardArray, colorOfAI);
         double otherMobility = colorMobility(boardArray, otherColor);
         double mobilityScore = 0.1F * (thisMobility - otherMobility);
 
@@ -1293,14 +1040,61 @@ public class MinimaxRunner {
         return totalScore;
     };
 
-    public Move algorithmTopLevel(final Chessboard chessboard) throws AlgorithmBadArgumentException, AlgorithmInternalError {
+    private int[][] copyBoard(final int[][] boardArray) {
+        int[][] newBoardArray = new int[8][8];
+
+        for (int xIdx = 0; xIdx < 8; xIdx++) {
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                if (boardArray[xIdx][yIdx] == 0) {
+                    continue;
+                }
+                newBoardArray[xIdx][yIdx] = boardArray[xIdx][yIdx];
+            }
+        }
+
+        return newBoardArray;
+    }
+
+    private double algorithmCallExecutor(final int[][] boardArray, final int[] moveArray,
+                                         final int colorsTurnItIs,
+                                         final int depth
+                                         ) throws AlgorithmBadArgumentException {
+        int fromXIdx = moveArray[1];
+        int fromYIdx = moveArray[2];
+        int toXIdx = moveArray[3];
+        int toYIdx = moveArray[4];
+        int[][] newBoardArray;
+        double retval;
+
+        /* The same boardArray is passed down the call stack and reused by
+           every step of the algorithm, to avoid having to clone it each time.
+           That means I need to execute this moveArray's move on the board,
+           execute the recursive call, and then undo the move so the board can
+           be reused. savedPieceInt holds whatever was at the square the piece
+           was moved to so it can be restored. */
+
+        int savedPiece = boardArray[toXIdx][toYIdx];
+        boardArray[toXIdx][toYIdx] = moveArray[0];
+        boardArray[fromXIdx][fromYIdx] = 0;
+
+        retval = algorithmLowerLevel(boardArray, depth - 1, colorsTurnItIs);
+
+        boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
+        boardArray[toXIdx][toYIdx] = savedPiece;
+
+        return retval;
+    }
+
+    public Move algorithmTopLevel(final Chessboard chessboard
+                                 ) throws AlgorithmBadArgumentException, AlgorithmInternalError {
         int[][] boardArray = new int[8][8];
-        int[][] movesArray;
+        int[][] movesArray = new int[128][6];
         double bestScore;
         int[] bestMoveArray = null;
         int movesArrayUsedLength;
         Move bestMoveObj;
         Iterator<Piece> boardIter = chessboard.iterator();
+        BiFunction<Double, Double, Boolean> comparator = (score, bestScoreVal) -> (score > bestScoreVal);
 
         bestScore = Double.NEGATIVE_INFINITY;
 
@@ -1311,35 +1105,19 @@ public class MinimaxRunner {
             boardArray[pieceCoords[0]][pieceCoords[1]] = pieceNumber;
         }
 
-        movesArray = generatePossibleMoves(boardArray, colorPlaying);
-
-        movesArrayUsedLength = movesArrayFindUsedLength(movesArray);
+        movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOfAI);
 
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            /* The same boardArray is passed down the call stack and reused by
-               every step of the algorithm, to avoid having to clone it each
-               time. That means I need to execute this moveArray's move on the
-               board, execute the recursive call, and then undo the move so the
-               board can be reused. savedPieceInt holds whatever was at the
-               square the piece was moved to so it can be restored. */
-            int[] moveArray = movesArray[moveIdx];
-            int fromXIdx = moveArray[1];
-            int fromYIdx = moveArray[2];
-            int toXIdx = moveArray[1];
-            int toYIdx = moveArray[2];
-            int savedPieceInt = boardArray[toXIdx][toYIdx];
-            boardArray[toXIdx][toYIdx] = moveArray[0];
-
-            double thisScore = algorithmLowerLevel(boardArray, algorithmStartingDepth - 1, colorOpposing);
-
-            boardArray[fromXIdx][fromYIdx] = moveArray[0];
-            boardArray[toXIdx][toYIdx] = savedPieceInt;
-
-            if (thisScore > bestScore) {
+            double thisScore = algorithmCallExecutor(boardArray, movesArray[moveIdx], colorOfAI,
+                                                     algorithmStartingDepth);
+            System.err.println("depth = " + algorithmStartingDepth + "; thisScore = " + thisScore);
+            if (comparator.apply(thisScore, bestScore)) {
                 bestScore = thisScore;
                 bestMoveArray = movesArray[moveIdx];
             }
         }
+
+        System.err.println("depth = " + algorithmStartingDepth + "; bestScore = " + bestScore);
 
         if (Objects.isNull(bestMoveArray)) {
             throw new AlgorithmInternalError("algorithm top-level execution failed to find best move");
@@ -1354,20 +1132,25 @@ public class MinimaxRunner {
         return bestMoveObj;
     }
 
-    private double algorithmLowerLevel(int[][] boardArray, int depth, int colorsTurnItIs) throws AlgorithmBadArgumentException {
-        int otherColor = colorsTurnItIs == WHITE ? BLACK : WHITE;
+    private double algorithmLowerLevel(final int[][] boardArray, final int depth, final int colorsTurnItIs
+                                      ) throws AlgorithmBadArgumentException {
+        int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
         double bestScore;
+        double thisScore;
+        int[][] movesArray = new int[128][6];
         int thisColorKingsMovesCount;
         int otherColorKingsMovesCount;
         int xIdx = 0;
         int yIdx = 0;
+        int movesArrayUsedLength;
         BiFunction<Double, Double, Boolean> comparator;
 
         if (depth == 0) {
-            return evaluateBoard(boardArray, colorsTurnItIs);
+            double score = evaluateBoard(boardArray, colorsTurnItIs);
+            return score;
         }
 
-        if (colorPlaying == colorsTurnItIs) {
+        if (colorOfAI == colorsTurnItIs) {
             bestScore = Double.NEGATIVE_INFINITY;
             comparator = (score, bestScoreVal) -> (score > bestScoreVal);
         } else {
@@ -1380,14 +1163,14 @@ public class MinimaxRunner {
         kingsch:
         for (xIdx = 0; xIdx < 8; xIdx++) {
             for (yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == (colorsTurnItIs | KING)) {
+                if (boardArray[xIdx][yIdx] == (colorOfAI | KING)) {
                     break kingsch;
                 }
             }
         }
 
-        if (isKingThreatened(boardArray, kingsMovesSpareMovesArray, (colorsTurnItIs | KING), xIdx, yIdx, otherColor)
-            && generateKingsMoves(boardArray, algorithmSpareMovesArray, 0, xIdx, yIdx, colorPlaying) == 0) {
+        if (isKingThreatened(boardArray, colorOpposing)
+            && generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorOfAI) == 0) {
             return Double.NEGATIVE_INFINITY;
         }
 
@@ -1396,40 +1179,28 @@ public class MinimaxRunner {
         kingsch:
         for (xIdx = 0; xIdx < 8; xIdx++) {
             for (yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == (otherColor | KING)) {
+                if (boardArray[xIdx][yIdx] == (colorOfPlayer | KING)) {
                     break kingsch;
                 }
             }
         }
 
-        if (isKingThreatened(boardArray, kingsMovesSpareMovesArray, (otherColor | KING), xIdx, yIdx, colorsTurnItIs)
-            && generateKingsMoves(boardArray, algorithmSpareMovesArray, 0, xIdx, yIdx, colorOpposing) == 0) {
+        if (isKingThreatened(boardArray, colorsTurnItIs)
+            && generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorOfPlayer) == 0) {
             return Double.POSITIVE_INFINITY;
         }
 
-        for (int[] moveArray : generatePossibleMoves(boardArray, otherColor)) {
-            /* The same boardArray is passed down the call stack and reused by
-               every step of the algorithm, to avoid having to clone it each
-               time. That means I need to execute this moveArray's move on the
-               board, execute the recursive call, and then undo the move so the
-               board can be reused. savedPieceInt holds whatever was at the
-               square the piece was moved to so it can be restored. */
-            int fromXIdx = moveArray[1];
-            int fromYIdx = moveArray[2];
-            int toXIdx = moveArray[1];
-            int toYIdx = moveArray[2];
-            int savedPieceInt = boardArray[toXIdx][toYIdx];
-            boardArray[toXIdx][toYIdx] = moveArray[0];
+        movesArrayUsedLength = generatePossibleMoves(boardArray, movesArray, colorOpposing);
 
-            double thisScore = algorithmLowerLevel(boardArray, depth - 1, otherColor);
-
-            boardArray[fromXIdx][fromYIdx] = moveArray[0];
-            boardArray[toXIdx][toYIdx] = savedPieceInt;
-
+        for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
+            thisScore = algorithmCallExecutor(boardArray, movesArray[moveIdx], colorOpposing, depth);
+            System.err.println("depth = " + depth + "; thisScore = " + thisScore);
             if (comparator.apply(thisScore, bestScore)) {
                 bestScore = thisScore;
             }
         }
+
+        System.err.println("depth = " + algorithmStartingDepth + "; bestScore = " + bestScore);
 
         return bestScore;
     }
