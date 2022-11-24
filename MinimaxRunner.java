@@ -821,33 +821,7 @@ public class MinimaxRunner {
         return moveIdx;
     }
 
-    private int movesArrayFindUsedLength(final int[][] movesArray) {
-        int lowerB = 0;
-        int upperB = movesArray.length - 1;
-
-        if (movesArray[0][0] == 0) {
-            return 0;
-        } else if (movesArray[upperB][0] != 0) {
-            return movesArray.length;
-        }
-
-        while (lowerB <= upperB) {
-            int guessIdx = (lowerB + upperB) / 2;
-            if (movesArray[guessIdx - 1][0] == 0) {
-                upperB = guessIdx - 1;
-                continue;
-            } else if (movesArray[guessIdx][0] != 0) {
-                lowerB = guessIdx + 1;
-                continue;
-            } else {
-                return guessIdx;
-            }
-        }
-
-        return -1;
-    }
-
-    private double colorMobility(final int[][] boardArray, final int colorsTurnItIs
+    private double totalColorMobility(final int[][] boardArray, final int colorsTurnItIs
                                 ) throws AlgorithmBadArgumentException {
         int moveIdx = 0;
         for (int xIdx = 0; xIdx < 8; xIdx++) {
@@ -1050,8 +1024,8 @@ public class MinimaxRunner {
         double specialPawnScore = 0.5F * (isolatedPawnDifference + blockedPawnDifference
                                          + doubledPawnDifference);
 
-        double thisMobility = colorMobility(boardArray, colorOfAI);
-        double otherMobility = colorMobility(boardArray, otherColor);
+        double thisMobility = totalColorMobility(boardArray, colorOfAI);
+        double otherMobility = totalColorMobility(boardArray, otherColor);
         double mobilityScore = 0.1F * (thisMobility - otherMobility);
 
         double kingScore = 200F * (piecesCounts[thisColorIndex][kingIndex] - piecesCounts[otherColorIndex][kingIndex]);
@@ -1069,21 +1043,6 @@ public class MinimaxRunner {
         return totalScore;
     };
 
-    private int[][] copyBoard(final int[][] boardArray) {
-        int[][] newBoardArray = new int[8][8];
-
-        for (int xIdx = 0; xIdx < 8; xIdx++) {
-            for (int yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == 0) {
-                    continue;
-                }
-                newBoardArray[xIdx][yIdx] = boardArray[xIdx][yIdx];
-            }
-        }
-
-        return newBoardArray;
-    }
-
     private double algorithmCallExecutor(final int[][] boardArray, boolean maximize,
                                          final int[] moveArray, final int colorsTurnItIs,
                                          final int depth, final double alpha, final double beta
@@ -1099,7 +1058,7 @@ public class MinimaxRunner {
            every step of the algorithm, to avoid having to clone it each time.
            That means I need to execute this moveArray's move on the board,
            execute the recursive call, and then undo the move so the board can
-           be reused. savedPieceInt holds whatever was at the square the piece
+           be reused. savedPiece holds whatever was at the square the piece
            was moved to so it can be restored. */
 
         int savedPiece = boardArray[toXIdx][toYIdx];
