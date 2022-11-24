@@ -10,8 +10,6 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
-import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.Objects;
 import javax.swing.JComponent;
@@ -209,14 +207,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         MinimaxRunner.Move moveToMake;
         LocalDateTime timeRightNow;
 
-        String opposingColor = colorPlaying.equals("white") ? "black" : "white";
-
         if (!event.getActionCommand().equals("move")) {
             return;
         }
 
-        timeRightNow = LocalDateTime.now();
-        System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
+        String opposingColor = colorPlaying.equals("white") ? "black" : "white";
 
         minimaxRunner = new MinimaxRunner(opposingColor, opposingColor);
 
@@ -230,47 +225,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         chessboard.movePiece(moveToMake.movingPiece(), moveToMake.currentLocation(), moveToMake.moveToLocation());
 
-        timeRightNow = LocalDateTime.now();
-
-        System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
-
         repaint();
     }
-
-    /* public void actionPerformed(final ActionEvent event) {
-        Chessboard clonedBoard;
-        Piece clonedPiece;
-        MinimaxTreeNode treeNode;
-        MinimaxTreeNode.Move moveToMake;
-        LocalDateTime timeRightNow;
-        String opposingColor = colorPlaying.equals("white") ? "black" : "white";
-
-        timeRightNow = LocalDateTime.now();
-        System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
-
-        if (!event.getActionCommand().equals("move")) {
-            return;
-        }
-
-        lastPieceMovedByPlayer = chessboard.getLastMovedPiece();
-        clonedBoard = chessboard.clone();
-        clonedPiece = chessboard.getPieceAtLocation(lastPieceMovedByPlayer.getLocation());
-        treeNode = new MinimaxTreeNode(clonedBoard, colorPlaying);
-
-        try {
-            moveToMake = treeNode.minimaxAlgorithmTopLevel();
-        } catch (AlgorithmNoResultException exception) {
-            System.out.println(exception.toString());
-            return;
-        }
-
-        chessboard.movePiece(moveToMake.movingPiece(), moveToMake.currentLocation(), moveToMake.moveToLocation());
-
-        timeRightNow = LocalDateTime.now();
-        System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
-
-        repaint();
-    } */
 
     /**
      * An implementation of MouseListener.mouseEntered, required because I
