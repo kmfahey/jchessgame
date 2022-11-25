@@ -12,7 +12,6 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.Objects;
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -32,7 +31,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private Dimension boardDims;
     private ImagesManager imagesManager;
     private CoordinatesManager coordinatesManager;
-    private Chessboard chessboard;
+    private Chessboard2 chessboard;
 
     private Piece clickEventClickedPiece = null;
     private String clickEventMovingFrom = "";
@@ -47,7 +46,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
 
     public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr,
-                     final CoordinatesManager coordMgr, final Chessboard chessBoard,
+                     final CoordinatesManager coordMgr, final Chessboard2 chessBoard,
                      final String playingColor) {
         boardDims = cmpntDims;
         imagesManager = imgMgr;
@@ -59,6 +58,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
     @Override
     protected void paintComponent(final Graphics graphics) {
+        int[][] squareCoords;
+        int[][] boardArray;
         super.paintComponent(graphics);
 
         Dimension totalBoardDimensions = coordinatesManager.getTotalBoardDimensions();
@@ -66,7 +67,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         Dimension beigeMarginDimensions = coordinatesManager.getBeigeMarginDimensions();
         Insets innerBlackBorderInsets = coordinatesManager.getInnerBlackBorderInsets();
         Dimension innerBlackBorderDimensions = coordinatesManager.getInnerBlackBorderDimensions();
-        Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
 
         graphics.setColor(Color.BLACK);
@@ -96,9 +96,15 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                               (int) squareDimensions.getHeight());
         }
 
-        Iterator<Piece> pieceIterator = chessboard.iterator();
-        while (pieceIterator.hasNext()) {
-            Piece piece = pieceIterator.next();
+        boardArray = chessboard.getBoardArray();
+
+        BoardArrays.printBoard(boardArray);
+
+        squareCoords = chessboard.occupiedSquareCoords();
+
+        for (int coordsIdx = 0; coordsIdx < squareCoords.length; coordsIdx++) {
+            int[] pieceCoords = squareCoords[coordsIdx];
+            Piece piece = chessboard.getPieceAtCoords(pieceCoords[0], pieceCoords[1]);
             Image pieceIcon = piece.getImage();
             Point pieceUpperLeftCorner = coordinatesManager
                                          .getSquareUpperLeftCorner(piece.getLocation());
@@ -112,8 +118,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         int vertCoord = event.getY();
 
         /* FIXME: this code needs to handle check and checkmate cases. */
-
-        Piece capturedPiece;
 
         Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
@@ -154,9 +158,14 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         } else {
             clickEventMovingTo = clickSquareLoc;
 
-            if (!chessboard.getValidMoveSet(clickEventMovingFrom).contains(clickEventMovingTo)) {
-                resetClickEventVars();
-                return;
+            try {
+                if (!chessboard.getValidMoveSet(clickEventMovingFrom).contains(clickEventMovingTo)) {
+                    resetClickEventVars();
+                    return;
+                }
+            } catch (AlgorithmBadArgumentException exception) {
+                exception.printStackTrace();
+                System.exit(1);
             }
 
             clickEventToCapturePiece = chessboard.getPieceAtLocation(clickEventMovingTo);
@@ -179,7 +188,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                and handle them in the game logic. Also if it's check then the
                possible moves need to be limited to moves that can end the
                check. */
-            chessboard.movePiece(clickEventClickedPiece, clickEventMovingFrom, clickEventMovingTo);
+            try {
+                chessboard.movePiece(clickEventClickedPiece, clickEventMovingFrom, clickEventMovingTo);
+            } catch (KingIsInCheckError exception) {
+                resetClickEventVars();
+                return;
+            }
 
             resetClickEventVars();
 
@@ -228,7 +242,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             return;
         }
 
-        chessboard.movePiece(moveToMake.movingPiece(), moveToMake.currentLocation(), moveToMake.moveToLocation());
+        try {
+            chessboard.movePiece(moveToMake.movingPiece(), moveToMake.currentLocation(), moveToMake.moveToLocation());
+        } catch (KingIsInCheckError exception) {
+            return;
+        }
 
         timeRightNow = LocalDateTime.now();
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");

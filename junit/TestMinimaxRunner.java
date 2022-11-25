@@ -292,7 +292,6 @@ SQLException
         float runIdx = 4F;
         Method method;
         int wp = WHITE | PAWN;
-        int bp = BLACK | PAWN;
         int moveIdx = 0;
         int[][] trimmedMovesArray;
 
@@ -1535,9 +1534,7 @@ SQLException
         Method method;
         int wk = WHITE | KING;
         int bp = BLACK | PAWN;
-        int[][] testMoveArray = new int[4][10];
         boolean callResult;
-        int[][] trimmedMovesArray;
 
         int[][] testBoard = new int[][] {
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -1576,9 +1573,7 @@ SQLException
         Method method;
         int wk = WHITE | KING;
         int bk = BLACK | KNIGHT | LEFT;
-        int[][] testMoveArray = new int[4][10];
         boolean callResult;
-        int[][] trimmedMovesArray;
 
         int[][] testBoard = new int[][] {
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -1617,9 +1612,7 @@ SQLException
         Method method;
         int wk = WHITE | KING;
         int bb = BLACK | BISHOP;
-        int[][] testMoveArray = new int[4][10];
         boolean callResult;
-        int[][] trimmedMovesArray;
 
         int[][] testBoard = new int[][] {
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -1658,9 +1651,7 @@ SQLException
         Method method;
         int wk = WHITE | KING;
         int bq = BLACK | QUEEN;
-        int[][] testMoveArray = new int[4][10];
         boolean callResult;
-        int[][] trimmedMovesArray;
 
         int[][] testBoard = new int[][] {
             new int[] {0,  0,   0,  0,  0,  0,  0,  0},
@@ -2158,7 +2149,6 @@ SQLException
         int wkgr = WHITE | KNIGHT | RIGHT;
         int wq = WHITE | QUEEN;
         int wkn = WHITE | KING;
-        int moveIdx = 0;
         int[][] trimmedMovesArray;
 
         int[][] testBoard = new int[][] {
