@@ -71,8 +71,6 @@ public final class BoardArrays {
 
     private static final HashMap<String, Double> evaluateBoardMemoizeMap = new HashMap<String, Double>();
 
-    public record Move(Piece movingPiece, String currentLocation, String moveToLocation) { };
-
     private BoardArrays() { };
 
     public static int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray,

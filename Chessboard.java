@@ -115,15 +115,16 @@ public class Chessboard {
         this.put("black-pawn",           BLACK | PAWN);
     }};
 
-    private HashMap<Integer, Piece> pieceIntsToPieceObjs;
+    private HashMap<Integer, Image> pieceImages;
 
     private int colorOnTop;
     private int colorPlaying;
-    private Piece lastMovedPiece = null;
     private static HashMap<String, Piece> piecesLocations;
     private int[][] boardArray;
 
     public record Move(Piece movingPiece, int fromXCoord, int fromYCoord, int toXCoord, int toYCoord) { };
+
+    public record Piece(int pieceInt, Image pieceImage, int xCoord, int yCoord) { };
 
     public Chessboard(final ImagesManager imagesManager, final String playingColor) {
         this(null, imagesManager, playingColor);
@@ -157,12 +158,10 @@ public class Chessboard {
             }
         }
 
-        pieceIntsToPieceObjs = new HashMap<>();
+        pieceImages = new HashMap<Integer, Image>();
 
         for (int pieceInt : VALID_PIECE_INTS) {
-            Image pieceImage = imagesManager.getImageByPieceInt(pieceInt);
-            Piece pieceObj = new Piece(pieceInt, pieceImage);
-            pieceIntsToPieceObjs.put(pieceInt, pieceObj);
+            pieceImages.put(pieceInt, imagesManager.getImageByPieceInt(pieceInt));
         }
     }
 
@@ -182,16 +181,8 @@ public class Chessboard {
         if (boardArray[xCoord][yCoord] == 0) {
             return null;
         }
-
         int pieceInt = boardArray[xCoord][yCoord];
-        Piece piece = pieceIntsToPieceObjs.get(pieceInt);
-        piece = piece.clone();
-        piece.setCoords(xCoord, yCoord);
-        return piece;
-    }
-
-    public Piece pieceIntToPieceObj(final int pieceInt) {
-        return pieceIntsToPieceObjs.get(pieceInt).clone();
+        return new Piece(pieceInt, pieceImages.get(pieceInt), xCoord, yCoord);
     }
 
     public int[][] getValidMoveCoordsArray(final int[] coords) throws AlgorithmBadArgumentException {
@@ -237,26 +228,20 @@ public class Chessboard {
         return retval;
     }
 
-    public Piece movePiece(final Move moveObj) throws KingIsInCheckError {
-        return movePiece(moveObj.movingPiece(), moveObj.fromXCoord(), moveObj.fromYCoord(), moveObj.toXCoord(), moveObj.toYCoord());
+    public void movePiece(final Move moveObj) throws KingIsInCheckError {
+        movePiece(moveObj.movingPiece(), moveObj.fromXCoord(), moveObj.fromYCoord(), moveObj.toXCoord(), moveObj.toYCoord());
     }
 
-    public Piece movePiece(final Piece movingPiece, final int[] fromCoords, final int[] toCoords) throws KingIsInCheckError {
-        return movePiece(movingPiece, fromCoords[0], fromCoords[1], toCoords[0], toCoords[1]);
+    public void movePiece(final Piece movingPiece, final int[] fromCoords, final int[] toCoords) throws KingIsInCheckError {
+        movePiece(movingPiece, fromCoords[0], fromCoords[1], toCoords[0], toCoords[1]);
     }
 
-    public Piece movePiece(final Piece movingPiece, final int fromXCoord, final int fromYCoord, final int toXCoord, final int toYCoord) throws KingIsInCheckError {
+    public void movePiece(final Piece movingPiece, final int fromXCoord, final int fromYCoord, final int toXCoord, final int toYCoord) throws KingIsInCheckError {
         int pieceInt = boardArray[fromXCoord][fromYCoord];
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
         int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
 
-        int capturedPieceInt;
-        Piece capturedPiece = null;
-
-        capturedPieceInt = boardArray[toXCoord][toYCoord];
-        if (capturedPieceInt != 0) {
-            capturedPiece = pieceIntsToPieceObjs.get(pieceInt).clone();
-        }
+        int capturedPieceInt = boardArray[toXCoord][toYCoord];
 
         boardArray[toXCoord][toYCoord] = boardArray[fromXCoord][fromYCoord];
         boardArray[fromXCoord][fromYCoord] = 0;
@@ -264,10 +249,9 @@ public class Chessboard {
         if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
             boardArray[fromXCoord][fromYCoord] = boardArray[toXCoord][toYCoord];
             boardArray[toXCoord][toYCoord] = capturedPieceInt;
-            throw new KingIsInCheckError("move would place this color'a King in check or this color's King is in check and this move doesn't fix that; move can't be made");
+            throw new KingIsInCheckError("Move would place this color'a King in check or this color's King is in check "
+                                         + "and this move doesn't fix that; move can't be made.");
         }
-
-        return capturedPiece;
     }
 
     public int[][] occupiedSquareCoords() {

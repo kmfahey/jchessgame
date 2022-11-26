@@ -117,7 +117,7 @@ public class MinimaxRunner {
             throw new AlgorithmInternalError("algorithm top-level execution failed to find best move");
         }
 
-        Piece bestMovePiece = chessboard.getPieceAtCoords(bestMoveArray[1], bestMoveArray[2]);
+        Chessboard.Piece bestMovePiece = chessboard.getPieceAtCoords(bestMoveArray[1], bestMoveArray[2]);
         bestMoveObj = new Chessboard.Move(bestMovePiece, bestMoveArray[1], bestMoveArray[2], bestMoveArray[3], bestMoveArray[4]);
 
         return bestMoveObj;

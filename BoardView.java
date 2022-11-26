@@ -39,12 +39,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private CoordinatesManager coordinatesManager;
     private Chessboard chessboard;
 
-    private Piece clickEventClickedPiece = null;
+    private Chessboard.Piece clickEventClickedPiece = null;
     private int[] clickEventMovingFrom = new int[] {-1, -1};
-    private Piece clickEventToCapturePiece = null;
+    private Chessboard.Piece clickEventToCapturePiece = null;
     private int[] clickEventMovingTo = new int[] {-1, -1};
 
-    private Piece lastPieceMovedByPlayer;
+    private Chessboard.Piece lastPieceMovedByPlayer;
     private JFrame chessGameFrame;
 
     private String colorPlaying;
@@ -112,10 +112,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         for (int coordsIdx = 0; coordsIdx < squareCoords.length; coordsIdx++) {
             int[] pieceCoords = squareCoords[coordsIdx];
-            Piece piece = chessboard.getPieceAtCoords(pieceCoords[0], pieceCoords[1]);
-            Image pieceIcon = piece.getImage();
+            Chessboard.Piece piece = chessboard.getPieceAtCoords(pieceCoords[0], pieceCoords[1]);
+            Image pieceIcon = piece.pieceImage();
             Point pieceUpperLeftCorner = coordinatesManager
-                                         .getSquareUpperLeftCorner(piece.getCoords());
+                                         .getSquareUpperLeftCorner(piece.xCoord(), piece.yCoord());
             graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
         }
     }
@@ -159,7 +159,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             clickEventClickedPiece = chessboard.getPieceAtCoords(clickEventMovingFrom);
 
             if (Objects.isNull(clickEventClickedPiece)
-                || (clickEventClickedPiece.getPieceInt() & chessboard.getColorPlaying()) == 0) {
+                || (clickEventClickedPiece.pieceInt() & chessboard.getColorPlaying()) == 0) {
                 resetClickEventVars();
                 return;
             }
@@ -182,12 +182,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);
 
             if (Objects.nonNull(clickEventToCapturePiece)
-                    && (clickEventToCapturePiece.getPieceInt() & chessboard.getColorPlaying()) != 0) {
+                    && (clickEventToCapturePiece.pieceInt() & chessboard.getColorPlaying()) != 0) {
                 resetClickEventVars();
                 return;
-            } else if ((clickEventClickedPiece.getPieceInt() & Chessboard.KING) != 0
+            } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0
                         && chessboard.isSquareThreatened(clickEventMovingTo,
-                                                         ((clickEventClickedPiece.getPieceInt()
+                                                         ((clickEventClickedPiece.pieceInt()
                                                            & Chessboard.WHITE) != 0)
                                                            ? Chessboard.BLACK
                                                            : Chessboard.WHITE)) {
