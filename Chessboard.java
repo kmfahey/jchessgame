@@ -53,66 +53,66 @@ public class Chessboard {
     private static final String ALG_NOTN_NUM_CHARS = "87654321";
 
     private static final HashMap<Integer, Integer[][]> piecesStartingLocsWhiteBelow = new HashMap<>() {{
-        this.put(BLACK | KING,           new Integer[][] {new Integer[] {3, 0}});
-        this.put(BLACK | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
-        this.put(BLACK | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
-        this.put(BLACK | BISHOP,         new Integer[][] {new Integer[] {2, 0}, new Integer[] {5, 0}});
-        this.put(BLACK | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 0}});
-        this.put(BLACK | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 0}});
-        this.put(BLACK | PAWN,           new Integer[][] {new Integer[] {0, 1}, new Integer[] {1, 1},
-                                                          new Integer[] {2, 1}, new Integer[] {3, 1},
-                                                          new Integer[] {4, 1}, new Integer[] {5, 1},
-                                                          new Integer[] {6, 1}, new Integer[] {7, 1}});
-        this.put(WHITE | KING,           new Integer[][] {new Integer[] {3, 7}});
-        this.put(WHITE | QUEEN,          new Integer[][] {new Integer[] {4, 7}});
-        this.put(WHITE | ROOK,           new Integer[][] {new Integer[] {0, 7}, new Integer[] {7, 7}});
-        this.put(WHITE | BISHOP,         new Integer[][] {new Integer[] {2, 7}, new Integer[] {5, 7}});
-        this.put(WHITE | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 7}});
-        this.put(WHITE | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 7}});
-        this.put(WHITE | PAWN,           new Integer[][] {new Integer[] {0, 6}, new Integer[] {1, 6},
-                                                          new Integer[] {2, 6}, new Integer[] {3, 6},
-                                                          new Integer[] {4, 6}, new Integer[] {5, 6},
-                                                          new Integer[] {6, 6}, new Integer[] {7, 6}});
+        put(BLACK | KING,           new Integer[][] {new Integer[] {3, 0}});
+        put(BLACK | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
+        put(BLACK | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
+        put(BLACK | BISHOP,         new Integer[][] {new Integer[] {2, 0}, new Integer[] {5, 0}});
+        put(BLACK | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 0}});
+        put(BLACK | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 0}});
+        put(BLACK | PAWN,           new Integer[][] {new Integer[] {0, 1}, new Integer[] {1, 1},
+                                                     new Integer[] {2, 1}, new Integer[] {3, 1},
+                                                     new Integer[] {4, 1}, new Integer[] {5, 1},
+                                                     new Integer[] {6, 1}, new Integer[] {7, 1}});
+        put(WHITE | KING,           new Integer[][] {new Integer[] {3, 7}});
+        put(WHITE | QUEEN,          new Integer[][] {new Integer[] {4, 7}});
+        put(WHITE | ROOK,           new Integer[][] {new Integer[] {0, 7}, new Integer[] {7, 7}});
+        put(WHITE | BISHOP,         new Integer[][] {new Integer[] {2, 7}, new Integer[] {5, 7}});
+        put(WHITE | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 7}});
+        put(WHITE | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 7}});
+        put(WHITE | PAWN,           new Integer[][] {new Integer[] {0, 6}, new Integer[] {1, 6},
+                                                     new Integer[] {2, 6}, new Integer[] {3, 6},
+                                                     new Integer[] {4, 6}, new Integer[] {5, 6},
+                                                     new Integer[] {6, 6}, new Integer[] {7, 6}});
     }};
 
     private static final HashMap<Integer, Integer[][]> piecesStartingLocsBlackBelow = new HashMap<>() {{
-        this.put(WHITE | KING,           new Integer[][] {new Integer[] {3, 0}});
-        this.put(WHITE | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
-        this.put(WHITE | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
-        this.put(WHITE | BISHOP,         new Integer[][] {new Integer[] {2, 0}, new Integer[] {5, 0}});
-        this.put(WHITE | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 0}});
-        this.put(WHITE | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 0}});
-        this.put(WHITE | PAWN,           new Integer[][] {new Integer[] {0, 1}, new Integer[] {1, 1},
-                                                          new Integer[] {2, 1}, new Integer[] {3, 1},
-                                                          new Integer[] {4, 1}, new Integer[] {5, 1},
-                                                          new Integer[] {6, 1}, new Integer[] {7, 1}});
-        this.put(BLACK | KING,           new Integer[][] {new Integer[] {3, 7}});
-        this.put(BLACK | QUEEN,          new Integer[][] {new Integer[] {4, 7}});
-        this.put(BLACK | ROOK,           new Integer[][] {new Integer[] {0, 7}, new Integer[] {7, 7}});
-        this.put(BLACK | BISHOP,         new Integer[][] {new Integer[] {2, 7}, new Integer[] {5, 7}});
-        this.put(BLACK | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 7}});
-        this.put(BLACK | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 7}});
-        this.put(BLACK | PAWN,           new Integer[][] {new Integer[] {0, 6}, new Integer[] {1, 6},
-                                                          new Integer[] {2, 6}, new Integer[] {3, 6},
-                                                          new Integer[] {4, 6}, new Integer[] {5, 6},
-                                                          new Integer[] {6, 6}, new Integer[] {7, 6}});
+        put(WHITE | KING,           new Integer[][] {new Integer[] {3, 0}});
+        put(WHITE | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
+        put(WHITE | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
+        put(WHITE | BISHOP,         new Integer[][] {new Integer[] {2, 0}, new Integer[] {5, 0}});
+        put(WHITE | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 0}});
+        put(WHITE | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 0}});
+        put(WHITE | PAWN,           new Integer[][] {new Integer[] {0, 1}, new Integer[] {1, 1},
+                                                     new Integer[] {2, 1}, new Integer[] {3, 1},
+                                                     new Integer[] {4, 1}, new Integer[] {5, 1},
+                                                     new Integer[] {6, 1}, new Integer[] {7, 1}});
+        put(BLACK | KING,           new Integer[][] {new Integer[] {3, 7}});
+        put(BLACK | QUEEN,          new Integer[][] {new Integer[] {4, 7}});
+        put(BLACK | ROOK,           new Integer[][] {new Integer[] {0, 7}, new Integer[] {7, 7}});
+        put(BLACK | BISHOP,         new Integer[][] {new Integer[] {2, 7}, new Integer[] {5, 7}});
+        put(BLACK | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 7}});
+        put(BLACK | KNIGHT | LEFT,  new Integer[][] {new Integer[] {1, 7}});
+        put(BLACK | PAWN,           new Integer[][] {new Integer[] {0, 6}, new Integer[] {1, 6},
+                                                     new Integer[] {2, 6}, new Integer[] {3, 6},
+                                                     new Integer[] {4, 6}, new Integer[] {5, 6},
+                                                     new Integer[] {6, 6}, new Integer[] {7, 6}});
     }};
 
     public static final HashMap<String, Integer> pieceStrsToInts = new HashMap<>() {{
-        this.put("white-king",           WHITE | KING);
-        this.put("white-queen",          WHITE | QUEEN);
-        this.put("white-rook",           WHITE | ROOK);
-        this.put("white-bishop",         WHITE | BISHOP);
-        this.put("white-knight-right",   WHITE | KNIGHT | RIGHT);
-        this.put("white-knight-left",    WHITE | KNIGHT | LEFT);
-        this.put("white-pawn",           WHITE | PAWN);
-        this.put("black-king",           BLACK | KING);
-        this.put("black-queen",          BLACK | QUEEN);
-        this.put("black-rook",           BLACK | ROOK);
-        this.put("black-bishop",         BLACK | BISHOP);
-        this.put("black-knight-right",   BLACK | KNIGHT | RIGHT);
-        this.put("black-knight-left",    BLACK | KNIGHT | LEFT);
-        this.put("black-pawn",           BLACK | PAWN);
+        put("white-king",           WHITE | KING);
+        put("white-queen",          WHITE | QUEEN);
+        put("white-rook",           WHITE | ROOK);
+        put("white-bishop",         WHITE | BISHOP);
+        put("white-knight-right",   WHITE | KNIGHT | RIGHT);
+        put("white-knight-left",    WHITE | KNIGHT | LEFT);
+        put("white-pawn",           WHITE | PAWN);
+        put("black-king",           BLACK | KING);
+        put("black-queen",          BLACK | QUEEN);
+        put("black-rook",           BLACK | ROOK);
+        put("black-bishop",         BLACK | BISHOP);
+        put("black-knight-right",   BLACK | KNIGHT | RIGHT);
+        put("black-knight-left",    BLACK | KNIGHT | LEFT);
+        put("black-pawn",           BLACK | PAWN);
     }};
 
     private HashMap<Integer, Image> pieceImages;

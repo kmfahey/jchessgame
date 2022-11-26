@@ -23,40 +23,6 @@ public class MinimaxRunner {
     public static final int ISOLATED = 1;
     public static final int BLOCKED = 2;
 
-    public static final HashMap<String, Integer> pieceIdentitiesToInts = new HashMap<>() {{
-        this.put("white-king", (WHITE | KING));
-        this.put("white-queen", (WHITE | QUEEN));
-        this.put("white-rook", (WHITE | ROOK));
-        this.put("white-bishop", (WHITE | BISHOP));
-        this.put("white-knight-right", (WHITE | KNIGHT | RIGHT));
-        this.put("white-knight-left", (WHITE | KNIGHT | LEFT));
-        this.put("white-pawn", (WHITE | PAWN));
-        this.put("black-king", (BLACK | KING));
-        this.put("black-queen", (BLACK | QUEEN));
-        this.put("black-rook", (BLACK | ROOK));
-        this.put("black-bishop", (BLACK | BISHOP));
-        this.put("black-knight-right", (BLACK | KNIGHT | RIGHT));
-        this.put("black-knight-left", (BLACK | KNIGHT | LEFT));
-        this.put("black-pawn", (BLACK | PAWN));
-    }};
-
-    public static final HashMap<Integer, String> pieceIntsToIdentities = new HashMap<>() {{
-        this.put((WHITE | KING), "white-king");
-        this.put((WHITE | QUEEN), "white-queen");
-        this.put((WHITE | ROOK), "white-rook");
-        this.put((WHITE | BISHOP), "white-bishop");
-        this.put((WHITE | KNIGHT | RIGHT), "white-knight-right");
-        this.put((WHITE | KNIGHT | LEFT), "white-knight-left");
-        this.put((WHITE | PAWN), "white-pawn");
-        this.put((BLACK | KING), "black-king");
-        this.put((BLACK | QUEEN), "black-queen");
-        this.put((BLACK | ROOK), "black-rook");
-        this.put((BLACK | BISHOP), "black-bishop");
-        this.put((BLACK | KNIGHT | RIGHT), "black-knight-right");
-        this.put((BLACK | KNIGHT | LEFT), "black-knight-left");
-        this.put((BLACK | PAWN), "black-pawn");
-    }};
-
     /* These are alternate versions of main arrays in the int-array-based board
        logic that are used by some methods. In order to avoid instantiating a
        new array each time one is called, a spare array is stored to an instance
