@@ -945,4 +945,18 @@ public final class BoardArrays {
         }
         System.err.println(outerJoiner.toString());
     }
+
+    public static boolean arrayOfCoordsContainsCoord(int[][] arrayOfCoords, int[] toFindCoords) {
+        boolean containsCoords = false;
+
+        for (int[] arrayCoords : arrayOfCoords) {
+            System.err.println("checking (" + arrayCoords[0] + ", " + arrayCoords[1] + ")");
+            containsCoords = (arrayCoords[0] == toFindCoords[0] && arrayCoords[1] == toFindCoords[1]);
+            if (containsCoords) {
+                break;
+            }
+        }
+
+        return containsCoords;
+    }
 }

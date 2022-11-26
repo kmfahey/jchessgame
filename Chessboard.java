@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.awt.Image;
 
-public class Chessboard2 {
+public class Chessboard {
 
     public static final int WHITE = BoardArrays.WHITE;
     public static final int BLACK = BoardArrays.BLACK;
@@ -66,7 +66,7 @@ public class Chessboard2 {
                                                           new Integer[] {2, 6}, new Integer[] {3, 6},
                                                           new Integer[] {4, 6}, new Integer[] {5, 6},
                                                           new Integer[] {6, 6}, new Integer[] {7, 6}});
-   }};
+    }};
 
     private static final HashMap<Integer, Integer[][]> piecesStartingLocsBlackBelow = new HashMap<>() {{
         this.put(WHITE | KING,           new Integer[][] {new Integer[] {3, 0}});
@@ -89,7 +89,7 @@ public class Chessboard2 {
                                                           new Integer[] {2, 6}, new Integer[] {3, 6},
                                                           new Integer[] {4, 6}, new Integer[] {5, 6},
                                                           new Integer[] {6, 6}, new Integer[] {7, 6}});
-   }};
+    }};
 
     private static final HashMap<Integer, String> pieceIntsToIdentities = new HashMap<>() {{
         this.put(WHITE | KING,           "white-king");
@@ -106,7 +106,7 @@ public class Chessboard2 {
         this.put(BLACK | KNIGHT | RIGHT, "black-knight-right");
         this.put(BLACK | KNIGHT | LEFT,  "black-knight-left");
         this.put(BLACK | PAWN,           "black-pawn");
-   }};
+    }};
 
     private HashMap<Integer, Piece> pieceIntsToPieceObjs;
 
@@ -116,7 +116,9 @@ public class Chessboard2 {
     private static HashMap<String, Piece> piecesLocations;
     private int[][] boardArray;
 
-    public Chessboard2(final ImagesManager imagesManager, final String playingColor) {
+    public record Move(Piece movingPiece, int fromXCoord, int fromYCoord, int toXCoord, int toYCoord) { };
+
+    public Chessboard(final ImagesManager imagesManager, final String playingColor) {
 
         /* We only need the ImagesManager object to instantiate Piece objects
            with the correct Image 2nd argument. It's not saved to an instance
@@ -137,8 +139,8 @@ public class Chessboard2 {
                 int xIdx = coords[0];
                 int yIdx = coords[1];
                 boardArray[xIdx][yIdx] = pieceInt;
-           }
-       }
+            }
+        }
 
         pieceIntsToPieceObjs = new HashMap<>();
 
@@ -149,121 +151,112 @@ public class Chessboard2 {
             pieceIntsToPieceObjs.put(pieceInt, pieceObj);
             pieceObj = pieceIntsToPieceObjs.get(pieceInt);
             assert !Objects.isNull(pieceObj);
-       }
-   }
+        }
+    }
 
     public int[][] getBoardArray() {
         return boardArray;
-   }
-
-    public String numericIndexesToAlgNotnLoc(final int horizIndex, final int vertIndex) {
-        return String.valueOf(ALG_NOTN_ALPHA_CHARS.charAt(horizIndex))
-               + String.valueOf(ALG_NOTN_NUM_CHARS.charAt(vertIndex));
-   }
-
-    public int[] algNotnLocToNumericIndexes(final String location) {
-        int[] coordinates = new int[2];
-        coordinates[0] = ALG_NOTN_ALPHA_CHARS.indexOf(String.valueOf(location.charAt(0)));
-        coordinates[1] = ALG_NOTN_NUM_CHARS.indexOf(String.valueOf(location.charAt(1)));
-        return coordinates;
-   }
+    }
 
     public String getColorPlaying() {
         return (colorPlaying == WHITE) ? "white" : "black";
-   }
+    }
 
-    public Piece getPieceAtLocation(final String location) {
-        int[] coords = algNotnLocToNumericIndexes(location);
-        int xIdx = coords[0];
-        int yIdx = coords[1];
-        if (boardArray[xIdx][yIdx] == 0) {
+    public Piece getPieceAtCoords(final int[] coords) {
+        return getPieceAtCoords(coords[0], coords[1]);
+    }
+
+    public Piece getPieceAtCoords(final int xCoord, final int yCoord) {
+        if (boardArray[xCoord][yCoord] == 0) {
             return null;
-       }
+        }
 
-        int pieceInt = boardArray[xIdx][yIdx];
+        int pieceInt = boardArray[xCoord][yCoord];
         Piece piece = pieceIntsToPieceObjs.get(pieceInt);
         piece = piece.clone();
-        piece.setLocation(location);
+        piece.setCoords(xCoord, yCoord);
         return piece;
-   }
-
-    public Piece getPieceAtCoords(final int horizCoord, final int vertCoord) {
-        if (boardArray[horizCoord][vertCoord] == 0) {
-            return null;
-       }
-        int pieceInt = boardArray[horizCoord][vertCoord];
-        Piece piece = pieceIntsToPieceObjs.get(pieceInt).clone();
-        String location = numericIndexesToAlgNotnLoc(horizCoord, vertCoord);
-        piece.setLocation(location);
-        return piece;
-   }
+    }
 
     public Piece pieceIntToPieceObj(final int pieceInt) {
         return pieceIntsToPieceObjs.get(pieceInt).clone();
-   }
+    }
 
-    public HashSet<String> getValidMoveSet(final String location) throws AlgorithmBadArgumentException {
-        int[] coords = algNotnLocToNumericIndexes(location);
-        int xIdx = coords[0];
-        int yIdx = coords[1];
+    public int[][] getValidMoveCoordsArray(final int[] coords) throws AlgorithmBadArgumentException {
+        return getValidMoveCoordsArray(coords[0], coords[1]);
+    }
+
+    public int[][] getValidMoveCoordsArray(final int xCoord, final int yCoord) throws AlgorithmBadArgumentException {
         int usedArrayLength = 0;
+        int coordsIndex = 0;
         int[][] movesArray = new int[32][6];
-        HashSet<String> moveSet = new HashSet<>();
-        usedArrayLength = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xIdx, yIdx, colorPlaying, colorOnTop);
+        int[][] movesCoords;
+        usedArrayLength = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xCoord, yCoord, colorPlaying, colorOnTop);
+        movesCoords = new int[usedArrayLength][2];
         for (int moveIdx = 0; moveIdx < usedArrayLength; moveIdx++) {
             int moveXIdx = movesArray[moveIdx][3];
             int moveYIdx = movesArray[moveIdx][4];
-            moveSet.add(numericIndexesToAlgNotnLoc(moveXIdx, moveYIdx));
-       }
-        return moveSet;
-   }
+            movesCoords[coordsIndex][0] = moveXIdx;
+            movesCoords[coordsIndex][1] = moveYIdx;
+            coordsIndex++;
+        }
+        return movesCoords;
+    }
 
-    public boolean isSquareThreatened(final String squareLoc, final String opposingColorStr) {
+    public boolean isSquareThreatened(final int[] coords, final String opposingColorStr) {
+        return isSquareThreatened(coords[0], coords[1], opposingColorStr);
+    }
+
+    public boolean isSquareThreatened(final int xCoord, final int yCoord, final String opposingColorStr) {
         int otherColor = opposingColorStr.equals("white") ? WHITE : BLACK;
         int thisColor = otherColor == WHITE ? BLACK : WHITE;
-        int[] coords = algNotnLocToNumericIndexes(squareLoc);
-        int xIdx = coords[0];
-        int yIdx = coords[1];
         boolean retval;
+        /* This operation momentarily changes the boardArray to an invalid state
+           to use BoardArray.isKingInCheck() method to detect a threatened
+           square. Although this is not a threaded package, synchronized(){} is
+           used just in case it's possible that another part of the calling code
+           might try to use the boardArray at the same time. */
         synchronized (boardArray) {
-            int savedPieceInt = boardArray[xIdx][yIdx];
-            boardArray[xIdx][yIdx] = thisColor | KING;
+            int savedPieceInt = boardArray[xCoord][yCoord];
+            boardArray[xCoord][yCoord] = thisColor | KING;
             retval = BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop);
-            boardArray[xIdx][yIdx] = savedPieceInt;
-       }
+            boardArray[xCoord][yCoord] = savedPieceInt;
+        }
         return retval;
-   }
+    }
 
-    public Piece movePiece(final Piece movingPiece, final String pieceCurrentLoc, final String movingToLoc) throws KingIsInCheckError {
-        int[] fromCoords = algNotnLocToNumericIndexes(pieceCurrentLoc);
-        int fromXIdx = fromCoords[0];
-        int fromYIdx = fromCoords[1];
-        int pieceInt = boardArray[fromXIdx][fromYIdx];
+    public Piece movePiece(final Move moveObj) throws KingIsInCheckError {
+        return movePiece(moveObj.movingPiece(), moveObj.fromXCoord(), moveObj.fromYCoord(), moveObj.toXCoord(), moveObj.toYCoord());
+    }
+
+    public Piece movePiece(final Piece movingPiece, final int[] fromCoords, final int[] toCoords) throws KingIsInCheckError {
+        return movePiece(movingPiece, fromCoords[0], fromCoords[1], toCoords[0], toCoords[1]);
+    }
+
+    public Piece movePiece(final Piece movingPiece, final int fromXCoord, final int fromYCoord, final int toXCoord, final int toYCoord) throws KingIsInCheckError {
+        int pieceInt = boardArray[fromXCoord][fromYCoord];
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
         int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
 
-        int[] toCoords = algNotnLocToNumericIndexes(movingToLoc);
-        int toXIdx = toCoords[0];
-        int toYIdx = toCoords[1];
         int capturedPieceInt;
         Piece capturedPiece = null;
 
-        capturedPieceInt = boardArray[toXIdx][toYIdx];
+        capturedPieceInt = boardArray[toXCoord][toYCoord];
         if (capturedPieceInt != 0) {
             capturedPiece = pieceIntsToPieceObjs.get(pieceInt).clone();
-       }
+        }
 
-        boardArray[toXIdx][toYIdx] = boardArray[fromXIdx][fromYIdx];
-        boardArray[fromXIdx][fromYIdx] = 0;
+        boardArray[toXCoord][toYCoord] = boardArray[fromXCoord][fromYCoord];
+        boardArray[fromXCoord][fromYCoord] = 0;
 
         if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
-            boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
-            boardArray[toXIdx][toYIdx] = capturedPieceInt;
+            boardArray[fromXCoord][fromYCoord] = boardArray[toXCoord][toYCoord];
+            boardArray[toXCoord][toYCoord] = capturedPieceInt;
             throw new KingIsInCheckError("move would place this color'a King in check or this color's King is in check and this move doesn't fix that; move can't be made");
-       }
+        }
 
         return capturedPiece;
-   }
+    }
 
     public int[][] occupiedSquareCoords() {
         int pieceCount = 0;
@@ -273,9 +266,9 @@ public class Chessboard2 {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 if (boardArray[xIdx][yIdx] != 0) {
                     pieceCount++;
-               }
-           }
-       }
+                }
+            }
+        }
 
         int[][] squareCoords = new int[pieceCount][2];
 
@@ -285,10 +278,10 @@ public class Chessboard2 {
                     squareCoords[pieceIndex][0] = xIdx;
                     squareCoords[pieceIndex][1] = yIdx;
                     pieceIndex++;
-               }
-           }
-       }
+                }
+            }
+        }
 
         return squareCoords;
-   }
+    }
 }

@@ -1,81 +1,45 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.awt.Image;
 
 public class Piece implements Cloneable {
 
-    private String pieceIdentity;
-    private String currentLocation;
-    private String lastLocation;
+    public static final int X_COORD = 0;
+    public static final int Y_COORD = 1;
 
-    private HashSet<String> inCheckByPcsAtLocs = null;
-    private HashSet<String> inCheckmateByPcsAtLocs = null;
+    private String pieceIdentity;
+    private final int[] pieceCoords;
+
     private boolean hasBeenCaptured = false;
     private Image pieceImage;
 
     public Piece(final String identity, final Image pcImage) {
         pieceImage = pcImage;
         pieceIdentity = identity;
-        if (pieceIdentity.endsWith("king")) {
-            inCheckByPcsAtLocs = new HashSet<String>();
-            inCheckmateByPcsAtLocs = new HashSet<String>();
-        }
+        pieceCoords = new int[] {-1, -1};
     }
 
-    public Piece(final String identity, final Image pcImage, final boolean beenCaptured,
-                 final String lastLoc, final String currentLoc) {
+    public Piece(final String identity, final Image pcImage, final int xCoord, final int yCoord) {
         pieceImage = pcImage;
         pieceIdentity = identity;
-        hasBeenCaptured = beenCaptured;
-        currentLocation = currentLoc;
-        lastLocation = lastLoc;
-    }
-
-    public Piece(final String identity, final Image pcImage, final boolean beenCaptured,
-                 final String lastLoc, final String currentLoc,
-                 final HashSet<String> inCheckByPcs, final HashSet<String> inCheckmateByPcs) {
-        pieceImage = pcImage;
-        pieceIdentity = identity;
-        currentLocation = currentLoc;
-        lastLocation = lastLoc;
-        hasBeenCaptured = beenCaptured;
-        inCheckByPcsAtLocs = inCheckByPcs;
-        inCheckmateByPcsAtLocs = inCheckmateByPcs;
+        pieceCoords = new int[] {xCoord, yCoord};
     }
 
     @Override
     public Piece clone() {
-        if (pieceIdentity.endsWith("king")) {
-            return new Piece(pieceIdentity, pieceImage, hasBeenCaptured, lastLocation, currentLocation,
-                             new HashSet<String>(inCheckByPcsAtLocs), new HashSet<String>(inCheckmateByPcsAtLocs));
-        } else {
-            return new Piece(pieceIdentity, pieceImage, hasBeenCaptured, lastLocation, currentLocation);
-        }
+        return new Piece(pieceIdentity, pieceImage, pieceCoords[X_COORD], pieceCoords[Y_COORD]);
     }
 
-    public String getLocation() {
-        return currentLocation;
-    }
-
-    public String getLastLocation() {
-        return lastLocation;
+    public int[] getCoords() {
+        /* The array is mutable, so we return a copy to prevent handing the
+           calling code a reference to one of our private instance vars. */
+        return Arrays.copyOf(pieceCoords, 2);
     }
 
     public String getIdentity() {
         return pieceIdentity;
-    }
-
-    public HashSet<String> getInCheckByPcsAtLocs() {
-        return inCheckByPcsAtLocs;
-    }
-
-    public HashSet<String> getInCheckmateByPcsAtLocs() {
-        return inCheckmateByPcsAtLocs;
-    }
-
-    public boolean isInCheck() {
-        return inCheckByPcsAtLocs.size() > 0;
     }
 
     public String getColor() {
@@ -90,33 +54,9 @@ public class Piece implements Cloneable {
         return pieceIdentity.split("-")[2];
     }
 
-    public boolean isInCheckmate() {
-        return inCheckmateByPcsAtLocs.size() > 0;
-    }
-
-    public boolean getHasBeenCaptured() {
-        return hasBeenCaptured;
-    }
-
-    public void setHasBeenCaptured() {
-        hasBeenCaptured = true;
-    }
-
-    public void setLocation(final String locationStr) {
-        lastLocation = currentLocation;
-        currentLocation = locationStr;
-    }
-
-    public void inCheckmateByPiece(final Piece pieceInCheckmateBy) {
-        inCheckmateByPcsAtLocs.add(pieceInCheckmateBy.getLocation());
-    }
-
-    public void inCheckByPiece(final Piece pieceInCheckBy) {
-        inCheckByPcsAtLocs.add(pieceInCheckBy.getLocation());
-    }
-
-    public void noLongerInCheckBy(final Piece pieceNoLongerInCheckBy) {
-        inCheckByPcsAtLocs.remove(pieceNoLongerInCheckBy.getLocation());
+    public void setCoords(final int xIdx, final int yIdx) {
+        pieceCoords[X_COORD] = xIdx;
+        pieceCoords[Y_COORD] = yIdx;
     }
 
     public Image getImage() {

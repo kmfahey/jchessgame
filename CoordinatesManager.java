@@ -7,16 +7,6 @@ import java.util.HashMap;
 
 public class CoordinatesManager {
 
-    private final HashMap<Character, Integer> algbNotnHorizCharsToInts = new HashMap<>() {{
-        this.put('a', 0); this.put('b', 1); this.put('c', 2); this.put('d', 3);
-        this.put('e', 4); this.put('f', 5); this.put('g', 6); this.put('h', 7);
-    }};
-
-    private final HashMap<Character, Integer> algbNotnVertCharsToInts = new HashMap<>() {{
-        this.put('8', 0); this.put('7', 1); this.put('6', 2); this.put('5', 3);
-        this.put('4', 4); this.put('3', 5); this.put('2', 6); this.put('1', 7);
-    }};
-
     public static final float TOTAL_BOARD_MEASUREMENT_100PCT = 2002F;
     public static final float OUTER_BLACK_BORDER_WIDTH_100PCT = 12F;
     public static final float BEIGE_MARGIN_WIDTH_100PCT = 47F;
@@ -176,15 +166,15 @@ public class CoordinatesManager {
         return squareDimensions;
     }
 
-    public Point getSquareUpperLeftCorner(final String algebraicNotation) {
-        char horizAlgbNotChar = algebraicNotation.charAt(0);
-        char vertAlgbNotChar = algebraicNotation.charAt(1);
-        int horizSquareOrdinate = algbNotnHorizCharsToInts.get(horizAlgbNotChar);
-        int vertSquareOrdinate = algbNotnVertCharsToInts.get(vertAlgbNotChar);
+    public Point getSquareUpperLeftCorner(final int[] squareCoords) {
+        return getSquareUpperLeftCorner(squareCoords[0], squareCoords[1]);
+    }
+
+    public Point getSquareUpperLeftCorner(final int xCoord, final int yCoord) {
         int upperLeftHorizPixel = upperLeftCornerOfSquaresRegion.x
-                                  + (int) squareDimensions.getWidth() * horizSquareOrdinate;
+                                  + (int) squareDimensions.getWidth() * xCoord;
         int upperLeftVertPixel = upperLeftCornerOfSquaresRegion.y
-                                 + (int) squareDimensions.getHeight() * vertSquareOrdinate;
+                                 + (int) squareDimensions.getHeight() * yCoord;
         return new Point(upperLeftHorizPixel, upperLeftVertPixel);
     }
 }

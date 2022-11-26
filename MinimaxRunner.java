@@ -72,8 +72,6 @@ public class MinimaxRunner {
     private int colorOnTop;
     private int algorithmStartingDepth;
 
-    public record Move(Piece movingPiece, String currentLocation, String moveToLocation) { };
-
     public MinimaxRunner(final String colorOfAIStr, final String colorOnTopStr) {
         colorOfAI = colorOfAIStr.equals("white") ? WHITE : BLACK;
         colorOfPlayer = colorOfAI == WHITE ? BLACK : WHITE;
@@ -85,7 +83,7 @@ public class MinimaxRunner {
         evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
 
-    public Move algorithmTopLevel(final Chessboard2 chessboard
+    public Chessboard.Move algorithmTopLevel(final Chessboard chessboard
                                  ) throws AlgorithmBadArgumentException, AlgorithmInternalError {
         int[][] boardArray = new int[8][8];
         int[][] movesArray = new int[128][6];
@@ -94,7 +92,7 @@ public class MinimaxRunner {
         int movesArrayUsedLength;
         double alpha;
         double beta;
-        Move bestMoveObj;
+        Chessboard.Move bestMoveObj;
 
         alpha = Double.NEGATIVE_INFINITY;
         beta = Double.POSITIVE_INFINITY;
@@ -119,11 +117,8 @@ public class MinimaxRunner {
             throw new AlgorithmInternalError("algorithm top-level execution failed to find best move");
         }
 
-        String bestMoveFromLoc = chessboard.numericIndexesToAlgNotnLoc(bestMoveArray[1], bestMoveArray[2]);
-        String bestMoveToLoc = chessboard.numericIndexesToAlgNotnLoc(bestMoveArray[3], bestMoveArray[4]);
-        Piece bestMovePiece = chessboard.getPieceAtLocation(bestMoveFromLoc);
-
-        bestMoveObj = new Move(bestMovePiece, bestMoveFromLoc, bestMoveToLoc);
+        Piece bestMovePiece = chessboard.getPieceAtCoords(bestMoveArray[1], bestMoveArray[2]);
+        bestMoveObj = new Chessboard.Move(bestMovePiece, bestMoveArray[1], bestMoveArray[2], bestMoveArray[3], bestMoveArray[4]);
 
         return bestMoveObj;
     }
