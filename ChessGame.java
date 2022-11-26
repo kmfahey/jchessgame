@@ -1,5 +1,6 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Objects;
 import java.awt.Dimension;
 //import java.awt.event.ActionEvent;
 //import java.awt.event.ActionListener;
@@ -10,6 +11,7 @@ import java.awt.Toolkit;
 //import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JOptionPane;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
@@ -23,7 +25,13 @@ public class ChessGame extends JFrame {
     private String colorPlaying;
 
     public ChessGame() throws IOException, FileNotFoundException {
+        this(null);
+    }
+
+    public ChessGame(String fileName) throws IOException, FileNotFoundException {
         super("");
+
+        int[][] boardArray = new int[0][0];
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
@@ -55,12 +63,26 @@ public class ChessGame extends JFrame {
 
         colorPlaying = "white";
 
-        chessboard = new Chessboard(imagesManager, colorPlaying);
+        if (Objects.nonNull(fileName)) {
+            try {
+                boardArray = BoardArrays.fileNameToBoardArray(fileName);
+            } catch (NullPointerException | BoardArrayFileParsingError | IOException exception) {
+                String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
+                JOptionPane.showMessageDialog(this, "Loading a board file caused a " + exceptionClassName + ":\n" + exception.getMessage());
+                exception.printStackTrace();
+                System.exit(1);
+            }
+            chessboard = new Chessboard(boardArray, imagesManager, colorPlaying);
+        } else {
+            chessboard = new Chessboard(imagesManager, colorPlaying);
+        }
 
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
         gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
 
-        BoardView boardView = new BoardView(boardDims, imagesManager,
+
+
+        BoardView boardView = new BoardView(this, boardDims, imagesManager,
                                             coordinatesManager, chessboard, colorPlaying);
         gamePanel.add(boardView, boardConstraints);
 
@@ -71,7 +93,13 @@ public class ChessGame extends JFrame {
     }
 
     public static void main(final String[] args) throws IOException, FileNotFoundException {
-        ChessGame chessGame = new ChessGame();
+        ChessGame chessGame;
+        if (args.length > 0) {
+            String fileName = args[0];
+            chessGame = new ChessGame(fileName);
+        } else {
+            chessGame = new ChessGame();
+        }
         chessGame.setVisible(true);
         chessGame.setLocationRelativeTo(null);
     }

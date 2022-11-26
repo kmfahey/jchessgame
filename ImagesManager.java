@@ -16,8 +16,8 @@ import java.io.FileNotFoundException;
 
 public class ImagesManager {
 
-    private HashMap<String, BufferedImage> piecesImages;
-    private HashMap<String, Image> piecesImagesScaled;
+    private HashMap<Integer, BufferedImage> piecesImages;
+    private HashMap<Integer, Image> piecesImagesScaled;
     private Dimension squareDimensions;
 
     public ImagesManager(final String imageDirectory, final Dimension squareDims)
@@ -26,7 +26,7 @@ public class ImagesManager {
         piecesImages = new HashMap<>();
         squareDimensions = squareDims;
 
-        piecesImagesScaled = new HashMap<String, Image>();
+        piecesImagesScaled = new HashMap<Integer, Image>();
 
         Path imageDirPath = Paths.get(imageDirectory);
         try (DirectoryStream<Path> imageDirStream = Files.newDirectoryStream(imageDirPath, "*.png")) {
@@ -41,12 +41,13 @@ public class ImagesManager {
                     String chirality = fileNamePieces[2].toLowerCase();
                     pieceRole = pieceRole + "-" + chirality;
                 }
-                String pieceKey = pieceColor + "-" + pieceRole;
-                piecesImages.put(pieceKey, imageData);
+                String pieceStr = pieceColor + "-" + pieceRole;
+                int pieceInt = Chessboard.pieceStrsToInts.get(pieceStr);
+                piecesImages.put(pieceInt, imageData);
             }
         }
 
-        for (Entry<String, BufferedImage> piecesEntry : piecesImages.entrySet()) {
+        for (Entry<Integer, BufferedImage> piecesEntry : piecesImages.entrySet()) {
             Image scaledImage = piecesEntry.getValue()
                                            .getScaledInstance((int) squareDimensions.getWidth(),
                                                               (int) squareDimensions.getHeight(),
@@ -55,8 +56,8 @@ public class ImagesManager {
         }
     }
 
-    public Image getImageByIdentity(final String identity) {
-        return piecesImagesScaled.get(identity);
+    public Image getImageByPieceInt(final int pieceInt) {
+        return piecesImagesScaled.get(pieceInt);
     }
 
     public Image getBlackBishop() {

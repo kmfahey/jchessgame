@@ -6,6 +6,19 @@ import java.awt.Image;
 
 public class Piece implements Cloneable {
 
+    public static final int WHITE = BoardArrays.WHITE;
+    public static final int BLACK = BoardArrays.BLACK;
+
+    public static final int PAWN = BoardArrays.PAWN;
+    public static final int ROOK = BoardArrays.ROOK;
+    public static final int KNIGHT = BoardArrays.KNIGHT;
+    public static final int BISHOP = BoardArrays.BISHOP;
+    public static final int QUEEN = BoardArrays.QUEEN;
+    public static final int KING = BoardArrays.KING;
+
+    public static final int LEFT = BoardArrays.LEFT;
+    public static final int RIGHT = BoardArrays.RIGHT;
+
     public static final int X_COORD = 0;
     public static final int Y_COORD = 1;
 
@@ -14,22 +27,23 @@ public class Piece implements Cloneable {
 
     private boolean hasBeenCaptured = false;
     private Image pieceImage;
+    private int pieceInt;
 
-    public Piece(final String identity, final Image pcImage) {
+    public Piece(final int pcInt, final Image pcImage) {
+        pieceInt = pcInt;
         pieceImage = pcImage;
-        pieceIdentity = identity;
         pieceCoords = new int[] {-1, -1};
     }
 
-    public Piece(final String identity, final Image pcImage, final int xCoord, final int yCoord) {
+    public Piece(final int pcInt, final Image pcImage, final int xCoord, final int yCoord) {
+        pieceInt = pcInt;
         pieceImage = pcImage;
-        pieceIdentity = identity;
         pieceCoords = new int[] {xCoord, yCoord};
     }
 
     @Override
     public Piece clone() {
-        return new Piece(pieceIdentity, pieceImage, pieceCoords[X_COORD], pieceCoords[Y_COORD]);
+        return new Piece(pieceInt, pieceImage, pieceCoords[X_COORD], pieceCoords[Y_COORD]);
     }
 
     public int[] getCoords() {
@@ -38,20 +52,8 @@ public class Piece implements Cloneable {
         return Arrays.copyOf(pieceCoords, 2);
     }
 
-    public String getIdentity() {
-        return pieceIdentity;
-    }
-
-    public String getColor() {
-        return pieceIdentity.split("-")[0];
-    }
-
-    public String getRole() {
-        return pieceIdentity.split("-")[1];
-    }
-
-    public String getChirality() {
-        return pieceIdentity.split("-")[2];
+    public int getPieceInt() {
+        return pieceInt;
     }
 
     public void setCoords(final int xIdx, final int yIdx) {

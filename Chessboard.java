@@ -21,6 +21,13 @@ public class Chessboard {
     public static final int LEFT = BoardArrays.LEFT;
     public static final int RIGHT = BoardArrays.RIGHT;
 
+    public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<Integer>() {{ 
+        this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
+        this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
+        this.add(WHITE | KING); this.add(WHITE | QUEEN); this.add(WHITE | ROOK); this.add(WHITE | BISHOP);
+        this.add(WHITE | KNIGHT | RIGHT); this.add(WHITE | KNIGHT | LEFT); this.add(WHITE | PAWN);
+    }};
+
     private static final int DOUBLED = 0;
     private static final int ISOLATED = 1;
     private static final int BLOCKED = 2;
@@ -91,21 +98,21 @@ public class Chessboard {
                                                           new Integer[] {6, 6}, new Integer[] {7, 6}});
     }};
 
-    private static final HashMap<Integer, String> pieceIntsToIdentities = new HashMap<>() {{
-        this.put(WHITE | KING,           "white-king");
-        this.put(WHITE | QUEEN,          "white-queen");
-        this.put(WHITE | ROOK,           "white-rook");
-        this.put(WHITE | BISHOP,         "white-bishop");
-        this.put(WHITE | KNIGHT | RIGHT, "white-knight-right");
-        this.put(WHITE | KNIGHT | LEFT,  "white-knight-left");
-        this.put(WHITE | PAWN,           "white-pawn");
-        this.put(BLACK | KING,           "black-king");
-        this.put(BLACK | QUEEN,          "black-queen");
-        this.put(BLACK | ROOK,           "black-rook");
-        this.put(BLACK | BISHOP,         "black-bishop");
-        this.put(BLACK | KNIGHT | RIGHT, "black-knight-right");
-        this.put(BLACK | KNIGHT | LEFT,  "black-knight-left");
-        this.put(BLACK | PAWN,           "black-pawn");
+    public static final HashMap<String, Integer> pieceStrsToInts = new HashMap<>() {{
+        this.put("white-king",           WHITE | KING);
+        this.put("white-queen",          WHITE | QUEEN);
+        this.put("white-rook",           WHITE | ROOK);
+        this.put("white-bishop",         WHITE | BISHOP);
+        this.put("white-knight-right",   WHITE | KNIGHT | RIGHT);
+        this.put("white-knight-left",    WHITE | KNIGHT | LEFT);
+        this.put("white-pawn",           WHITE | PAWN);
+        this.put("black-king",           BLACK | KING);
+        this.put("black-queen",          BLACK | QUEEN);
+        this.put("black-rook",           BLACK | ROOK);
+        this.put("black-bishop",         BLACK | BISHOP);
+        this.put("black-knight-right",   BLACK | KNIGHT | RIGHT);
+        this.put("black-knight-left",    BLACK | KNIGHT | LEFT);
+        this.put("black-pawn",           BLACK | PAWN);
     }};
 
     private HashMap<Integer, Piece> pieceIntsToPieceObjs;
@@ -119,13 +126,21 @@ public class Chessboard {
     public record Move(Piece movingPiece, int fromXCoord, int fromYCoord, int toXCoord, int toYCoord) { };
 
     public Chessboard(final ImagesManager imagesManager, final String playingColor) {
+        this(null, imagesManager, playingColor);
+    }
+
+    public Chessboard(final int[][] boardArrayVal, final ImagesManager imagesManager, final String playingColor) {
 
         /* We only need the ImagesManager object to instantiate Piece objects
            with the correct Image 2nd argument. It's not saved to an instance
            variable since it's never used again after this constructor. */
         colorPlaying = playingColor == "white" ? WHITE : BLACK;
 
-        boardArray = new int[8][8];
+        if (Objects.isNull(boardArrayVal)) {
+            boardArray = new int[8][8];
+        } else {
+            boardArray = boardArrayVal;
+        }
 
         colorOnTop = colorPlaying == WHITE ? BLACK : WHITE;
 
@@ -144,13 +159,10 @@ public class Chessboard {
 
         pieceIntsToPieceObjs = new HashMap<>();
 
-        for (int pieceInt : pieceIntsToIdentities.keySet()) {
-            String pieceIdentity = pieceIntsToIdentities.get(pieceInt);
-            Image pieceImage = imagesManager.getImageByIdentity(pieceIdentity);
-            Piece pieceObj = new Piece(pieceIdentity, pieceImage);
+        for (int pieceInt : VALID_PIECE_INTS) {
+            Image pieceImage = imagesManager.getImageByPieceInt(pieceInt);
+            Piece pieceObj = new Piece(pieceInt, pieceImage);
             pieceIntsToPieceObjs.put(pieceInt, pieceObj);
-            pieceObj = pieceIntsToPieceObjs.get(pieceInt);
-            assert !Objects.isNull(pieceObj);
         }
     }
 
@@ -158,8 +170,8 @@ public class Chessboard {
         return boardArray;
     }
 
-    public String getColorPlaying() {
-        return (colorPlaying == WHITE) ? "white" : "black";
+    public int getColorPlaying() {
+        return colorPlaying;
     }
 
     public Piece getPieceAtCoords(final int[] coords) {
@@ -203,12 +215,12 @@ public class Chessboard {
         return movesCoords;
     }
 
-    public boolean isSquareThreatened(final int[] coords, final String opposingColorStr) {
-        return isSquareThreatened(coords[0], coords[1], opposingColorStr);
+    public boolean isSquareThreatened(final int[] coords, final int opposingColor) {
+        return isSquareThreatened(coords[0], coords[1], opposingColor);
     }
 
-    public boolean isSquareThreatened(final int xCoord, final int yCoord, final String opposingColorStr) {
-        int otherColor = opposingColorStr.equals("white") ? WHITE : BLACK;
+    public boolean isSquareThreatened(final int xCoord, final int yCoord, final int opposingColor) {
+        int otherColor = opposingColor;
         int thisColor = otherColor == WHITE ? BLACK : WHITE;
         boolean retval;
         /* This operation momentarily changes the boardArray to an invalid state

@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import javax.swing.JComponent;
 import javax.swing.Timer;
+import javax.swing.JOptionPane;
+import javax.swing.JFrame;
 
 
 public class BoardView extends JComponent implements MouseListener, ActionListener {
@@ -43,15 +45,17 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private int[] clickEventMovingTo = new int[] {-1, -1};
 
     private Piece lastPieceMovedByPlayer;
+    private JFrame chessGameFrame;
 
     private String colorPlaying;
     private final int timerDelayMlsec = 500;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
 
-    public BoardView(final Dimension cmpntDims, final ImagesManager imgMgr,
+    public BoardView(final JFrame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
                      final CoordinatesManager coordMgr, final Chessboard chessBoard,
                      final String playingColor) {
+        chessGameFrame = chessGame;
         boardDims = cmpntDims;
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
@@ -155,20 +159,21 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             clickEventClickedPiece = chessboard.getPieceAtCoords(clickEventMovingFrom);
 
             if (Objects.isNull(clickEventClickedPiece)
-                || !clickEventClickedPiece.getColor().equals(chessboard.getColorPlaying())) {
+                || (clickEventClickedPiece.getPieceInt() & chessboard.getColorPlaying()) == 0) {
                 resetClickEventVars();
                 return;
             }
         } else {
             clickEventMovingTo = clickSquareCoord;
 
-            System.err.println("(" + clickSquareCoord[0] + ", " + clickSquareCoord[1] + ")");
+            //System.err.println("(" + clickSquareCoord[0] + ", " + clickSquareCoord[1] + ")");
             try {
                 int[][] movesCoords = chessboard.getValidMoveCoordsArray(clickEventMovingFrom);
                 if (!BoardArrays.arrayOfCoordsContainsCoord(movesCoords, clickEventMovingTo)) {
                     resetClickEventVars();
                     return;
                 }
+
             } catch (AlgorithmBadArgumentException exception) {
                 exception.printStackTrace();
                 System.exit(1);
@@ -176,15 +181,17 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);
 
-            if (!Objects.isNull(clickEventToCapturePiece)
-                    && clickEventToCapturePiece.getColor()
-                                               .equals(chessboard.getColorPlaying())) {
+            if (Objects.nonNull(clickEventToCapturePiece)
+                    && (clickEventToCapturePiece.getPieceInt() & chessboard.getColorPlaying()) != 0) {
                 resetClickEventVars();
                 return;
-            } else if (clickEventClickedPiece.getRole().equals("king")
-                    && chessboard.isSquareThreatened(clickEventMovingTo,
-                                                     clickEventClickedPiece.getColor().equals("white")
-                                                     ? "black" : "white")) {
+            } else if ((clickEventClickedPiece.getPieceInt() & Chessboard.KING) != 0
+                        && chessboard.isSquareThreatened(clickEventMovingTo,
+                                                         ((clickEventClickedPiece.getPieceInt()
+                                                           & Chessboard.WHITE) != 0)
+                                                           ? Chessboard.BLACK
+                                                           : Chessboard.WHITE)) {
+                //System.err.println(clickEventClickedPiece.getPieceInt());
                 resetClickEventVars();
                 return;
             }
@@ -243,7 +250,14 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         try {
             moveToMake = minimaxRunner.algorithmTopLevel(chessboard);
         } catch (AlgorithmBadArgumentException | AlgorithmInternalError exception) {
+            String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
+            JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName + ":\n" + exception.getMessage());
+            BoardArrays.printBoard(chessboard.getBoardArray());
             exception.printStackTrace();
+            System.exit(1);
+            return;
+        } catch (KingIsInCheckmateError exception) {
+            JOptionPane.showMessageDialog(chessGameFrame, exception.getMessage());
             System.exit(1);
             return;
         }

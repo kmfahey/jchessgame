@@ -6,18 +6,18 @@ import java.util.HashMap;
 
 public class MinimaxRunner {
 
-    public static final int WHITE = 0100;
-    public static final int BLACK = 0200;
+    public static final int WHITE = BoardArrays.WHITE;
+    public static final int BLACK = BoardArrays.BLACK;
 
-    public static final int PAWN = 010;
-    public static final int ROOK = 020;
-    public static final int KNIGHT = 030;
-    public static final int BISHOP = 040;
-    public static final int QUEEN = 050;
-    public static final int KING = 060;
+    public static final int PAWN = BoardArrays.PAWN;
+    public static final int ROOK = BoardArrays.ROOK;
+    public static final int KNIGHT = BoardArrays.KNIGHT;
+    public static final int BISHOP = BoardArrays.BISHOP;
+    public static final int QUEEN = BoardArrays.QUEEN;
+    public static final int KING = BoardArrays.KING;
 
-    public static final int LEFT = 01;
-    public static final int RIGHT = 02;
+    public static final int LEFT = BoardArrays.LEFT;
+    public static final int RIGHT = BoardArrays.RIGHT;
 
     public static final int DOUBLED = 0;
     public static final int ISOLATED = 1;
@@ -84,7 +84,7 @@ public class MinimaxRunner {
     }
 
     public Chessboard.Move algorithmTopLevel(final Chessboard chessboard
-                                 ) throws AlgorithmBadArgumentException, AlgorithmInternalError {
+                                 ) throws AlgorithmBadArgumentException, AlgorithmInternalError, KingIsInCheckmateError {
         int[][] boardArray = new int[8][8];
         int[][] movesArray = new int[128][6];
         double bestScore;
@@ -125,7 +125,7 @@ public class MinimaxRunner {
 
     private double algorithmLowerLevel(final int[][] boardArray, final boolean maximize, final int depth,
                                        final int colorsTurnItIs, final double alphaArg, final double betaArg
-                                       ) throws AlgorithmBadArgumentException {
+                                       ) throws AlgorithmBadArgumentException, KingIsInCheckmateError {
         int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
         double bestScore;
         double thisScore;
@@ -153,10 +153,10 @@ public class MinimaxRunner {
 
             if (BoardArrays.isKingInCheck(boardArray, colorOpposing, colorOnTop)
                 && BoardArrays.generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorsTurnItIs, colorOnTop) == 0) {
-                if (colorOpposing == colorOfPlayer) {
-                    return Double.NEGATIVE_INFINITY;
+                if (colorOpposing == WHITE) {
+                    throw new KingIsInCheckmateError("White has placed Black's king in checkmate; White has won.");
                 } else {
-                    return Double.POSITIVE_INFINITY;
+                    throw new KingIsInCheckmateError("Black has placed White's king in checkmate; Black has won.");
                 }
             }
         }
@@ -189,7 +189,7 @@ public class MinimaxRunner {
     private double algorithmCallExecutor(final int[][] boardArray, final boolean maximize,
                                          final int[] moveArray, final int colorsTurnItIs,
                                          final int depth, final double alpha, final double beta
-                                         ) throws AlgorithmBadArgumentException {
+                                         ) throws AlgorithmBadArgumentException, KingIsInCheckmateError {
         int fromXIdx = moveArray[1];
         int fromYIdx = moveArray[2];
         int toXIdx = moveArray[3];
@@ -247,10 +247,10 @@ public class MinimaxRunner {
            calls to StringJoiner.add() to populate it. It's ugly but definitely
            faster, and evaluateBoard get loops and the method calls. It's valid
            Java and undoubtedly faster, so why not. */
-        String boardStr = String.format("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
-            + "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
-            + "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
-            + "%02x%02x%02x%02x%02x%02x%02x%02x",
+        String boardStr = String.format("%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x"
+            + "%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x"
+            + "%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x%03x"
+            + "%03x%03x%03x%03x%03x%03x%03x%03x",
             boardArray[0][0], boardArray[0][1], boardArray[0][2], boardArray[0][3],
             boardArray[0][4], boardArray[0][5], boardArray[0][6], boardArray[0][7],
             boardArray[1][0], boardArray[1][1], boardArray[1][2], boardArray[1][3],

@@ -1,22 +1,27 @@
 package com.kmfahey.jchessgame;
 
 import java.util.HashMap;
+import java.util.Arrays;
 import java.util.StringJoiner;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.io.File;
+import java.io.IOException;
 
 public final class BoardArrays {
 
-    public static final int WHITE = 0100;
-    public static final int BLACK = 0200;
+    public static final int LEFT =      0b0000000001;
+    public static final int RIGHT =     0b0000000010;
 
-    public static final int PAWN = 010;
-    public static final int ROOK = 020;
-    public static final int KNIGHT = 030;
-    public static final int BISHOP = 040;
-    public static final int QUEEN = 050;
-    public static final int KING = 060;
+    public static final int PAWN =      0b0000000100;
+    public static final int ROOK =      0b0000001000;
+    public static final int KNIGHT =    0b0000010000;
+    public static final int BISHOP =    0b0000100000;
+    public static final int QUEEN =     0b0001000000;
+    public static final int KING =      0b0010000000;
 
-    public static final int LEFT = 01;
-    public static final int RIGHT = 02;
+    public static final int WHITE =     0b0100000000;
+    public static final int BLACK =     0b1000000000;
 
     public static final int DOUBLED = 0;
     public static final int ISOLATED = 1;
@@ -95,33 +100,24 @@ public final class BoardArrays {
         return moveIdx;
     }
 
-    public static int generatePieceMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
+    public static int generatePieceMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdx,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
                                   ) throws AlgorithmBadArgumentException {
         int pieceInt = boardArray[xIdx][yIdx];
-        int moveIdx = moveIdxArg;
 
         switch (pieceInt ^ colorsTurnItIs) {
             case PAWN:
-                moveIdx = generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
+                return generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
             case ROOK:
-                moveIdx = generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
-            case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                moveIdx = generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
+                return generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
+            case KNIGHT | LEFT:
+                return generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
             case BISHOP:
-                moveIdx = generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
+                return generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
             case QUEEN:
-                moveIdx = generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-                break;
+                return generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
             case KING:
-                moveIdx = generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
-            default:
-                break;
+                return generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
         }
 
         return moveIdx;
@@ -947,16 +943,44 @@ public final class BoardArrays {
     }
 
     public static boolean arrayOfCoordsContainsCoord(int[][] arrayOfCoords, int[] toFindCoords) {
-        boolean containsCoords = false;
-
         for (int[] arrayCoords : arrayOfCoords) {
-            System.err.println("checking (" + arrayCoords[0] + ", " + arrayCoords[1] + ")");
-            containsCoords = (arrayCoords[0] == toFindCoords[0] && arrayCoords[1] == toFindCoords[1]);
-            if (containsCoords) {
-                break;
+            //System.err.println("checking (" + arrayCoords[0] + ", " + arrayCoords[1] + ")");
+            if (Arrays.equals(arrayCoords, toFindCoords)) {
+                //System.err.println("match");
+                return true;
             }
         }
 
-        return containsCoords;
+        return false;
+    }
+
+    public static int[][] fileNameToBoardArray(String fileName) throws NullPointerException, BoardArrayFileParsingError, IOException {
+        File boardFile = new File(fileName);
+        String fileContents = Files.readString(boardFile.toPath());
+        String[] fileLines = fileContents.split("\n");
+        if (fileLines.length != 8) {
+            throw new BoardArrayFileParsingError("board file " + fileName + " doesn't have exactly 8 lines");
+        }
+        int[][] boardArray = new int[8][8];
+        for (int xIdx = 0; xIdx < 8; xIdx++) {
+            String fileLine = fileLines[xIdx];
+            String[] lineIntStr = fileLine.split(" ");
+            if (lineIntStr.length != 8) {
+                throw new BoardArrayFileParsingError("board file " + fileName + ", line " + xIdx + " doesn't have exactly 8 space-separated values");
+            }
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                int pieceInt;
+                try {
+                    pieceInt = Integer.valueOf(lineIntStr[yIdx]);
+                } catch (NumberFormatException exception) {
+                    throw new BoardArrayFileParsingError("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " doesn't eval as an integer", exception);
+                }
+                if (!Chessboard.VALID_PIECE_INTS.contains(pieceInt)) {
+                    throw new BoardArrayFileParsingError("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " is an integer that's not a valid piece representation value");
+                }
+                boardArray[xIdx][yIdx] = pieceInt;
+            }
+        }
+        return boardArray;
     }
 }
