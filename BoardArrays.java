@@ -473,6 +473,17 @@ public final class BoardArrays {
             }
         }
 
+        if (yIdx == 0 || yIdx == 7 && xIdx == 3) {
+            if (boardArray[2][yIdx] == 0 && boardArray[1][yIdx] == 0 && (boardArray[0][yIdx] == (colorsTurnItIs | ROOK))) {
+                setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx, boardArray[0][0]);
+                moveIdx++;
+            } else if (boardArray[4][yIdx] == 0 && boardArray[5][yIdx] == 0 && boardArray[6][yIdx] == 0
+                       && (boardArray[7][yIdx] == (colorsTurnItIs | ROOK))) {
+                setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx, boardArray[7][yIdx]);
+                moveIdx++;
+            }
+        }
+
         return moveIdx;
     }
 
@@ -903,14 +914,12 @@ public final class BoardArrays {
             }
             outerJoiner.add(innerJoiner.toString());
         }
-        System.err.println(outerJoiner.toString());
+        System.out.println(outerJoiner.toString());
     }
 
     public static boolean arrayOfCoordsContainsCoord(int[][] arrayOfCoords, int[] toFindCoords) {
         for (int[] arrayCoords : arrayOfCoords) {
-            //System.err.println("checking (" + arrayCoords[0] + ", " + arrayCoords[1] + ")");
             if (Arrays.equals(arrayCoords, toFindCoords)) {
-                //System.err.println("match");
                 return true;
             }
         }
@@ -918,29 +927,29 @@ public final class BoardArrays {
         return false;
     }
 
-    public static int[][] fileNameToBoardArray(String fileName) throws NullPointerException, BoardArrayFileParsingError, IOException {
+    public static int[][] fileNameToBoardArray(String fileName) throws NullPointerException, BoardArrayFileParsingException, IOException {
         File boardFile = new File(fileName);
         String fileContents = Files.readString(boardFile.toPath());
         String[] fileLines = fileContents.split("\n");
         if (fileLines.length != 8) {
-            throw new BoardArrayFileParsingError("board file " + fileName + " doesn't have exactly 8 lines");
+            throw new BoardArrayFileParsingException("board file " + fileName + " doesn't have exactly 8 lines");
         }
         int[][] boardArray = new int[8][8];
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             String fileLine = fileLines[xIdx];
             String[] lineIntStr = fileLine.split(" ");
             if (lineIntStr.length != 8) {
-                throw new BoardArrayFileParsingError("board file " + fileName + ", line " + xIdx + " doesn't have exactly 8 space-separated values");
+                throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + " doesn't have exactly 8 space-separated values");
             }
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 int pieceInt;
                 try {
                     pieceInt = Integer.valueOf(lineIntStr[yIdx]);
                 } catch (NumberFormatException exception) {
-                    throw new BoardArrayFileParsingError("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " doesn't eval as an integer", exception);
+                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " doesn't eval as an integer", exception);
                 }
                 if (!Chessboard.VALID_PIECE_INTS.contains(pieceInt)) {
-                    throw new BoardArrayFileParsingError("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " is an integer that's not a valid piece representation value");
+                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " is an integer that's not a valid piece representation value");
                 }
                 boardArray[xIdx][yIdx] = pieceInt;
             }

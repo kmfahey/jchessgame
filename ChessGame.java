@@ -22,7 +22,7 @@ public class ChessGame extends JFrame {
     private CoordinatesManager coordinatesManager;
     private ImagesManager imagesManager;
     private float scalingProportion;
-    private String colorPlaying;
+    private int colorPlaying;
 
     public ChessGame() throws IOException, FileNotFoundException {
         this(null);
@@ -61,20 +61,20 @@ public class ChessGame extends JFrame {
 
         imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
 
-        colorPlaying = "white";
+        colorPlaying = BoardArrays.WHITE;
 
         if (Objects.nonNull(fileName)) {
             try {
                 boardArray = BoardArrays.fileNameToBoardArray(fileName);
-            } catch (NullPointerException | BoardArrayFileParsingError | IOException exception) {
+            } catch (NullPointerException | BoardArrayFileParsingException | IOException exception) {
                 String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
                 JOptionPane.showMessageDialog(this, "Loading a board file caused a " + exceptionClassName + ":\n" + exception.getMessage());
                 exception.printStackTrace();
                 System.exit(1);
             }
-            chessboard = new Chessboard(boardArray, imagesManager, colorPlaying);
+            chessboard = new Chessboard(boardArray, imagesManager, colorPlaying, colorPlaying);
         } else {
-            chessboard = new Chessboard(imagesManager, colorPlaying);
+            chessboard = new Chessboard(imagesManager, colorPlaying, colorPlaying);
         }
 
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};

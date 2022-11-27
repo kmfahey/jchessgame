@@ -3,7 +3,6 @@ package com.kmfahey.jchessgame;
 import java.util.Objects;
 import java.util.HashMap;
 
-
 public class MinimaxRunner {
 
     public static final int WHITE = BoardArrays.WHITE;
@@ -38,10 +37,13 @@ public class MinimaxRunner {
     private int colorOnTop;
     private int algorithmStartingDepth;
 
-    public MinimaxRunner(final String colorOfAIStr, final String colorOnTopStr) {
-        colorOfAI = colorOfAIStr.equals("white") ? WHITE : BLACK;
+    private Chessboard chessboard;
+
+    public MinimaxRunner(final Chessboard chessboardObj, final int aiColor) {
+        chessboard = chessboardObj;
+        colorOfAI = aiColor;
         colorOfPlayer = colorOfAI == WHITE ? BLACK : WHITE;
-        colorOnTop = colorOnTopStr.equals("white") ? WHITE : BLACK;
+        colorOnTop = chessboard.getColorOnTop();
         kingsMovesSpareBoardArray = new int[8][8];
         tallyPawnsCoords = new int[8][2];
         colorMobilitySpareMovesArray = new int[128][6];
@@ -49,13 +51,13 @@ public class MinimaxRunner {
         evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
 
-    public Chessboard.Move algorithmTopLevel(final Chessboard chessboard
-                                 ) throws AlgorithmBadArgumentException, AlgorithmInternalError, KingIsInCheckmateError {
+    public Chessboard.Move algorithmTopLevel() throws AlgorithmBadArgumentException, AlgorithmInternalException, KingIsInCheckmateException {
         int[][] boardArray = new int[8][8];
         int[][] movesArray = new int[128][6];
         double bestScore;
         int[] bestMoveArray = null;
         int movesArrayUsedLength;
+        double thisScore;
         double alpha;
         double beta;
         Chessboard.Move bestMoveObj;
@@ -69,8 +71,12 @@ public class MinimaxRunner {
         movesArrayUsedLength = BoardArrays.generatePossibleMoves(boardArray, movesArray, colorOfAI, colorOnTop);
 
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            double thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx], colorOfAI,
-                                                     algorithmStartingDepth, alpha, beta);
+            try {
+                thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx], colorOfAI,
+                                                  algorithmStartingDepth, alpha, beta);
+            } catch (KingIsInCheckException | IllegalArgumentException exception) {
+                continue;
+            }
             if (thisScore > bestScore) {
                 bestScore = thisScore;
                 bestMoveArray = movesArray[moveIdx];
@@ -80,18 +86,20 @@ public class MinimaxRunner {
             }
         }
         if (Objects.isNull(bestMoveArray)) {
-            throw new AlgorithmInternalError("algorithm top-level execution failed to find best move");
+            throw new AlgorithmInternalException("algorithm top-level execution failed to find best move");
         }
 
         Chessboard.Piece bestMovePiece = chessboard.getPieceAtCoords(bestMoveArray[1], bestMoveArray[2]);
-        bestMoveObj = new Chessboard.Move(bestMovePiece, bestMoveArray[1], bestMoveArray[2], bestMoveArray[3], bestMoveArray[4]);
+        bestMoveObj = new Chessboard.Move(bestMovePiece, bestMoveArray[1], bestMoveArray[2],
+                                          bestMoveArray[3], bestMoveArray[4],
+                                          bestMoveArray[5], false, false);
 
         return bestMoveObj;
     }
 
     private double algorithmLowerLevel(final int[][] boardArray, final boolean maximize, final int depth,
                                        final int colorsTurnItIs, final double alphaArg, final double betaArg
-                                       ) throws AlgorithmBadArgumentException, KingIsInCheckmateError {
+                                       ) throws AlgorithmBadArgumentException, KingIsInCheckmateException {
         int colorOpposing = colorsTurnItIs == WHITE ? BLACK : WHITE;
         double bestScore;
         double thisScore;
@@ -120,9 +128,9 @@ public class MinimaxRunner {
             if (BoardArrays.isKingInCheck(boardArray, colorOpposing, colorOnTop)
                 && BoardArrays.generateKingsMoves(boardArray, null, 0, xIdx, yIdx, colorsTurnItIs, colorOnTop) == 0) {
                 if (colorOpposing == WHITE) {
-                    throw new KingIsInCheckmateError("White has placed Black's king in checkmate; White has won.");
+                    throw new KingIsInCheckmateException("White has placed Black's king in checkmate; White has won.");
                 } else {
-                    throw new KingIsInCheckmateError("Black has placed White's king in checkmate; Black has won.");
+                    throw new KingIsInCheckmateException("Black has placed White's king in checkmate; Black has won.");
                 }
             }
         }
@@ -132,7 +140,12 @@ public class MinimaxRunner {
         movesArrayUsedLength = BoardArrays.generatePossibleMoves(boardArray, movesArray, colorOpposing, colorOnTop);
 
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx], colorOpposing, depth, alpha, beta);
+            try {
+                thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx],
+                                                  colorOpposing, depth, alpha, beta);
+            } catch (KingIsInCheckException | IllegalArgumentException exception) {
+                continue;
+            }
             if (maximize && thisScore == Double.POSITIVE_INFINITY || thisScore == Double.NEGATIVE_INFINITY) {
                 return thisScore;
             }
@@ -155,11 +168,16 @@ public class MinimaxRunner {
     private double algorithmCallExecutor(final int[][] boardArray, final boolean maximize,
                                          final int[] moveArray, final int colorsTurnItIs,
                                          final int depth, final double alpha, final double beta
-                                         ) throws AlgorithmBadArgumentException, KingIsInCheckmateError {
+                                         ) throws AlgorithmBadArgumentException, IllegalArgumentException,
+                                                  KingIsInCheckmateException, KingIsInCheckException {
         int fromXIdx = moveArray[1];
         int fromYIdx = moveArray[2];
         int toXIdx = moveArray[3];
         int toYIdx = moveArray[4];
+        int savedPieceNo1 = 0;
+        int savedPieceNo2 = 0;
+        boolean isCastlingKingside = false;
+        boolean isCastlingQueenside = false;
         double retval;
 
         /* The same boardArray is passed down the call stack and reused by
@@ -169,14 +187,54 @@ public class MinimaxRunner {
            be reused. savedPiece holds whatever was at the square the piece
            was moved to so it can be restored. */
 
-        int savedPiece = boardArray[toXIdx][toYIdx];
+        if ((boardArray[toXIdx][toYIdx] & ROOK) != 0 && (boardArray[fromXIdx][fromYIdx] & KING) != 0 && 
+            (boardArray[toXIdx][toYIdx] & WHITE) == (boardArray[fromXIdx][fromYIdx] & WHITE)) {
+            if (toXIdx != 0 && toXIdx !=  7) {
+                throw new IllegalArgumentException("algorithmCallExecutor() called with a moveArray that indicated "
+                                                   + "castling but the Rook isn't in position");
+            }
+            if (toXIdx == 0) {
+                isCastlingKingside = true;
+                savedPieceNo1 = boardArray[2][toYIdx];
+                savedPieceNo2 = boardArray[1][fromYIdx];
+            } else {
+                isCastlingQueenside = true;
+                savedPieceNo1 = boardArray[5][toYIdx];
+                savedPieceNo2 = boardArray[6][fromYIdx];
+            }
+
+            Chessboard.Move moveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
+                                                          fromXIdx, fromYIdx, toXIdx, toYIdx,
+                                                          boardArray[toXIdx][toYIdx], toXIdx == 0, toXIdx == 7);
+
+            /* The boardArray being used is the same one this chessboard
+               object manipulates internally when movePiece() is called. Here
+               movePiece() is used because castling depends on state information
+               (whether the king or rook has moved so far, which makes castling
+               impossible) that's tracked internally by the Chessboard object. */
+            chessboard.movePiece(moveObj);
+        }
+
+        savedPieceNo1 = boardArray[toXIdx][toYIdx];
         boardArray[toXIdx][toYIdx] = moveArray[0];
         boardArray[fromXIdx][fromYIdx] = 0;
 
         retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
-        boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
-        boardArray[toXIdx][toYIdx] = savedPiece;
+        if (isCastlingKingside) {
+            boardArray[toXIdx][toYIdx] = boardArray[3][toYIdx];
+            boardArray[fromXIdx][fromYIdx] = boardArray[2][fromYIdx];
+            boardArray[3][toYIdx] = savedPieceNo1;
+            boardArray[2][fromYIdx] = savedPieceNo2;
+        } else if (isCastlingQueenside) {
+            boardArray[toXIdx][toYIdx] = boardArray[5][toYIdx];
+            boardArray[fromXIdx][fromYIdx] = boardArray[6][fromYIdx];
+            boardArray[5][toYIdx] = savedPieceNo1;
+            boardArray[6][fromYIdx] = savedPieceNo2;
+        } else {
+            boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
+            boardArray[toXIdx][toYIdx] = savedPieceNo1;
+        }
 
         return retval;
     }

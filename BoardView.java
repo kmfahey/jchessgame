@@ -47,20 +47,24 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private Chessboard.Piece lastPieceMovedByPlayer;
     private JFrame chessGameFrame;
 
-    private String colorPlaying;
+    private int colorOfPlayer;
+    private int colorOfAI;
     private final int timerDelayMlsec = 500;
+    private MinimaxRunner minimaxRunner;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
 
     public BoardView(final JFrame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
-                     final CoordinatesManager coordMgr, final Chessboard chessBoard,
-                     final String playingColor) {
+                     final CoordinatesManager coordMgr, final Chessboard chessboardObj,
+                     final int colorPlaying) {
         chessGameFrame = chessGame;
         boardDims = cmpntDims;
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
-        chessboard = chessBoard;
-        colorPlaying = playingColor;
+        chessboard = chessboardObj;
+        colorOfPlayer = colorPlaying;
+        colorOfAI = colorPlaying == BoardArrays.WHITE ? BoardArrays.BLACK : BoardArrays.WHITE;
+        minimaxRunner = new MinimaxRunner(chessboard, colorOfAI);
         repaint();
     }
 
@@ -164,9 +168,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
             }
         } else {
+            Chessboard.Move moveObj;
             clickEventMovingTo = clickSquareCoord;
 
-            //System.err.println("(" + clickSquareCoord[0] + ", " + clickSquareCoord[1] + ")");
+
             try {
                 int[][] movesCoords = chessboard.getValidMoveCoordsArray(clickEventMovingFrom);
                 if (!BoardArrays.arrayOfCoordsContainsCoord(movesCoords, clickEventMovingTo)) {
@@ -179,31 +184,51 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 System.exit(1);
             }
 
+
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);
 
-            if (Objects.nonNull(clickEventToCapturePiece)
-                    && (clickEventToCapturePiece.pieceInt() & chessboard.getColorPlaying()) != 0) {
+            boolean firstPieceIsKing = (clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0;
+            boolean secondPieceIsRook = Objects.nonNull(clickEventToCapturePiece)
+                                            && (clickEventToCapturePiece.pieceInt() & Chessboard.ROOK) != 0;
+            boolean bothPiecesAreSameColor = Objects.nonNull(clickEventToCapturePiece)
+                                                 && (clickEventClickedPiece.pieceInt() & Chessboard.WHITE)
+                                                 == (clickEventToCapturePiece.pieceInt() & Chessboard.WHITE);
+            boolean moveIsCastling = firstPieceIsKing && secondPieceIsRook && bothPiecesAreSameColor;
+            boolean moveIsCastlingKingside = moveIsCastling && xCoord == 0;
+            boolean moveIsCastlingQueenside = moveIsCastling && xCoord == 7;
+
+            /* The time that both pieces are the same color and it's a valid
+               move is if the first one is a king and the second one is rook, bc
+               that's how castling is signalled. */
+            if (!moveIsCastling && Objects.nonNull(clickEventToCapturePiece)
+                && (clickEventToCapturePiece.pieceInt() & chessboard.getColorPlaying()) != 0) {
+
+                /* Both pieces are the same color (and it's not castling) so it's a no-op. */
                 resetClickEventVars();
                 return;
+
             } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0
-                        && chessboard.isSquareThreatened(clickEventMovingTo,
-                                                         ((clickEventClickedPiece.pieceInt()
-                                                           & Chessboard.WHITE) != 0)
-                                                           ? Chessboard.BLACK
-                                                           : Chessboard.WHITE)) {
-                //System.err.println(clickEventClickedPiece.getPieceInt());
+                        && chessboard.isSquareThreatened(
+                               clickEventMovingTo,
+                               ((clickEventClickedPiece.pieceInt() & Chessboard.WHITE) != 0)
+                                   ? Chessboard.BLACK : Chessboard.WHITE
+                           )) {
+
+                /* The piece is a King and moving it to that square would put it
+                   in check, so movement is cancelled. */
                 resetClickEventVars();
                 return;
             }
 
-            /* This method returns a king Piece if a king has been put in check
-               or checkmate by the move. FIXME need to check for those cases
-               and handle them in the game logic. Also if it's check then the
-               possible moves need to be limited to moves that can end the
-               check. */
+            moveObj = new Chessboard.Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
+                                          clickEventMovingTo[0], clickEventMovingTo[1],
+                                          Objects.nonNull(clickEventToCapturePiece)
+                                              ? clickEventToCapturePiece.pieceInt() : 0,
+                                          moveIsCastlingKingside, moveIsCastlingQueenside);
+
             try {
-                chessboard.movePiece(clickEventClickedPiece, clickEventMovingFrom, clickEventMovingTo);
-            } catch (KingIsInCheckError exception) {
+                chessboard.movePiece(moveObj);
+            } catch (KingIsInCheckException exception) {
                 resetClickEventVars();
                 return;
             }
@@ -232,7 +257,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void actionPerformed(final ActionEvent event) {
-        MinimaxRunner minimaxRunner;
         Chessboard.Move moveToMake;
         LocalDateTime timeRightNow;
 
@@ -240,23 +264,19 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             return;
         }
 
-        String opposingColor = colorPlaying.equals("white") ? "black" : "white";
-
         timeRightNow = LocalDateTime.now();
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
 
-        minimaxRunner = new MinimaxRunner(opposingColor, opposingColor);
-
         try {
-            moveToMake = minimaxRunner.algorithmTopLevel(chessboard);
-        } catch (AlgorithmBadArgumentException | AlgorithmInternalError exception) {
+            moveToMake = minimaxRunner.algorithmTopLevel();
+        } catch (AlgorithmBadArgumentException | AlgorithmInternalException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
             JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName + ":\n" + exception.getMessage());
             BoardArrays.printBoard(chessboard.getBoardArray());
             exception.printStackTrace();
             System.exit(1);
             return;
-        } catch (KingIsInCheckmateError exception) {
+        } catch (KingIsInCheckmateException exception) {
             JOptionPane.showMessageDialog(chessGameFrame, exception.getMessage());
             System.exit(1);
             return;
@@ -264,7 +284,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         try {
             chessboard.movePiece(moveToMake);
-        } catch (KingIsInCheckError exception) {
+        } catch (KingIsInCheckException exception) {
             return;
         }
 
