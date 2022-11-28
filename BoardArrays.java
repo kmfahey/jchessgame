@@ -39,6 +39,11 @@ public final class BoardArrays {
 
     private BoardArrays() { };
 
+    public static String movesArrayToStr(int[] moveArray) {
+        return String.format("%03d-%d-%d-%d-%d-%03d", moveArray[0], moveArray[1], moveArray[2],
+                                                      moveArray[3], moveArray[4], moveArray[5]);
+    }
+
     public static int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray,
                                             final int colorsTurnItIs, final int colorOnTop
                                             ) throws AlgorithmBadArgumentException {
@@ -474,7 +479,8 @@ public final class BoardArrays {
         }
 
         if (yIdx == 0 || yIdx == 7 && xIdx == 3) {
-            if (boardArray[2][yIdx] == 0 && boardArray[1][yIdx] == 0 && (boardArray[0][yIdx] == (colorsTurnItIs | ROOK))) {
+            if (boardArray[2][yIdx] == 0 && boardArray[1][yIdx] == 0
+                && (boardArray[0][yIdx] == (colorsTurnItIs | ROOK))) {
                 setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx, boardArray[0][0]);
                 moveIdx++;
             } else if (boardArray[4][yIdx] == 0 && boardArray[5][yIdx] == 0 && boardArray[6][yIdx] == 0
@@ -768,7 +774,8 @@ public final class BoardArrays {
         return false;
     }
 
-    public static double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion, final int colorOnTop) {
+    public static double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion,
+                                             final int colorOnTop) {
         int[][] doubledPawnsCoords = new int[8][2];
         double[] retval = new double[3];
         double doubledPawnsCount = 0;
@@ -927,7 +934,9 @@ public final class BoardArrays {
         return false;
     }
 
-    public static int[][] fileNameToBoardArray(String fileName) throws NullPointerException, BoardArrayFileParsingException, IOException {
+    public static int[][] fileNameToBoardArray(String fileName) throws NullPointerException,
+                                                                       BoardArrayFileParsingException,
+                                                                       IOException {
         File boardFile = new File(fileName);
         String fileContents = Files.readString(boardFile.toPath());
         String[] fileLines = fileContents.split("\n");
@@ -939,17 +948,21 @@ public final class BoardArrays {
             String fileLine = fileLines[xIdx];
             String[] lineIntStr = fileLine.split(" ");
             if (lineIntStr.length != 8) {
-                throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + " doesn't have exactly 8 space-separated values");
+                throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + " doesn't have "
+                                                         + "exactly 8 space-separated values");
             }
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 int pieceInt;
                 try {
                     pieceInt = Integer.valueOf(lineIntStr[yIdx]);
                 } catch (NumberFormatException exception) {
-                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " doesn't eval as an integer", exception);
+                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item "
+                                                             + yIdx + " doesn't eval as an integer", exception);
                 }
                 if (!Chessboard.VALID_PIECE_INTS.contains(pieceInt)) {
-                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item " + yIdx + " is an integer that's not a valid piece representation value");
+                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item "
+                                                             + yIdx + " is an integer that's not a valid piece "
+                                                             + "representation value");
                 }
                 boardArray[xIdx][yIdx] = pieceInt;
             }

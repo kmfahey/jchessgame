@@ -168,7 +168,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
             }
         } else {
-            Chessboard.Move moveObj;
+            Move moveObj;
             clickEventMovingTo = clickSquareCoord;
 
 
@@ -220,11 +220,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
             }
 
-            moveObj = new Chessboard.Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
-                                          clickEventMovingTo[0], clickEventMovingTo[1],
-                                          Objects.nonNull(clickEventToCapturePiece)
-                                              ? clickEventToCapturePiece.pieceInt() : 0,
-                                          moveIsCastlingKingside, moveIsCastlingQueenside);
+            moveObj = new Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
+                               clickEventMovingTo[0], clickEventMovingTo[1],
+                               Objects.nonNull(clickEventToCapturePiece)
+                                   ? clickEventToCapturePiece.pieceInt() : 0,
+                               moveIsCastlingKingside, moveIsCastlingQueenside);
 
             try {
                 chessboard.movePiece(moveObj);
@@ -257,7 +257,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void actionPerformed(final ActionEvent event) {
-        Chessboard.Move moveToMake;
+        Move moveToMake;
         LocalDateTime timeRightNow;
 
         if (!event.getActionCommand().equals("move")) {
@@ -271,7 +271,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             moveToMake = minimaxRunner.algorithmTopLevel();
         } catch (AlgorithmBadArgumentException | AlgorithmInternalException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
-            JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName + ":\n" + exception.getMessage());
+            JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName
+                                                          + ":\n" + exception.getMessage());
             BoardArrays.printBoard(chessboard.getBoardArray());
             exception.printStackTrace();
             System.exit(1);

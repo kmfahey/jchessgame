@@ -115,23 +115,6 @@ public class Chessboard {
         put("black-pawn",           BLACK | PAWN);
     }};
 
-    public static final HashMap<Integer, String> pieceIntsToLetters = new HashMap<>() {{
-        put(WHITE | KING,           "K");
-        put(WHITE | QUEEN,          "Q");
-        put(WHITE | ROOK,           "R");
-        put(WHITE | BISHOP,         "B");
-        put(WHITE | KNIGHT | RIGHT, "K");
-        put(WHITE | KNIGHT | LEFT,  "K");
-        put(WHITE | PAWN,           "P");
-        put(BLACK | KING,           "K");
-        put(BLACK | QUEEN,          "Q");
-        put(BLACK | ROOK,           "R");
-        put(BLACK | BISHOP,         "B");
-        put(BLACK | KNIGHT | RIGHT, "K");
-        put(BLACK | KNIGHT | LEFT,  "K");
-        put(BLACK | PAWN,           "P");
-    }};
-
     private HashMap<Integer, Image> pieceImages;
 
     private int colorOnTop;
@@ -145,33 +128,14 @@ public class Chessboard {
     private boolean blackKingHasMoved = false;
     private boolean whiteKingHasMoved = false;
 
-    public record Move(Piece movingPiece, int fromXCoord, int fromYCoord, int toXCoord, int toYCoord, int capturedPieceInt, boolean isCastlingKingside, boolean isCastlingQueenside) {
-        private static final String algNotnAlpha = "abcdefgh";
-        private static final String algNotnNum = "87654321";
-
-        private String toAlgNotn() {
-            if (isCastlingKingside) {
-                return "0 0";
-            } else if (isCastlingQueenside) {
-                return "0 0 0";
-            }
-            String pieceComp = pieceIntsToLetters.get(movingPiece.pieceInt());
-            String fromAlphaComp = String.valueOf(algNotnAlpha.charAt(fromXCoord));
-            String fromNumComp = String.valueOf(algNotnNum.charAt(fromYCoord));
-            String captureComp = capturedPieceInt != 0 ? "x" : "";
-            String toAlphaComp = String.valueOf(algNotnAlpha.charAt(toXCoord));
-            String toNumComp = String.valueOf(algNotnNum.charAt(toYCoord));
-            return pieceComp + fromAlphaComp + fromNumComp + captureComp + toAlphaComp + toNumComp;
-        }
-    };
-
     public record Piece(int pieceInt, Image pieceImage, int xCoord, int yCoord) { };
 
     public Chessboard(final ImagesManager imagesManager, final int playingColor, final int onTopColor) {
         this(null, imagesManager, playingColor, onTopColor);
     }
 
-    public Chessboard(final int[][] boardArrayVal, final ImagesManager imagesManager, final int playingColor, final int onTopColor) {
+    public Chessboard(final int[][] boardArrayVal, final ImagesManager imagesManager, final int playingColor,
+                      final int onTopColor) {
         colorOnTop = onTopColor;
         colorPlaying = playingColor;
 
@@ -207,6 +171,20 @@ public class Chessboard {
         }
     }
 
+    public int[] findKing(int kingColor) {
+        int xIdx = -1;
+        int yIdx = -1;
+        for (xIdx = 0; xIdx < 8; xIdx++) {
+            for (yIdx = 0; yIdx < 8; yIdx++) {
+                if (boardArray[xIdx][yIdx] == (kingColor | KING)) {
+                    break;
+                }
+            }
+        }
+
+        return new int[] {xIdx, yIdx};
+    }
+
     public int[][] getBoardArray() {
         return boardArray;
     }
@@ -240,7 +218,8 @@ public class Chessboard {
         int coordsIndex = 0;
         int[][] movesArray = new int[32][6];
         int[][] movesCoords;
-        usedArrayLength = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xCoord, yCoord, colorPlaying, colorOnTop);
+        usedArrayLength = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xCoord, yCoord,
+                                                         colorPlaying, colorOnTop);
         movesCoords = new int[usedArrayLength][2];
         // FIXME: could use Arrays.copyOf here, it'd be shorter
         for (int moveIdx = 0; moveIdx < usedArrayLength; moveIdx++) {
@@ -328,13 +307,13 @@ public class Chessboard {
     }
 
     private void movePieceCastling(final Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
-        int kingXCoord = moveObj.fromXCoord();
-        int kingYCoord = moveObj.fromYCoord();
-        int rookXCoord = moveObj.toXCoord();
-        int rookYCoord = moveObj.fromYCoord();
-        int pieceInt = moveObj.movingPiece().pieceInt();
-        boolean isCastlingKingside = moveObj.isCastlingKingside();
-        boolean isCastlingQueenside = moveObj.isCastlingQueenside();
+        int kingXCoord = moveObj.getFromXCoord();
+        int kingYCoord = moveObj.getFromYCoord();
+        int rookXCoord = moveObj.getToXCoord();
+        int rookYCoord = moveObj.getFromYCoord();
+        int pieceInt = moveObj.getMovingPiece().pieceInt();
+        boolean isCastlingKingside = moveObj.getIsCastlingKingside();
+        boolean isCastlingQueenside = moveObj.getIsCastlingQueenside();
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
         int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
         int rookPieceInt = boardArray[rookXCoord][rookYCoord];
@@ -364,9 +343,9 @@ public class Chessboard {
                 boardArray[rookXCoord][rookYCoord] = boardArray[3][rookYCoord];
                 boardArray[3][rookYCoord] = savedPieceIntNo1;
 
-                throw new KingIsInCheckException("Castling kingside would place " + colorOfPieceStr + "'s king in check or "
-                                             + colorOfPieceStr + "'s king is in check and this move doesn't fix that. "
-                                             + "Move can't be made.");
+                throw new KingIsInCheckException("Castling kingside would place " + colorOfPieceStr + "'s king in "
+                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
+                                                 + "doesn't fix that. Move can't be made.");
             }
 
             if (colorOfPiece == WHITE) {
@@ -396,8 +375,9 @@ public class Chessboard {
                 boardArray[rookXCoord][rookYCoord] = boardArray[5][rookYCoord];
                 boardArray[5][rookYCoord] = savedPieceIntNo1;
 
-                throw new KingIsInCheckException("Castling queenside would place " + colorOfPieceStr + "'s king in check or "
-                                             + colorOfPieceStr + "'s king is in check and this move doesn't fix that. "
+                throw new KingIsInCheckException("Castling queenside would place " + colorOfPieceStr + "'s king in "
+                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
+                                                 + "doesn't fix that. "
                                              + "Move can't be made.");
             }
             if (colorOfPiece == WHITE) {
@@ -411,11 +391,11 @@ public class Chessboard {
     }
 
     private void movePieceNonCastling(final Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
-        int fromXCoord = moveObj.fromXCoord();
-        int fromYCoord = moveObj.fromYCoord();
-        int toXCoord = moveObj.toXCoord();
-        int toYCoord = moveObj.toYCoord();
-        int pieceInt = moveObj.movingPiece().pieceInt();
+        int fromXCoord = moveObj.getFromXCoord();
+        int fromYCoord = moveObj.getFromYCoord();
+        int toXCoord = moveObj.getToXCoord();
+        int toYCoord = moveObj.getToYCoord();
+        int pieceInt = moveObj.getMovingPiece().pieceInt();
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
         int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
         int capturedPieceInt = boardArray[toXCoord][toYCoord];
@@ -461,7 +441,7 @@ public class Chessboard {
     }
 
     public void movePiece(final Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
-        if (moveObj.isCastlingKingside() || moveObj.isCastlingQueenside()) {
+        if (moveObj.getIsCastlingKingside() || moveObj.getIsCastlingQueenside()) {
             movePieceCastling(moveObj);
         } else {
             movePieceNonCastling(moveObj);

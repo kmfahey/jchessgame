@@ -68,7 +68,8 @@ public class ChessGame extends JFrame {
                 boardArray = BoardArrays.fileNameToBoardArray(fileName);
             } catch (NullPointerException | BoardArrayFileParsingException | IOException exception) {
                 String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
-                JOptionPane.showMessageDialog(this, "Loading a board file caused a " + exceptionClassName + ":\n" + exception.getMessage());
+                JOptionPane.showMessageDialog(this, "Loading a board file caused a " + exceptionClassName + ":\n"
+                                                    + exception.getMessage());
                 exception.printStackTrace();
                 System.exit(1);
             }
