@@ -53,7 +53,7 @@ public class MinimaxRunner {
         evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
 
-    public Move algorithmTopLevel() throws AlgorithmBadArgumentException, AlgorithmInternalException, 
+    public Chessboard.Move algorithmTopLevel() throws AlgorithmBadArgumentException, AlgorithmInternalException, 
                                            KingIsInCheckmateException {
         int[] bestMoveArray = null;
         int[][] boardArray = new int[8][8];
@@ -66,13 +66,11 @@ public class MinimaxRunner {
         int toXIdx;
         int toYIdx;
         double thisScore;
-        Move bestMoveObj;
+        Chessboard.Move bestMoveObj;
         boolean isCastlingKingside;
         boolean isCastlingQueenside;
         boolean kingIsInCheck;
         boolean kingIsInCheckmate;
-        String moveStr;
-        String bestMoveStr = "";
         double alpha = Double.NEGATIVE_INFINITY;
         double beta = Double.POSITIVE_INFINITY;
         double bestScore = Double.NEGATIVE_INFINITY;
@@ -92,7 +90,6 @@ public class MinimaxRunner {
             if (thisScore > bestScore) {
                 bestScore = thisScore;
                 bestMoveArray = movesArray[moveIdx];
-                bestMoveStr = moveStr;
             }
             if (thisScore > alpha) {
                 alpha = thisScore;
@@ -110,8 +107,6 @@ public class MinimaxRunner {
         isCastlingKingside = false;
         isCastlingQueenside = false;
         capturedPieceInt = bestMoveArray[5];
-        kingIsInCheck = false;
-        kingIsInCheckmate = false;
 
         if ((movedPieceInt & ROOK) != 0 && (capturedPieceInt & KING) != 0 && 
             (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
@@ -121,20 +116,11 @@ public class MinimaxRunner {
             } else {
                 isCastlingQueenside = true;
             }
-        } else if (BoardArrays.isKingInCheck(boardArray, colorOfAI, colorOnTop)) {
-            int[] kingCoords = chessboard.findKing(colorOfPlayer);
-            if (BoardArrays.generateKingsMoves(boardArray, null, 0, kingCoords[0], kingCoords[1], 
-                                               colorOfAI, colorOnTop) == 0) {
-                kingIsInCheckmate = true;
-            } else {
-                kingIsInCheck = true;
-            }
         }
 
-        bestMoveObj = new Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
-                                fromXIdx, fromYIdx, toXIdx, toYIdx,
-                                capturedPieceInt, isCastlingKingside, isCastlingQueenside,
-                                kingIsInCheck, kingIsInCheckmate);
+        bestMoveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
+                                          fromXIdx, fromYIdx, toXIdx, toYIdx,
+                                          capturedPieceInt, isCastlingKingside, isCastlingQueenside);
 
         return bestMoveObj;
     }
@@ -226,6 +212,7 @@ public class MinimaxRunner {
         boolean isCastlingKingside = false;
         boolean isCastlingQueenside = false;
         double retval;
+        Chessboard.Move moveObj;
 
         /* The same boardArray is passed down the call stack and reused by
            every step of the algorithm, to avoid having to clone it each time.
@@ -250,18 +237,22 @@ public class MinimaxRunner {
                 savedPieceNo2 = boardArray[6][fromYIdx];
             }
 
-            Move moveObj = new Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
-                                    fromXIdx, fromYIdx, toXIdx, toYIdx,
-                                    capturedPieceInt, isCastlingKingside, isCastlingQueenside);
+            moveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
+                                          fromXIdx, fromYIdx, toXIdx, toYIdx,
+                                          capturedPieceInt, isCastlingKingside, isCastlingQueenside);
 
             /* The boardArray being used is the same one this chessboard
                object manipulates internally when movePiece() is called. Here
                movePiece() is used because castling depends on state information
                (whether the king or rook has moved so far, which makes castling
                impossible) that's tracked internally by the Chessboard object. */
-            chessboard.movePiece(moveObj);
+            try {
+                chessboard.movePiece(moveObj);
 
-            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
+                retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
+            } catch (CastlingNotPossibleException exception) {
+                return maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+            }
 
             if (isCastlingKingside) {
                 movedPieceInt = boardArray[3][toYIdx];

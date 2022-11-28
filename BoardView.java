@@ -13,6 +13,7 @@ import java.awt.Point;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.StringJoiner;
 import javax.swing.JComponent;
 import javax.swing.Timer;
 import javax.swing.JOptionPane;
@@ -168,9 +169,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
             }
         } else {
-            Move moveObj;
+            Chessboard.Move moveObj;
             clickEventMovingTo = clickSquareCoord;
-
 
             try {
                 int[][] movesCoords = chessboard.getValidMoveCoordsArray(clickEventMovingFrom);
@@ -220,15 +220,19 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
             }
 
-            moveObj = new Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
-                               clickEventMovingTo[0], clickEventMovingTo[1],
-                               Objects.nonNull(clickEventToCapturePiece)
-                                   ? clickEventToCapturePiece.pieceInt() : 0,
-                               moveIsCastlingKingside, moveIsCastlingQueenside);
+            moveObj = new Chessboard.Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
+                                          clickEventMovingTo[0], clickEventMovingTo[1],
+                                          Objects.nonNull(clickEventToCapturePiece)
+                                              ? clickEventToCapturePiece.pieceInt() : 0,
+                                          moveIsCastlingKingside, moveIsCastlingQueenside);
 
             try {
                 chessboard.movePiece(moveObj);
             } catch (KingIsInCheckException exception) {
+                resetClickEventVars();
+                return;
+            } catch (CastlingNotPossibleException exception) {
+                JOptionPane.showMessageDialog(chessGameFrame, exception.getMessage());
                 resetClickEventVars();
                 return;
             }
@@ -257,7 +261,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void actionPerformed(final ActionEvent event) {
-        Move moveToMake;
+        Chessboard.Move moveToMake;
         LocalDateTime timeRightNow;
 
         if (!event.getActionCommand().equals("move")) {
@@ -285,7 +289,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         try {
             chessboard.movePiece(moveToMake);
-        } catch (KingIsInCheckException exception) {
+        } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
             return;
         }
 

@@ -1,5 +1,6 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -130,6 +131,10 @@ public class Chessboard {
 
     public record Piece(int pieceInt, Image pieceImage, int xCoord, int yCoord) { };
 
+    public record Move(Chessboard.Piece movingPiece, int fromXCoord, int fromYCoord,
+                int toXCoord, int toYCoord, int capturedPiece, boolean isCastlingKingside,
+                boolean isCastlingQueenside) { };
+
     public Chessboard(final ImagesManager imagesManager, final int playingColor, final int onTopColor) {
         this(null, imagesManager, playingColor, onTopColor);
     }
@@ -221,7 +226,6 @@ public class Chessboard {
         usedArrayLength = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xCoord, yCoord,
                                                          colorPlaying, colorOnTop);
         movesCoords = new int[usedArrayLength][2];
-        // FIXME: could use Arrays.copyOf here, it'd be shorter
         for (int moveIdx = 0; moveIdx < usedArrayLength; moveIdx++) {
             int moveXIdx = movesArray[moveIdx][3];
             int moveYIdx = movesArray[moveIdx][4];
@@ -257,45 +261,37 @@ public class Chessboard {
     public boolean isCastlingPossible(int colorOfKing, int kingOrQueen) throws IllegalArgumentException {
         switch (colorOfKing | kingOrQueen) {
             case BLACK | KING -> {
+                int yIdx = colorOnTop == BLACK ? 0 : 7;
                 if (blackKingHasMoved || blackKingsRookHasMoved) {
                     return false;
-                }
-                if (colorOnTop == BLACK && (boardArray[1][7] != 0 || boardArray[2][7] != 0)) {
-                    return false;
-                } else if (colorOnTop == WHITE && (boardArray[1][0] != 0 || boardArray[2][0] != 0)) {
+                } else if (boardArray[1][yIdx] != 0 || boardArray[2][yIdx] != 0) {
                     return false;
                 }
                 return true;
             }
             case BLACK | QUEEN -> {
+                int yIdx = colorOnTop == BLACK ? 0 : 7;
                 if (blackKingHasMoved || blackQueensRookHasMoved) {
                     return false;
-                }
-                if (colorOnTop == BLACK && (boardArray[5][7] != 0 || boardArray[6][7] != 0)) {
-                    return false;
-                } else if (colorOnTop == WHITE && (boardArray[5][0] != 0 || boardArray[6][0] != 0)) {
+                } else if (boardArray[4][yIdx] != 0 || boardArray[5][yIdx] != 0 || boardArray[6][yIdx] != 0) {
                     return false;
                 }
                 return true;
             }
             case WHITE | KING -> {
+                int yIdx = colorOnTop == WHITE ? 0 : 7;
                 if (whiteKingHasMoved || whiteKingsRookHasMoved) {
                     return false;
-                }
-                if (colorOnTop == WHITE && (boardArray[1][7] != 0 || boardArray[2][7] != 0)) {
-                    return false;
-                } else if (colorOnTop == WHITE && (boardArray[1][0] != 0 || boardArray[2][0] != 0)) {
+                } else if (boardArray[1][yIdx] != 0 || boardArray[2][yIdx] != 0) {
                     return false;
                 }
                 return true;
             }
             case WHITE | QUEEN -> {
+                int yIdx = colorOnTop == WHITE ? 0 : 7;
                 if (whiteKingHasMoved || whiteQueensRookHasMoved) {
                     return false;
-                }
-                if (colorOnTop == WHITE && (boardArray[5][7] != 0 || boardArray[6][7] != 0)) {
-                    return false;
-                } else if (colorOnTop == BLACK && (boardArray[5][0] != 0 || boardArray[6][0] != 0)) {
+                } else if (boardArray[4][yIdx] != 0 || boardArray[5][yIdx] != 0 || boardArray[6][7] != 0) {
                     return false;
                 }
                 return true;
@@ -306,14 +302,14 @@ public class Chessboard {
         }
     }
 
-    private void movePieceCastling(final Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
-        int kingXCoord = moveObj.getFromXCoord();
-        int kingYCoord = moveObj.getFromYCoord();
-        int rookXCoord = moveObj.getToXCoord();
-        int rookYCoord = moveObj.getFromYCoord();
-        int pieceInt = moveObj.getMovingPiece().pieceInt();
-        boolean isCastlingKingside = moveObj.getIsCastlingKingside();
-        boolean isCastlingQueenside = moveObj.getIsCastlingQueenside();
+    private void movePieceCastling(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException, CastlingNotPossibleException {
+        int kingXCoord = moveObj.fromXCoord();
+        int kingYCoord = moveObj.fromYCoord();
+        int rookXCoord = moveObj.toXCoord();
+        int rookYCoord = moveObj.fromYCoord();
+        int pieceInt = moveObj.movingPiece().pieceInt();
+        boolean isCastlingKingside = moveObj.isCastlingKingside();
+        boolean isCastlingQueenside = moveObj.isCastlingQueenside();
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
         int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
         int rookPieceInt = boardArray[rookXCoord][rookYCoord];
@@ -325,7 +321,7 @@ public class Chessboard {
             throw new IllegalArgumentException("Invalid castling movePiece() parameters.");
         } else if (isCastlingKingside) {
             if (!isCastlingPossible(colorOfPiece, KING)) {
-                throw new IllegalArgumentException("Castling kingside is not possible for " + colorOfPieceStr);
+                throw new CastlingNotPossibleException("Castling kingside is not possible for " + colorOfPieceStr);
             }
 
             savedPieceIntNo1 = boardArray[2][rookYCoord];
@@ -357,7 +353,7 @@ public class Chessboard {
             }
         } else if (isCastlingQueenside) {
             if (!isCastlingPossible(colorOfPiece, QUEEN)) {
-                throw new IllegalArgumentException("Castling queenside is not possible for " + colorOfPieceStr);
+                throw new CastlingNotPossibleException("Castling queenside is not possible for " + colorOfPieceStr);
             }
 
             savedPieceIntNo1 = boardArray[5][rookYCoord];
@@ -377,8 +373,7 @@ public class Chessboard {
 
                 throw new KingIsInCheckException("Castling queenside would place " + colorOfPieceStr + "'s king in "
                                                  + "check or " + colorOfPieceStr + "'s king is in check and this move "
-                                                 + "doesn't fix that. "
-                                             + "Move can't be made.");
+                                                 + "doesn't fix that. Move can't be made.");
             }
             if (colorOfPiece == WHITE) {
                 whiteKingHasMoved = true;
@@ -390,12 +385,12 @@ public class Chessboard {
         }
     }
 
-    private void movePieceNonCastling(final Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
-        int fromXCoord = moveObj.getFromXCoord();
-        int fromYCoord = moveObj.getFromYCoord();
-        int toXCoord = moveObj.getToXCoord();
-        int toYCoord = moveObj.getToYCoord();
-        int pieceInt = moveObj.getMovingPiece().pieceInt();
+    private void movePieceNonCastling(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
+        int fromXCoord = moveObj.fromXCoord();
+        int fromYCoord = moveObj.fromYCoord();
+        int toXCoord = moveObj.toXCoord();
+        int toYCoord = moveObj.toYCoord();
+        int pieceInt = moveObj.movingPiece().pieceInt();
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
         int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
         int capturedPieceInt = boardArray[toXCoord][toYCoord];
@@ -408,7 +403,8 @@ public class Chessboard {
             boardArray[fromXCoord][fromYCoord] = boardArray[toXCoord][toYCoord];
             boardArray[toXCoord][toYCoord] = capturedPieceInt;
             throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or " + thisColorStr
-                                         + "'s King is in check and this move doesn't fix that; move can't be made.");
+                                             + "'s King is in check and this move doesn't fix that; move can't be "
+                                             + "made.");
         }
 
         switch (pieceInt) {
@@ -440,8 +436,8 @@ public class Chessboard {
         }
     }
 
-    public void movePiece(final Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
-        if (moveObj.getIsCastlingKingside() || moveObj.getIsCastlingQueenside()) {
+    public void movePiece(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException, CastlingNotPossibleException {
+        if (moveObj.isCastlingKingside() || moveObj.isCastlingQueenside()) {
             movePieceCastling(moveObj);
         } else {
             movePieceNonCastling(moveObj);

@@ -79,7 +79,7 @@ public final class BoardArrays {
                 return generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
             case ROOK:
                 return generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
-            case KNIGHT | LEFT:
+            case KNIGHT | LEFT: case KNIGHT | RIGHT:
                 return generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
             case BISHOP:
                 return generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
