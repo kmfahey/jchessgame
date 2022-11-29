@@ -4,9 +4,7 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.Arrays;
 import java.util.StringJoiner;
-import java.nio.file.Path;
 import java.nio.file.Files;
 import java.io.File;
 import java.io.IOException;
@@ -46,12 +44,7 @@ public final class BoardArrays {
 
     private static Random randomNumberGenerator = new Random();
 
-    public static String movesArrayToStr(int[] moveArray) {
-        return String.format("%03d-%d-%d-%d-%d-%03d", moveArray[0], moveArray[1], moveArray[2],
-                                                      moveArray[3], moveArray[4], moveArray[5]);
-    }
-
-    public static int[] findKing(int[][] boardArray, int kingColor) {
+    public static int[] findKing(final int[][] boardArray, final int kingColor) {
         int xIdx = -1;
         int yIdx = -1;
         for (xIdx = 0; xIdx < 8; xIdx++) {
@@ -110,6 +103,8 @@ public final class BoardArrays {
                 return generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs);
             case KING:
                 return generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+            default:
+                break;
         }
 
         return moveIdx;
@@ -140,13 +135,14 @@ public final class BoardArrays {
         }
 
         if (boardArray[xIdx][yIdxMod] == 0) {
-
             if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
-                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
-                    } else {
+                        setMoveToMovesArray(
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
+                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
+                        );                              /* Since there's two different Knight models, LEFT and RIGHT, */
+                    } else {                            /* the above expression chooses at random between them.       */
                         setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
                                             (newPiece | colorsTurnItIs));
                     }
@@ -155,8 +151,10 @@ public final class BoardArrays {
             } else if (yIdxMod == 0 && colorsTurnItIs == colorOnBottom) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
-                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                        setMoveToMovesArray(
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
+                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
+                        );
                     } else {
                         setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
                                             (newPiece | colorsTurnItIs));
@@ -172,9 +170,11 @@ public final class BoardArrays {
             if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                                            boardArray[xIdx + 1][yIdxMod],
-                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                        setMoveToMovesArray(
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                            boardArray[xIdx + 1][yIdxMod],
+                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
+                        );
                     } else {
                         setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
                                             boardArray[xIdx + 1][yIdxMod], (newPiece | colorsTurnItIs));
@@ -185,9 +185,11 @@ public final class BoardArrays {
             } else if (yIdxMod == 0 && colorsTurnItIs == colorOnBottom) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                                            boardArray[xIdx + 1][yIdxMod],
-                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                        setMoveToMovesArray(
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                            boardArray[xIdx + 1][yIdxMod],
+                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
+                        );
                     } else {
                         setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
                                             boardArray[xIdx + 1][yIdxMod], (newPiece | colorsTurnItIs));
@@ -204,9 +206,11 @@ public final class BoardArrays {
             if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                                            boardArray[xIdx + 1][yIdxMod],
-                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                        setMoveToMovesArray(
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                            boardArray[xIdx + 1][yIdxMod],
+                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
+                        );
                     } else {
                         setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
                                             boardArray[xIdx - 1][yIdxMod], (newPiece | colorsTurnItIs));
@@ -216,9 +220,11 @@ public final class BoardArrays {
             } else if (yIdxMod == 0 && colorsTurnItIs == colorOnBottom) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                                            boardArray[xIdx + 1][yIdxMod],
-                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                        setMoveToMovesArray(
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                            boardArray[xIdx + 1][yIdxMod],
+                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
+                        );
                     } else {
                         setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
                                             boardArray[xIdx - 1][yIdxMod], (newPiece | colorsTurnItIs));
@@ -1100,7 +1106,7 @@ public final class BoardArrays {
         System.out.println(outerJoiner.toString());
     }
 
-    public static boolean arrayOfCoordsContainsCoord(int[][] arrayOfCoords, int[] toFindCoords) {
+    public static boolean arrayOfCoordsContainsCoord(final int[][] arrayOfCoords, final int[] toFindCoords) {
         for (int[] arrayCoords : arrayOfCoords) {
             if (Arrays.equals(arrayCoords, toFindCoords)) {
                 return true;
@@ -1110,9 +1116,9 @@ public final class BoardArrays {
         return false;
     }
 
-    public static int[][] fileNameToBoardArray(String fileName) throws NullPointerException,
-                                                                       BoardArrayFileParsingException,
-                                                                       IOException {
+    public static int[][] fileNameToBoardArray(final String fileName
+                                              ) throws NullPointerException, BoardArrayFileParsingException,
+                                                       IOException {
         File boardFile = new File(fileName);
         String fileContents = Files.readString(boardFile.toPath());
         String[] fileLines = fileContents.split("\n");

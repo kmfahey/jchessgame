@@ -29,7 +29,7 @@ public class ChessGame extends JFrame {
         this(null);
     }
 
-    public ChessGame(String fileName) throws IOException, FileNotFoundException {
+    public ChessGame(final String fileName) throws IOException, FileNotFoundException {
         super("Chess Game");
 
         int[][] boardArray = null;
@@ -78,11 +78,6 @@ public class ChessGame extends JFrame {
             chessboard = new Chessboard(boardArray, imagesManager, colorPlaying, colorOnTop);
         } else {
             chessboard = new Chessboard(imagesManager, colorPlaying, colorOnTop);
-        }
-
-        if (Objects.isNull(boardArray)) {
-            boardArray = chessboard.getBoardArray();
-            BoardArrays.printBoard(boardArray);
         }
 
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};

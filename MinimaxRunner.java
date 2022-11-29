@@ -1,10 +1,7 @@
 package com.kmfahey.jchessgame;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.StringJoiner;
 
 public class MinimaxRunner {
 
@@ -56,7 +53,7 @@ public class MinimaxRunner {
         evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
 
-    public Chessboard.Move algorithmTopLevel() throws AlgorithmBadArgumentException, AlgorithmInternalException, 
+    public Chessboard.Move algorithmTopLevel() throws AlgorithmBadArgumentException, AlgorithmInternalException,
                                            KingIsInCheckmateException {
         int[] bestMoveArray = null;
         int[][] boardArray = new int[8][8];
@@ -73,13 +70,11 @@ public class MinimaxRunner {
         Chessboard.Move bestMoveObj;
         boolean isCastlingKingside;
         boolean isCastlingQueenside;
-        boolean kingIsInCheck;
-        boolean kingIsInCheckmate;
         double alpha = Double.NEGATIVE_INFINITY;
         double beta = Double.POSITIVE_INFINITY;
         double bestScore = Double.NEGATIVE_INFINITY;
 
-        
+
         boardArray = chessboard.getBoardArray();
 
         movesArrayUsedLength = BoardArrays.generatePossibleMoves(boardArray, movesArray, colorOfAI, colorOnTop);
@@ -113,7 +108,7 @@ public class MinimaxRunner {
         capturedPieceInt = bestMoveArray[5];
         promotedToPieceInt = bestMoveArray[6];
 
-        if ((movedPieceInt & ROOK) != 0 && (capturedPieceInt & KING) != 0 && 
+        if ((movedPieceInt & ROOK) != 0 && (capturedPieceInt & KING) != 0 &&
             (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
 
             if (toXIdx == 0) {
@@ -123,8 +118,8 @@ public class MinimaxRunner {
             }
         }
 
-        bestMoveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx), fromXIdx, fromYIdx, 
-                                          toXIdx, toYIdx, capturedPieceInt, isCastlingKingside, isCastlingQueenside, 
+        bestMoveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx), fromXIdx, fromYIdx,
+                                          toXIdx, toYIdx, capturedPieceInt, isCastlingKingside, isCastlingQueenside,
                                           promotedToPieceInt);
 
         return bestMoveObj;
@@ -226,8 +221,8 @@ public class MinimaxRunner {
            be reused. savedPiece holds whatever was at the square the piece
            was moved to so it can be restored. */
 
-        if ((movedPieceInt & ROOK) != 0 && (capturedPieceInt & KING) != 0 && 
-            (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
+        if ((movedPieceInt & ROOK) != 0 && (capturedPieceInt & KING) != 0
+            && (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
             if (toXIdx != 0 && toXIdx !=  7) {
                 throw new IllegalArgumentException("algorithmCallExecutor() called with a moveArray that indicated "
                                                    + "castling but the Rook isn't in position");

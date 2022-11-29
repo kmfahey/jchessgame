@@ -3,7 +3,6 @@ package com.kmfahey.jchessgame;
 import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.util.HashMap;
 
 public class CoordinatesManager {
 

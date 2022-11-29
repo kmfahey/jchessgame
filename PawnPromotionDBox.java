@@ -1,22 +1,17 @@
 package com.kmfahey.jchessgame;
 
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Objects;
 import java.util.Random;
-import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
@@ -24,14 +19,14 @@ import javax.swing.WindowConstants;
 
 public class PawnPromotionDBox extends JFrame {
 
-    BoardView callingBoardView;
-    ButtonGroup buttonGroup;
-    int pawnXCoord;
-    int pawnYCoord;
-    int newPiece;
-    Random randomNum = new Random();
+    private BoardView callingBoardView;
+    private ButtonGroup buttonGroup;
+    private int pawnXCoord;
+    private int pawnYCoord;
+    private int newPiece;
+    private Random randomNumberGenerator = new Random();
 
-    public PawnPromotionDBox(BoardView callingBoardViewObj, int xCoordVal, int yCoordVal) {
+    public PawnPromotionDBox(final BoardView callingBoardViewObj, final int xCoordVal, final int yCoordVal) {
         super("JRadioButton Demo");
 
         callingBoardView = callingBoardViewObj;
@@ -110,7 +105,7 @@ public class PawnPromotionDBox extends JFrame {
         pack();
     }
 
-    private GridBagConstraints buildConstraints(int row, int col, int rowspan, int colspan) {
+    private GridBagConstraints buildConstraints(final int row, final int col, final int rowspan, final int colspan) {
         GridBagConstraints elemConstraints = new GridBagConstraints();
         elemConstraints.fill = GridBagConstraints.BOTH;
         elemConstraints.gridy = row;
@@ -125,8 +120,8 @@ public class PawnPromotionDBox extends JFrame {
         JButton button = new JButton("I've Chosen");
         button.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent event) {
-                int newPiece = 0;
+            public void actionPerformed(final ActionEvent event) {
+                newPiece = 0;
                 ButtonModel selectedButtonMod = buttonGroup.getSelection();
                 if (Objects.isNull(selectedButtonMod)) {
                     return;
@@ -134,8 +129,9 @@ public class PawnPromotionDBox extends JFrame {
                 switch (selectedButtonMod.getActionCommand()) {
                     case "Rook":
                         newPiece = BoardArrays.ROOK; break;
-                    case "Knight":
-                        newPiece = BoardArrays.KNIGHT | (randomNum.nextInt(2) == 1 ? BoardArrays.LEFT : BoardArrays.RIGHT);
+                    case "Knight":                       /* Since there's two Knight models, LEFT and RIGHT, this */
+                        newPiece = BoardArrays.KNIGHT    /* expression chooses at random between them.            */
+                                   | (randomNumberGenerator.nextInt(2) == 1 ? BoardArrays.LEFT : BoardArrays.RIGHT);
                         break;
                     case "Bishop":
                         newPiece = BoardArrays.BISHOP; break;

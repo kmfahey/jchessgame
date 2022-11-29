@@ -1,6 +1,5 @@
 package com.kmfahey.jchessgame;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -22,7 +21,7 @@ public class Chessboard {
     public static final int LEFT = BoardArrays.LEFT;
     public static final int RIGHT = BoardArrays.RIGHT;
 
-    public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<Integer>() {{ 
+    public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<Integer>() {{
         this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
         this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
         this.add(WHITE | KING); this.add(WHITE | QUEEN); this.add(WHITE | ROOK); this.add(WHITE | BISHOP);
@@ -188,7 +187,7 @@ public class Chessboard {
         return colorPlaying;
     }
 
-    public void promotePawn(int xCoord, int yCoord, int newPiece) {
+    public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
         int pieceInt = boardArray[xCoord][yCoord];
         if ((pieceInt & PAWN) == 0) {
             throw new IllegalArgumentException("Chessboard.promotePawn() called with invalid coordinates "
@@ -254,7 +253,7 @@ public class Chessboard {
         return retval;
     }
 
-    public boolean isCastlingPossible(int colorOfKing, int kingOrQueen) throws IllegalArgumentException {
+    public boolean isCastlingPossible(final int colorOfKing, final int kingOrQueen) throws IllegalArgumentException {
         switch (colorOfKing | kingOrQueen) {
             case BLACK | KING -> {
                 int yIdx = colorOnTop == BLACK ? 0 : 7;
@@ -298,7 +297,9 @@ public class Chessboard {
         }
     }
 
-    private void movePieceCastling(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException, CastlingNotPossibleException {
+    private void movePieceCastling(final Chessboard.Move moveObj
+                                  ) throws KingIsInCheckException, IllegalArgumentException,
+                                           CastlingNotPossibleException {
         int kingXCoord = moveObj.fromXCoord();
         int kingYCoord = moveObj.fromYCoord();
         int rookXCoord = moveObj.toXCoord();
@@ -381,7 +382,8 @@ public class Chessboard {
         }
     }
 
-    private void movePieceNonCastling(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException {
+    private void movePieceNonCastling(final Chessboard.Move moveObj) throws KingIsInCheckException,
+                                                                            IllegalArgumentException {
         int fromXCoord = moveObj.fromXCoord();
         int fromYCoord = moveObj.fromYCoord();
         int toXCoord = moveObj.toXCoord();
@@ -447,7 +449,8 @@ public class Chessboard {
         }
     }
 
-    public void movePiece(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException, CastlingNotPossibleException {
+    public void movePiece(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException,
+                                                                CastlingNotPossibleException {
         if (moveObj.isCastlingKingside() || moveObj.isCastlingQueenside()) {
             movePieceCastling(moveObj);
         } else {

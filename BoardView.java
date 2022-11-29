@@ -13,7 +13,6 @@ import java.awt.Point;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.StringJoiner;
 import javax.swing.JComponent;
 import javax.swing.Timer;
 import javax.swing.JOptionPane;
@@ -70,7 +69,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         repaint();
     }
 
-    public void promotePawn(int xCoord, int yCoord, int newPiece) {
+    public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
         chessboard.promotePawn(xCoord, yCoord, newPiece);
         pawnHasntBeenPromotedYet = false;
     }
@@ -300,7 +299,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
             JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName
                                                           + ":\n" + exception.getMessage());
-            BoardArrays.printBoard(chessboard.getBoardArray());
             exception.printStackTrace();
             System.exit(1);
             return;
