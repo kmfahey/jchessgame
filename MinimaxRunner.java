@@ -74,10 +74,16 @@ public class MinimaxRunner {
         double beta = Double.POSITIVE_INFINITY;
         double bestScore = Double.NEGATIVE_INFINITY;
 
-
         boardArray = chessboard.getBoardArray();
 
         movesArrayUsedLength = BoardArrays.generatePossibleMoves(boardArray, movesArray, colorOfAI, colorOnTop);
+
+        /* To introduce some nondeterminism into the algorithm in case the
+           best score is tied between multiple moves. It goes with the last
+           top-scoring move it sees. This way that can be a different one from
+           one execution to the next. This is most useful in preventing the AI
+           from using the same opening move each time. */
+        BoardArrays.shuffleMovesArray(movesArray, movesArrayUsedLength);
 
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
             try {

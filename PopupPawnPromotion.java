@@ -17,7 +17,7 @@ import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-public class PawnPromotionDBox extends JFrame {
+public class PopupPawnPromotion extends JFrame {
 
     private BoardView callingBoardView;
     private ButtonGroup buttonGroup;
@@ -26,8 +26,8 @@ public class PawnPromotionDBox extends JFrame {
     private int newPiece;
     private Random randomNumberGenerator = new Random();
 
-    public PawnPromotionDBox(final BoardView callingBoardViewObj, final int xCoordVal, final int yCoordVal) {
-        super("JRadioButton Demo");
+    public PopupPawnPromotion(final BoardView callingBoardViewObj, final int xCoordVal, final int yCoordVal) {
+        super("Pawn Promotion");
 
         callingBoardView = callingBoardViewObj;
         pawnXCoord = xCoordVal;
@@ -94,9 +94,9 @@ public class PawnPromotionDBox extends JFrame {
         dboxPane.add(rBtnQueen, rBtnQueenConstraints);
 
         JButton iveChosenButton = buildIveChosenButton();
-        GridBagConstraints iveChosenButtonButtonConstraints = buildConstraints(3, 1, 1, 1);
-        iveChosenButtonButtonConstraints.insets = new Insets(20, 40, 20, 40);
-        dboxPane.add(iveChosenButton, iveChosenButtonButtonConstraints);
+        GridBagConstraints iveChosenButtonConstraints = buildConstraints(3, 1, 1, 1);
+        iveChosenButtonConstraints.insets = new Insets(20, 40, 20, 40);
+        dboxPane.add(iveChosenButton, iveChosenButtonConstraints);
 
         setLocationRelativeTo(null);
         setVisible(true);
@@ -116,7 +116,7 @@ public class PawnPromotionDBox extends JFrame {
     }
 
     private JButton buildIveChosenButton() {
-        PawnPromotionDBox enclosingDbox = this;
+        PopupPawnPromotion enclosingDbox = this;
         JButton button = new JButton("I've Chosen");
         button.addActionListener(new ActionListener() {
             @Override

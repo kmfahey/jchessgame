@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.Random;
 import java.nio.file.Files;
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +59,18 @@ public final class BoardArrays {
         /* The loops completed without matching the King, so null is returned as
            an error value. */
         return null;
+    }
+
+    public static void shuffleMovesArray(int[][] movesArray, int usedLength) {
+        /* This is Fisher–Yates shuffle I'm told. idk I just copied code off
+           stackoverflow as is best practice :) */
+        for (int startingIndex = usedLength - 1; startingIndex > 0; startingIndex--) {
+            int randomIndex = randomNumberGenerator.nextInt(startingIndex + 1);
+            // Simple swap
+            int[] swapValue = movesArray[randomIndex];
+            movesArray[randomIndex] = movesArray[startingIndex];
+            movesArray[startingIndex] = swapValue;
+        }
     }
 
     public static int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray,
@@ -116,6 +129,7 @@ public final class BoardArrays {
         int colorOnBottom = colorOnTop == WHITE ? BLACK : WHITE;
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int pawnPieceInt;
+        int xIdxMod;
         int yIdxMod;
         int moveIdx = moveIdxArg;
 
@@ -167,17 +181,18 @@ public final class BoardArrays {
             }
         }
         if (xIdx < 7 && (boardArray[xIdx + 1][yIdxMod] & otherColor) != 0) {
+            xIdxMod = xIdx + 1;
             if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
                         setMoveToMovesArray(
-                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                            boardArray[xIdx + 1][yIdxMod],
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                            boardArray[xIdxMod][yIdxMod],
                             (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
                         );
                     } else {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                                            boardArray[xIdx + 1][yIdxMod], (newPiece | colorsTurnItIs));
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod], (newPiece | colorsTurnItIs));
                     }
 
                     moveIdx++;
@@ -186,34 +201,35 @@ public final class BoardArrays {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
                         setMoveToMovesArray(
-                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                            boardArray[xIdx + 1][yIdxMod],
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                            boardArray[xIdxMod][yIdxMod],
                             (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
                         );
                     } else {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                                            boardArray[xIdx + 1][yIdxMod], (newPiece | colorsTurnItIs));
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod], (newPiece | colorsTurnItIs));
                     }
                     moveIdx++;
                 }
             } else {
-                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                                    boardArray[xIdx + 1][yIdxMod]);
+                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                    boardArray[xIdxMod][yIdxMod]);
                 moveIdx++;
             }
         }
         if (xIdx > 0 && (boardArray[xIdx - 1][yIdxMod] & otherColor) != 0) {
+            xIdxMod = xIdx - 1;
             if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
                         setMoveToMovesArray(
-                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                            boardArray[xIdx + 1][yIdxMod],
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                            boardArray[xIdxMod][yIdxMod],
                             (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
                         );
                     } else {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                                            boardArray[xIdx - 1][yIdxMod], (newPiece | colorsTurnItIs));
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod], (newPiece | colorsTurnItIs));
                     }
                     moveIdx++;
                 }
@@ -221,19 +237,19 @@ public final class BoardArrays {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
                     if (newPiece == KNIGHT) {
                         setMoveToMovesArray(
-                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                            boardArray[xIdx + 1][yIdxMod],
+                            movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                            boardArray[xIdxMod][yIdxMod],
                             (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT))
                         );
                     } else {
-                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                                            boardArray[xIdx - 1][yIdxMod], (newPiece | colorsTurnItIs));
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod], (newPiece | colorsTurnItIs));
                     }
                     moveIdx++;
                 }
             } else {
-                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                                    boardArray[xIdx - 1][yIdxMod]);
+                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                    boardArray[xIdxMod][yIdxMod]);
                 moveIdx++;
             }
         }

@@ -13,10 +13,11 @@ import java.awt.Point;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Random;
 import javax.swing.JComponent;
-import javax.swing.Timer;
-import javax.swing.JOptionPane;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.Timer;
 
 public class BoardView extends JComponent implements MouseListener, ActionListener {
 
@@ -37,12 +38,15 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private ImagesManager imagesManager;
     private CoordinatesManager coordinatesManager;
     private Chessboard chessboard;
+    private Random randomNumberGenerator = new Random();
 
     private Chessboard.Piece clickEventClickedPiece = null;
     private int[] clickEventMovingFrom = new int[] {-1, -1};
     private Chessboard.Piece clickEventToCapturePiece = null;
     private int[] clickEventMovingTo = new int[] {-1, -1};
     private boolean pawnHasntBeenPromotedYet = false;
+    private PopupPawnPromotion popupPawnPromotion = null;
+    private int[] pawnToPromoteCoords = null;
 
     private Chessboard.Piece lastPieceMovedByPlayer;
     private JFrame chessGameFrame;
@@ -64,9 +68,16 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         coordinatesManager = coordMgr;
         chessboard = chessboardObj;
         colorOfPlayer = colorPlaying;
-        colorOfAI = colorPlaying == BoardArrays.WHITE ? BoardArrays.BLACK : BoardArrays.WHITE;
+        colorOfAI = (colorPlaying == BoardArrays.WHITE) ? BoardArrays.BLACK : BoardArrays.WHITE;
         minimaxRunner = new MinimaxRunner(chessboard, colorOfAI);
         repaint();
+
+        if (colorOfAI == BoardArrays.WHITE) {
+            opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
+            opposingMoveDelayTimer.setActionCommand("move");
+            opposingMoveDelayTimer.setRepeats(true);
+            opposingMoveDelayTimer.start();
+        }
     }
 
     public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
@@ -131,7 +142,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void mouseClicked(final MouseEvent event) {
-        PawnPromotionDBox pawnPrmtDBox = null;
         int eventXCoord = event.getX();
         int eventYCoord = event.getY();
 
@@ -251,7 +261,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 int colorOnTop = chessboard.getColorOnTop();
                 if ((pieceColor == colorOnTop) ? (moveObj.toYCoord() == 7) : (moveObj.toYCoord() == 0)) {
                     pawnHasntBeenPromotedYet = true;
-                    pawnPrmtDBox = new PawnPromotionDBox(this, moveObj.toXCoord(), moveObj.toYCoord());
+                    pawnToPromoteCoords = new int[] {moveObj.toXCoord(), moveObj.toYCoord()};
+                    popupPawnPromotion = new PopupPawnPromotion(this, moveObj.toXCoord(), moveObj.toYCoord());
                 }
             }
 
@@ -284,11 +295,27 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         Chessboard.Move moveToMake;
         LocalDateTime timeRightNow;
 
-        if (!event.getActionCommand().equals("move") || pawnHasntBeenPromotedYet) {
+        if (!event.getActionCommand().equals("move")) {
             return;
+        } else if (pawnHasntBeenPromotedYet) {
+            if (Objects.nonNull(popupPawnPromotion) && !popupPawnPromotion.isDisplayable()) {
+                /* The player closed the pawn promotion dialog box via the X on
+                   the top bar, so a promotion option is chosen at random. */
+                int randIndex = randomNumberGenerator.nextInt(BoardArrays.PAWN_PROMOTION_PIECES.length);
+                int pieceInt = BoardArrays.PAWN_PROMOTION_PIECES[randIndex];
+                if (pieceInt == BoardArrays.KNIGHT) {
+                    pieceInt = BoardArrays.KNIGHT | (randomNumberGenerator.nextInt(2) == 1
+                                                    ? BoardArrays.LEFT : BoardArrays.RIGHT);
+                }
+                promotePawn(pawnToPromoteCoords[0], pawnToPromoteCoords[1], pieceInt);
+            } else {
+                return;
+            }
         }
 
         opposingMoveDelayTimer.stop();
+        popupPawnPromotion = null;
+        pawnToPromoteCoords = null;
 
         timeRightNow = LocalDateTime.now();
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
@@ -299,6 +326,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
             JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName
                                                           + ":\n" + exception.getMessage());
+            BoardArrays.printBoard(chessboard.getBoardArray());
             exception.printStackTrace();
             System.exit(1);
             return;
