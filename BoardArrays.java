@@ -1,6 +1,9 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Arrays;
+import java.util.Random;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Arrays;
 import java.util.StringJoiner;
 import java.nio.file.Path;
@@ -27,21 +30,41 @@ public final class BoardArrays {
     public static final int ISOLATED = 1;
     public static final int BLOCKED = 2;
 
+    public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
+
     /* These are alternate versions of main arrays in the int-array-based board
        logic that are used by some methods. In order to avoid instantiating a
        new array each time one is called, a spare array is stored to an instance
        variable and reused each time that method is called. */
     private static final int[][] kingsMovesSpareBoardArray = new int[8][8];
     private static final int[][] tallyPawnsCoords = new int[8][2];
-    private static final int[][] colorMobilitySpareMovesArray = new int[128][6];
+    private static final int[][] colorMobilitySpareMovesArray = new int[128][7];
 
     private static final HashMap<String, Double> evaluateBoardMemoizeMap = new HashMap<String, Double>();
 
     private BoardArrays() { };
 
+    private static Random randomNumberGenerator = new Random();
+
     public static String movesArrayToStr(int[] moveArray) {
         return String.format("%03d-%d-%d-%d-%d-%03d", moveArray[0], moveArray[1], moveArray[2],
                                                       moveArray[3], moveArray[4], moveArray[5]);
+    }
+
+    public static int[] findKing(int[][] boardArray, int kingColor) {
+        int xIdx = -1;
+        int yIdx = -1;
+        for (xIdx = 0; xIdx < 8; xIdx++) {
+            for (yIdx = 0; yIdx < 8; yIdx++) {
+                if (boardArray[xIdx][yIdx] == (kingColor | KING)) {
+                    return new int[] {xIdx, yIdx};
+                }
+            }
+        }
+
+        /* The loops completed without matching the King, so null is returned as
+           an error value. */
+        return null;
     }
 
     public static int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray,
@@ -95,6 +118,7 @@ public final class BoardArrays {
     public static int generatePawnsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
                                   ) throws AlgorithmBadArgumentException {
+        int colorOnBottom = colorOnTop == WHITE ? BLACK : WHITE;
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int pawnPieceInt;
         int yIdxMod;
@@ -107,36 +131,112 @@ public final class BoardArrays {
                                                     + "on board that's not a pawn or not the color whose turn it is");
         }
 
-        if (yIdx < 7 && (colorOnTop == WHITE && colorsTurnItIs == WHITE
-                         || colorOnTop == BLACK && colorsTurnItIs == BLACK)) {
+        if (yIdx < 7 && colorOnTop == colorsTurnItIs) {
             yIdxMod = yIdx + 1;
-        } else if (yIdx > 0 && (colorOnTop == WHITE && colorsTurnItIs == BLACK
-                                || colorOnTop == BLACK && colorsTurnItIs == WHITE)) {
+        } else if (yIdx > 0 && colorOnTop != colorsTurnItIs) {
             yIdxMod = yIdx - 1;
         } else {
             return moveIdx;
         }
 
         if (boardArray[xIdx][yIdxMod] == 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0);
-            moveIdx++;
+
+            if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
+                for (int newPiece : PAWN_PROMOTION_PIECES) {
+                    if (newPiece == KNIGHT) {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
+                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                    } else {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
+                                            (newPiece | colorsTurnItIs));
+                    }
+                    moveIdx++;
+                }
+            } else if (yIdxMod == 0 && colorsTurnItIs == colorOnBottom) {
+                for (int newPiece : PAWN_PROMOTION_PIECES) {
+                    if (newPiece == KNIGHT) {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
+                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                    } else {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0,
+                                            (newPiece | colorsTurnItIs));
+                    }
+                    moveIdx++;
+                }
+            } else {
+                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0);
+                moveIdx++;
+            }
         }
         if (xIdx < 7 && (boardArray[xIdx + 1][yIdxMod] & otherColor) != 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
-                                boardArray[xIdx + 1][yIdxMod]);
-            moveIdx++;
+            if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
+                for (int newPiece : PAWN_PROMOTION_PIECES) {
+                    if (newPiece == KNIGHT) {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                                            boardArray[xIdx + 1][yIdxMod],
+                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                    } else {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                                            boardArray[xIdx + 1][yIdxMod], (newPiece | colorsTurnItIs));
+                    }
+
+                    moveIdx++;
+                }
+            } else if (yIdxMod == 0 && colorsTurnItIs == colorOnBottom) {
+                for (int newPiece : PAWN_PROMOTION_PIECES) {
+                    if (newPiece == KNIGHT) {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                                            boardArray[xIdx + 1][yIdxMod],
+                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                    } else {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                                            boardArray[xIdx + 1][yIdxMod], (newPiece | colorsTurnItIs));
+                    }
+                    moveIdx++;
+                }
+            } else {
+                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx + 1, yIdxMod,
+                                    boardArray[xIdx + 1][yIdxMod]);
+                moveIdx++;
+            }
         }
         if (xIdx > 0 && (boardArray[xIdx - 1][yIdxMod] & otherColor) != 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
-                                boardArray[xIdx - 1][yIdxMod]);
-            moveIdx++;
+            if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
+                for (int newPiece : PAWN_PROMOTION_PIECES) {
+                    if (newPiece == KNIGHT) {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                                            boardArray[xIdx + 1][yIdxMod],
+                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                    } else {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                                            boardArray[xIdx - 1][yIdxMod], (newPiece | colorsTurnItIs));
+                    }
+                    moveIdx++;
+                }
+            } else if (yIdxMod == 0 && colorsTurnItIs == colorOnBottom) {
+                for (int newPiece : PAWN_PROMOTION_PIECES) {
+                    if (newPiece == KNIGHT) {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                                            boardArray[xIdx + 1][yIdxMod],
+                                            (newPiece | colorsTurnItIs | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT)));
+                    } else {
+                        setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                                            boardArray[xIdx - 1][yIdxMod], (newPiece | colorsTurnItIs));
+                    }
+                    moveIdx++;
+                }
+            } else {
+                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx - 1, yIdxMod,
+                                    boardArray[xIdx - 1][yIdxMod]);
+                moveIdx++;
+            }
         }
 
-        if (yIdx == 6 && boardArray[xIdx][yIdx - 2] == 0) {
-            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdx - 2, 0);
-            moveIdx++;
-        } else if (yIdx == 1 && boardArray[xIdx][yIdx + 2] == 0) {
+        if (colorsTurnItIs == colorOnTop && yIdx == 1 && boardArray[xIdx][yIdx + 2] == 0) {
             setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdx + 2, 0);
+            moveIdx++;
+        } else if (colorsTurnItIs != colorOnTop && yIdx == 6 && boardArray[xIdx][yIdx - 2] == 0) {
+            setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdx - 2, 0);
             moveIdx++;
         }
 
@@ -496,8 +596,14 @@ public final class BoardArrays {
     private static void setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
                                      final int startXIdx, final int startYIdx, final int endXIdx, final int endYIdx,
                                      final int capturedPiece) throws AlgorithmBadArgumentException {
-        if (movesArray[moveIdx][0] != 0 || movesArray[moveIdx][1] != 0 || movesArray[moveIdx][2] != 0
-            || movesArray[moveIdx][3] != 0 || movesArray[moveIdx][4] != 0 || movesArray[moveIdx][5] != 0) {
+        setMoveToMovesArray(movesArray, moveIdx, pieceInt, startXIdx, startYIdx, endXIdx, endYIdx, capturedPiece, 0);
+    }
+
+    private static void setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
+                                     final int startXIdx, final int startYIdx, final int endXIdx, final int endYIdx,
+                                     final int capturedPiece, final int promotedToPieceInt
+                                     ) throws AlgorithmBadArgumentException {
+        if (movesArray[moveIdx][0] != 0) {
             throw new AlgorithmBadArgumentException("setMoveToMovesArray() called with moveIdx arg pointing to "
                                                     + "non-zero entry in movesArray argument");
         }
@@ -507,6 +613,7 @@ public final class BoardArrays {
         movesArray[moveIdx][3] = endXIdx;
         movesArray[moveIdx][4] = endYIdx;
         movesArray[moveIdx][5] = capturedPiece;
+        movesArray[moveIdx][6] = promotedToPieceInt;
     }
 
     public static boolean isKingInCheck(final int[][] boardArray, final int colorThreatening, final int colorOnTop) {
@@ -534,6 +641,9 @@ public final class BoardArrays {
                         break;
                     case QUEEN:
                         kingIsInCheck = doesQueenHaveKingInCheck(boardArray, xIdx, yIdx, colorThreatening);
+                        break;
+                    case KING:
+                        kingIsInCheck = doesKingHaveKingInCheck(boardArray, xIdx, yIdx, colorThreatening);
                         break;
                     default:
                         break;
@@ -774,6 +884,72 @@ public final class BoardArrays {
         return false;
     }
 
+    public static boolean doesKingHaveKingInCheck(final int[][] boardArray, final int xIdx, final int yIdx,
+                                                  final int colorsTurnItIs) {
+        /* This really shouldn't happen at all, it's illegal for a king to put
+           a king in check. But the AI's move-analysis depends on checking for
+           in-check moves, so this needs to exist so the AI avoids trying to
+           capture the player's king. */
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+        int xIdxMod;
+        int yIdxMod;
+
+        if (xIdx > 0 && yIdx > 0) {
+            xIdxMod = xIdx - 1;
+            yIdxMod = yIdx - 1;
+            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                return true;
+            }
+        }
+        if (xIdx > 0) {
+            xIdxMod = xIdx - 1;
+            if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                return true;
+            }
+        }
+        if (xIdx > 0 && yIdx < 7) {
+            xIdxMod = xIdx - 1;
+            yIdxMod = yIdx + 1;
+            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                return true;
+            }
+        }
+        if (yIdx > 0) {
+            yIdxMod = yIdx - 1;
+            if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                return true;
+            }
+        }
+        if (yIdx < 7) {
+            yIdxMod = yIdx + 1;
+            if (boardArray[xIdx][yIdxMod] == (otherColor | KING)) {
+                return true;
+            }
+        }
+        if (xIdx < 7 && yIdx > 0) {
+            xIdxMod = xIdx + 1;
+            yIdxMod = yIdx - 1;
+            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                return true;
+            }
+        }
+        if (xIdx < 7) {
+            xIdxMod = xIdx + 1;
+            if (boardArray[xIdxMod][yIdx] == (otherColor | KING)) {
+                return true;
+            }
+        }
+        if (xIdx < 7 && yIdx < 7) {
+            xIdxMod = xIdx + 1;
+            yIdxMod = yIdx + 1;
+            if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion,
                                              final int colorOnTop) {
         int[][] doubledPawnsCoords = new int[8][2];
@@ -913,7 +1089,7 @@ public final class BoardArrays {
     }
 
     public static void printBoard(final int[][] boardArray) {
-        StringJoiner outerJoiner = new StringJoiner(",\\n", "new int[][] {\\n", "\\n}\\n");
+        StringJoiner outerJoiner = new StringJoiner(",\n", "new int[][] {\n", "\n}\n");
         for (int outerIndex = 0; outerIndex < 8; outerIndex++) {
             StringJoiner innerJoiner = new StringJoiner(", ", "new int[] {", "}");
             for (int innerIndex = 0; innerIndex < 8; innerIndex++) {
@@ -941,32 +1117,52 @@ public final class BoardArrays {
         String fileContents = Files.readString(boardFile.toPath());
         String[] fileLines = fileContents.split("\n");
         if (fileLines.length != 8) {
-            throw new BoardArrayFileParsingException("board file " + fileName + " doesn't have exactly 8 lines");
+            throw new BoardArrayFileParsingException("Board file " + fileName + " doesn't have exactly 8 lines.");
         }
         int[][] boardArray = new int[8][8];
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             String fileLine = fileLines[xIdx];
-            String[] lineIntStr = fileLine.split(" ");
+            String[] lineIntStr = fileLine.split(", *");
             if (lineIntStr.length != 8) {
-                throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + " doesn't have "
-                                                         + "exactly 8 space-separated values");
+                StringJoiner joiner = new StringJoiner(", ", "[", "]");
+                for (String elem : lineIntStr) {
+                    joiner.add(elem);
+                }
+                throw new BoardArrayFileParsingException("Board file " + fileName + ", line " + (xIdx + 1) + " doesn't"
+                                                         + " have exactly 8 comma-separated values. (Found `"
+                                                         + joiner.toString() + "` instead.)");
             }
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 int pieceInt;
                 try {
                     pieceInt = Integer.valueOf(lineIntStr[yIdx]);
                 } catch (NumberFormatException exception) {
-                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item "
-                                                             + yIdx + " doesn't eval as an integer", exception);
+                    throw new BoardArrayFileParsingException("Board file " + fileName + ", line " + (xIdx + 1) + ", "
+                                                             + "item " + (yIdx + 1) + " doesn't eval as an integer. "
+                                                             + "(Found `" + lineIntStr[yIdx] + "` instead.)",
+                                                             exception);
                 }
-                if (!Chessboard.VALID_PIECE_INTS.contains(pieceInt)) {
-                    throw new BoardArrayFileParsingException("board file " + fileName + ", line " + xIdx + ", item "
-                                                             + yIdx + " is an integer that's not a valid piece "
-                                                             + "representation value");
+                if (pieceInt == 0) {
+                    boardArray[xIdx][yIdx] = pieceInt;
+                } else if (!Chessboard.VALID_PIECE_INTS.contains(pieceInt)) {
+                    throw new BoardArrayFileParsingException("Board file " + fileName + ", line " + (xIdx + 1) + ", "
+                                                             + "item " + (yIdx + 1) + " is an integer that's not a "
+                                                             + "valid piece representation value. (Value is `"
+                                                             + pieceInt + "`.)");
+                } else {
+                    boardArray[xIdx][yIdx] = pieceInt;
                 }
-                boardArray[xIdx][yIdx] = pieceInt;
             }
         }
-        return boardArray;
+
+        if (Objects.isNull(findKing(boardArray, WHITE))) {
+            throw new BoardArrayFileParsingException("The imported board doesn't contain a White king. "
+                                                     + "Board is invalid.");
+        } else if (Objects.isNull(findKing(boardArray, BLACK))) {
+            throw new BoardArrayFileParsingException("The imported board doesn't contain a Black king. "
+                                                     + "Board is invalid.");
+        } else {
+            return boardArray;
+        }
     }
 }

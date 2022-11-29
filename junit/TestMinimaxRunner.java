@@ -153,7 +153,7 @@ public final class TestMinimaxRunner extends TestCase {
 
     public void setUp() {
         runner = new MinimaxRunner("white", "white");
-        movesArray = new int[32][6];
+        movesArray = new int[32][7];
     }
 
  /* public void tearDown() throws

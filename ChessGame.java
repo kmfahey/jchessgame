@@ -30,9 +30,9 @@ public class ChessGame extends JFrame {
     }
 
     public ChessGame(String fileName) throws IOException, FileNotFoundException {
-        super("");
+        super("Chess Game");
 
-        int[][] boardArray = new int[0][0];
+        int[][] boardArray = null;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
@@ -80,10 +80,13 @@ public class ChessGame extends JFrame {
             chessboard = new Chessboard(imagesManager, colorPlaying, colorOnTop);
         }
 
+        if (Objects.isNull(boardArray)) {
+            boardArray = chessboard.getBoardArray();
+            BoardArrays.printBoard(boardArray);
+        }
+
         gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
         gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
-
-
 
         BoardView boardView = new BoardView(this, boardDims, imagesManager,
                                             coordinatesManager, chessboard, colorPlaying);

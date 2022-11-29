@@ -19,7 +19,6 @@ import javax.swing.Timer;
 import javax.swing.JOptionPane;
 import javax.swing.JFrame;
 
-
 public class BoardView extends JComponent implements MouseListener, ActionListener {
 
     private static final int[][] LIGHT_COLORED_SQUARES_COORDS = new int[][] {
@@ -44,6 +43,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private int[] clickEventMovingFrom = new int[] {-1, -1};
     private Chessboard.Piece clickEventToCapturePiece = null;
     private int[] clickEventMovingTo = new int[] {-1, -1};
+    private boolean pawnHasntBeenPromotedYet = false;
 
     private Chessboard.Piece lastPieceMovedByPlayer;
     private JFrame chessGameFrame;
@@ -53,6 +53,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private final int timerDelayMlsec = 500;
     private MinimaxRunner minimaxRunner;
 
+    private Timer opposingMoveDelayTimer;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
 
     public BoardView(final JFrame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
@@ -67,6 +68,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         colorOfAI = colorPlaying == BoardArrays.WHITE ? BoardArrays.BLACK : BoardArrays.WHITE;
         minimaxRunner = new MinimaxRunner(chessboard, colorOfAI);
         repaint();
+    }
+
+    public void promotePawn(int xCoord, int yCoord, int newPiece) {
+        chessboard.promotePawn(xCoord, yCoord, newPiece);
+        pawnHasntBeenPromotedYet = false;
     }
 
     @Override
@@ -126,7 +132,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void mouseClicked(final MouseEvent event) {
-        Timer opposingMoveDelayTimer;
+        PawnPromotionDBox pawnPrmtDBox = null;
         int eventXCoord = event.getX();
         int eventYCoord = event.getY();
 
@@ -157,6 +163,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             yCoord += 1;
         }
 
+        if (xCoord > 7 || yCoord > 7) {
+            resetClickEventVars();
+            return;
+        }
+
         clickSquareCoord = new int[] {xCoord, yCoord};
 
         if (Objects.isNull(clickEventClickedPiece)) {
@@ -183,7 +194,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 exception.printStackTrace();
                 System.exit(1);
             }
-
 
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);
 
@@ -224,7 +234,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                                           clickEventMovingTo[0], clickEventMovingTo[1],
                                           Objects.nonNull(clickEventToCapturePiece)
                                               ? clickEventToCapturePiece.pieceInt() : 0,
-                                          moveIsCastlingKingside, moveIsCastlingQueenside);
+                                          moveIsCastlingKingside, moveIsCastlingQueenside, 0);
 
             try {
                 chessboard.movePiece(moveObj);
@@ -237,6 +247,15 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
             }
 
+            if ((moveObj.movingPiece().pieceInt() & Chessboard.PAWN) != 0) {
+                int pieceColor = moveObj.movingPiece().pieceInt() ^ Chessboard.PAWN;
+                int colorOnTop = chessboard.getColorOnTop();
+                if ((pieceColor == colorOnTop) ? (moveObj.toYCoord() == 7) : (moveObj.toYCoord() == 0)) {
+                    pawnHasntBeenPromotedYet = true;
+                    pawnPrmtDBox = new PawnPromotionDBox(this, moveObj.toXCoord(), moveObj.toYCoord());
+                }
+            }
+
             resetClickEventVars();
 
             repaint();
@@ -246,9 +265,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                move logic out of this mouseClicked() method and run it in its
                own execution by using an event to trigger another, unconnected
                method call. */
-            opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
-            opposingMoveDelayTimer.setActionCommand("move");
-            opposingMoveDelayTimer.setRepeats(false);
+            if (Objects.isNull(opposingMoveDelayTimer)) {
+                opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
+                opposingMoveDelayTimer.setActionCommand("move");
+                opposingMoveDelayTimer.setRepeats(true);
+            }
             opposingMoveDelayTimer.start();
         }
     }
@@ -264,9 +285,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         Chessboard.Move moveToMake;
         LocalDateTime timeRightNow;
 
-        if (!event.getActionCommand().equals("move")) {
+        if (!event.getActionCommand().equals("move") || pawnHasntBeenPromotedYet) {
             return;
         }
+
+        opposingMoveDelayTimer.stop();
 
         timeRightNow = LocalDateTime.now();
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");

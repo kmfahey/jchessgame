@@ -132,8 +132,8 @@ public class Chessboard {
     public record Piece(int pieceInt, Image pieceImage, int xCoord, int yCoord) { };
 
     public record Move(Chessboard.Piece movingPiece, int fromXCoord, int fromYCoord,
-                int toXCoord, int toYCoord, int capturedPiece, boolean isCastlingKingside,
-                boolean isCastlingQueenside) { };
+                int toXCoord, int toYCoord, int capturedPieceInt, boolean isCastlingKingside,
+                boolean isCastlingQueenside, int promotedToPieceInt) { };
 
     public Chessboard(final ImagesManager imagesManager, final int playingColor, final int onTopColor) {
         this(null, imagesManager, playingColor, onTopColor);
@@ -144,24 +144,24 @@ public class Chessboard {
         colorOnTop = onTopColor;
         colorPlaying = playingColor;
 
-        if (Objects.isNull(boardArrayVal)) {
-            boardArray = new int[8][8];
-        } else {
-            boardArray = boardArrayVal;
-        }
-
         colorOnTop = colorPlaying == WHITE ? BLACK : WHITE;
 
         HashMap<Integer, Integer[][]> piecesStartingCoords = (colorPlaying == WHITE)
                                                              ? piecesStartingLocsWhiteBelow
                                                              : piecesStartingLocsBlackBelow;
 
-        for (Entry<Integer, Integer[][]> pieceToCoords : piecesStartingCoords.entrySet()) {
-            int pieceInt = pieceToCoords.getKey();
-            for (Integer[] coords : pieceToCoords.getValue()) {
-                int xIdx = coords[0];
-                int yIdx = coords[1];
-                boardArray[xIdx][yIdx] = pieceInt;
+        if (Objects.nonNull(boardArrayVal)) {
+            boardArray = boardArrayVal;
+        } else {
+            boardArray = new int[8][8];
+
+            for (Entry<Integer, Integer[][]> pieceToCoords : piecesStartingCoords.entrySet()) {
+                int pieceInt = pieceToCoords.getKey();
+                for (Integer[] coords : pieceToCoords.getValue()) {
+                    int xIdx = coords[0];
+                    int yIdx = coords[1];
+                    boardArray[xIdx][yIdx] = pieceInt;
+                }
             }
         }
 
@@ -176,20 +176,6 @@ public class Chessboard {
         }
     }
 
-    public int[] findKing(int kingColor) {
-        int xIdx = -1;
-        int yIdx = -1;
-        for (xIdx = 0; xIdx < 8; xIdx++) {
-            for (yIdx = 0; yIdx < 8; yIdx++) {
-                if (boardArray[xIdx][yIdx] == (kingColor | KING)) {
-                    break;
-                }
-            }
-        }
-
-        return new int[] {xIdx, yIdx};
-    }
-
     public int[][] getBoardArray() {
         return boardArray;
     }
@@ -200,6 +186,16 @@ public class Chessboard {
 
     public int getColorPlaying() {
         return colorPlaying;
+    }
+
+    public void promotePawn(int xCoord, int yCoord, int newPiece) {
+        int pieceInt = boardArray[xCoord][yCoord];
+        if ((pieceInt & PAWN) == 0) {
+            throw new IllegalArgumentException("Chessboard.promotePawn() called with invalid coordinates "
+                                               + "(" + xCoord + ", " + yCoord + "): no pawn at that location.");
+        }
+        int pieceColor = pieceInt ^ PAWN;
+        boardArray[xCoord][yCoord] = pieceColor | newPiece;
     }
 
     public Piece getPieceAtCoords(final int[] coords) {
@@ -221,7 +217,7 @@ public class Chessboard {
     public int[][] getValidMoveCoordsArray(final int xCoord, final int yCoord) throws AlgorithmBadArgumentException {
         int usedArrayLength = 0;
         int coordsIndex = 0;
-        int[][] movesArray = new int[32][6];
+        int[][] movesArray = new int[32][7];
         int[][] movesCoords;
         usedArrayLength = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xCoord, yCoord,
                                                          colorPlaying, colorOnTop);
@@ -396,15 +392,30 @@ public class Chessboard {
         int capturedPieceInt = boardArray[toXCoord][toYCoord];
         String thisColorStr = (colorOfPiece == WHITE ? "White" : "Black");
 
-        boardArray[toXCoord][toYCoord] = boardArray[fromXCoord][fromYCoord];
-        boardArray[fromXCoord][fromYCoord] = 0;
+        if (moveObj.promotedToPieceInt() != 0) {
+            int promotedToPieceInt = moveObj.promotedToPieceInt();
+            int promotedFromPieceInt = boardArray[fromXCoord][fromYCoord];
+            boardArray[toXCoord][toYCoord] = promotedToPieceInt;
+            boardArray[fromXCoord][fromYCoord] = 0;
 
-        if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
-            boardArray[fromXCoord][fromYCoord] = boardArray[toXCoord][toYCoord];
-            boardArray[toXCoord][toYCoord] = capturedPieceInt;
-            throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or " + thisColorStr
-                                             + "'s King is in check and this move doesn't fix that; move can't be "
-                                             + "made.");
+            if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
+                boardArray[fromXCoord][fromYCoord] = promotedFromPieceInt;
+                boardArray[toXCoord][toYCoord] = capturedPieceInt;
+                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
+                                                 + thisColorStr + "'s King is in check and this move doesn't fix that; "
+                                                 + "move can't be made.");
+            }
+        } else {
+            boardArray[toXCoord][toYCoord] = boardArray[fromXCoord][fromYCoord];
+            boardArray[fromXCoord][fromYCoord] = 0;
+
+            if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
+                boardArray[fromXCoord][fromYCoord] = boardArray[toXCoord][toYCoord];
+                boardArray[toXCoord][toYCoord] = capturedPieceInt;
+                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
+                                                 + thisColorStr + "'s King is in check and this move doesn't fix that; "
+                                                 + "move can't be made.");
+            }
         }
 
         switch (pieceInt) {

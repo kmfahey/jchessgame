@@ -1,5 +1,6 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +40,8 @@ public class MinimaxRunner {
     private int colorOnTop;
     private int algorithmStartingDepth;
 
+    private boolean noAlphaBeta = true;
+
     private Chessboard chessboard;
 
     public MinimaxRunner(final Chessboard chessboardObj, final int aiColor) {
@@ -48,7 +51,7 @@ public class MinimaxRunner {
         colorOnTop = chessboard.getColorOnTop();
         kingsMovesSpareBoardArray = new int[8][8];
         tallyPawnsCoords = new int[8][2];
-        colorMobilitySpareMovesArray = new int[128][6];
+        colorMobilitySpareMovesArray = new int[128][7];
         algorithmStartingDepth = 6;
         evaluateBoardMemoizeMap = new HashMap<String, Double>();
     }
@@ -58,10 +61,11 @@ public class MinimaxRunner {
         int[] bestMoveArray = null;
         int[][] boardArray = new int[8][8];
         int capturedPieceInt;
+        int promotedToPieceInt;
         int fromXIdx;
         int fromYIdx;
         int movedPieceInt;
-        int[][] movesArray = new int[128][6];
+        int[][] movesArray = new int[128][7];
         int movesArrayUsedLength;
         int toXIdx;
         int toYIdx;
@@ -87,7 +91,7 @@ public class MinimaxRunner {
             } catch (KingIsInCheckException | IllegalArgumentException exception) {
                 continue;
             }
-            if (thisScore > bestScore) {
+            if (thisScore >= bestScore) {
                 bestScore = thisScore;
                 bestMoveArray = movesArray[moveIdx];
             }
@@ -107,6 +111,7 @@ public class MinimaxRunner {
         isCastlingKingside = false;
         isCastlingQueenside = false;
         capturedPieceInt = bestMoveArray[5];
+        promotedToPieceInt = bestMoveArray[6];
 
         if ((movedPieceInt & ROOK) != 0 && (capturedPieceInt & KING) != 0 && 
             (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
@@ -118,9 +123,9 @@ public class MinimaxRunner {
             }
         }
 
-        bestMoveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
-                                          fromXIdx, fromYIdx, toXIdx, toYIdx,
-                                          capturedPieceInt, isCastlingKingside, isCastlingQueenside);
+        bestMoveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx), fromXIdx, fromYIdx, 
+                                          toXIdx, toYIdx, capturedPieceInt, isCastlingKingside, isCastlingQueenside, 
+                                          promotedToPieceInt);
 
         return bestMoveObj;
     }
@@ -133,7 +138,7 @@ public class MinimaxRunner {
         double thisScore;
         double alpha = alphaArg;
         double beta = betaArg;
-        int[][] movesArray = new int[128][6];
+        int[][] movesArray = new int[128][7];
         int xIdx = 0;
         int yIdx = 0;
         int movesArrayUsedLength;
@@ -154,7 +159,7 @@ public class MinimaxRunner {
             }
 
             if (BoardArrays.isKingInCheck(boardArray, colorOpposing, colorOnTop)) {
-                int[] kingCoords = chessboard.findKing(colorsTurnItIs);
+                int[] kingCoords = BoardArrays.findKing(boardArray, colorsTurnItIs);
                 if (BoardArrays.generateKingsMoves(boardArray, null, 0, kingCoords[0], kingCoords[1],
                                                    colorsTurnItIs, colorOnTop) == 0) {
                     if (colorOpposing == colorOfAI) {
@@ -239,7 +244,7 @@ public class MinimaxRunner {
 
             moveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
                                           fromXIdx, fromYIdx, toXIdx, toYIdx,
-                                          capturedPieceInt, isCastlingKingside, isCastlingQueenside);
+                                          capturedPieceInt, isCastlingKingside, isCastlingQueenside, 0);
 
             /* The boardArray being used is the same one this chessboard
                object manipulates internally when movePiece() is called. Here
@@ -265,15 +270,27 @@ public class MinimaxRunner {
                 boardArray[5][toYIdx] = savedPieceNo1;
                 boardArray[6][fromYIdx] = savedPieceNo2;
             }
-        } else {
-            int savedPiece = movedPieceInt;
-            movedPieceInt = moveArray[0];
-            capturedPieceInt = 0;
+        } else if (moveArray[6] != 0) {
+            /* The 7th element in a moveArray is only nonzero if the move is a
+               pawn being promoted. */
+            int promotedFromPieceInt = boardArray[fromXIdx][fromYIdx];
+            savedPieceNo1 = boardArray[toXIdx][toYIdx];
+            boardArray[toXIdx][toYIdx] = moveArray[6];
+            boardArray[fromXIdx][fromYIdx] = 0;
 
             retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
-            capturedPieceInt = movedPieceInt;
-            movedPieceInt = savedPiece;
+            boardArray[fromXIdx][fromYIdx] = promotedFromPieceInt;
+            boardArray[toXIdx][toYIdx] = savedPieceNo1;
+        } else {
+            savedPieceNo1 = boardArray[toXIdx][toYIdx];
+            boardArray[toXIdx][toYIdx] = moveArray[0];
+            boardArray[fromXIdx][fromYIdx] = 0;
+
+            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
+
+            boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
+            boardArray[toXIdx][toYIdx] = savedPieceNo1;
         }
 
         return retval;
