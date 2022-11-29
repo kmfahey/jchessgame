@@ -28,6 +28,9 @@ public final class BoardArrays {
     public static final int ISOLATED = 1;
     public static final int BLOCKED = 2;
 
+    public static final String ALG_NOTN_ALPHA = "abcdefgh";
+    public static final String ALG_NOTN_NUM = "87654321";
+
     public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
 
     /* These are alternate versions of main arrays in the int-array-based board
@@ -43,6 +46,22 @@ public final class BoardArrays {
     private BoardArrays() { };
 
     private static Random randomNumberGenerator = new Random();
+
+    public static int[] algNotnToCoords(final String location) {
+        int xCoord = ALG_NOTN_ALPHA.indexOf(location.charAt(0));
+        int yCoord = ALG_NOTN_NUM.indexOf(location.charAt(1));
+        return new int[] {xCoord, yCoord};
+    }
+
+    public static String coordsToAlgNotn(final int[] coords) {
+        return coordsToAlgNotn(coords[0], coords[1]);
+    }
+
+    public static String coordsToAlgNotn(final int xCoord, final int yCoord) {
+        String alphaComponent = String.valueOf(ALG_NOTN_ALPHA.charAt(xCoord));
+        String numComponent = String.valueOf(ALG_NOTN_NUM.charAt(yCoord));
+        return alphaComponent + numComponent;
+    }
 
     public static int[] findKing(final int[][] boardArray, final int kingColor) {
         int xIdx = -1;
@@ -683,14 +702,14 @@ public final class BoardArrays {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int yIdxMod;
 
-        if (yIdx < 7 && (colorOnTop == WHITE && colorsTurnItIs == WHITE
-            || colorOnTop == BLACK && colorsTurnItIs == BLACK)) {
+        /* Y is inverse from how ranks are numbered. If the AI is playing the
+           top color on the board, then its pawns advance with decreasing
+           ranks-- but increasing Y values. If it's playing the bottom color,
+           its pawns advance with decreasing Y values. */
+        if (colorOnTop == colorsTurnItIs) {
             yIdxMod = yIdx + 1;
-        } else if (yIdx > 0 && (colorOnTop == BLACK && colorsTurnItIs == WHITE
-            || colorOnTop == WHITE && colorsTurnItIs == BLACK)) {
-            yIdxMod = yIdx - 1;
         } else {
-            return false;
+            yIdxMod = yIdx - 1;
         }
 
         for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod += 2) {

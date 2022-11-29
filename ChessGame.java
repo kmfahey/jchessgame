@@ -134,11 +134,12 @@ public class ChessGame extends JFrame implements ActionListener {
     }
 
     public static void main(final String[] args) throws IOException, FileNotFoundException {
+        ChessGame chessgame;
         if (args.length > 0) {
             String fileName = args[0];
-            chessGame = new ChessGame(fileName);
+            chessgame = new ChessGame(fileName);
         } else {
-            chessGame = new ChessGame();
+            chessgame = new ChessGame();
         }
     }
 }

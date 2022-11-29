@@ -153,8 +153,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     public void mouseClicked(final MouseEvent event) {
         int eventXCoord = event.getX();
         int eventYCoord = event.getY();
-
-        /* FIXME: this code needs to handle check and checkmate cases. */
+        HashMap<String, HashSet<String>> movesMapOfSets;
 
         Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
@@ -201,7 +200,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             Chessboard.Move moveObj;
             clickEventMovingTo = clickSquareCoord;
 
-            HashMap<String, HashSet<String>> movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
+            movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
 
             if (movesMapOfSets.size() == 0) {
                 /* Chessboard.getPossibleMovesMapOfSets() just formats the
@@ -213,16 +212,16 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 gameIsOver = true;
                 repaint();
                 return;
-            } else if (!chessboard.doesPossibleMovesContainMove(movesMapOfSets, clickEventMovingFrom, clickEventMovingTo)) {
-                /* movesMapOfSets uses algebraic notation to express
-                   board coordinates as Strings, so a Chessboard method
-                   doPossibleMovesContainMove is used to test if it associates
-                   a pair of coordinate int[]s clickEventMovingFrom and
-                   clickEventMovingTo. If not, the move is invalid and it's
-                   silently ignored. */
-                System.err.println("foo");
-                resetClickEventVars();
-                return;
+            } else { 
+                /* Integer coordinate pairs work poorly as map keys or set
+                   members, so with moveMapOfSets algebraic notation is used. */
+                String fromLocation = BoardArrays.coordsToAlgNotn(clickEventMovingFrom);
+                String toLocation = BoardArrays.coordsToAlgNotn(clickEventMovingTo);
+                if (!movesMapOfSets.containsKey(fromLocation)
+                    || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
+                    resetClickEventVars();
+                    return;
+                }
             }
 
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);

@@ -17,7 +17,7 @@ import javax.swing.WindowConstants;
 public class PopupGameOver extends JFrame {
 
     public static final int PLAYER_LOST = 0;
-    public static final int AI_LOST = 0;
+    public static final int AI_LOST = 1;
 
     private ButtonGroup buttonGroup;
     private int pawnXCoord;
@@ -28,6 +28,7 @@ public class PopupGameOver extends JFrame {
     public PopupGameOver(final int losingSide) {
         super("Game Over");
 
+        JLabel pawnPromExplLabel;
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
 
@@ -42,14 +43,14 @@ public class PopupGameOver extends JFrame {
         GridBagConstraints colorChoiceLabConstraints = buildConstraints(0, 0, 1, 2);
         colorChoiceLabConstraints.insets = new Insets(10, 20, 10, 20);
         if (losingSide == PLAYER_LOST) {
-            JLabel pawnPromExplLabel = new JLabel(
+            pawnPromExplLabel = new JLabel(
                 "<html><div style=\"text-align: center;\">"
-                       "Your king is in checkmate. You have lost."
+                       + "Your king is in checkmate. You have lost."
                 + "</div></html>");
         } else {
-            JLabel pawnPromExplLabel = new JLabel(
+            pawnPromExplLabel = new JLabel(
                 "<html><div style=\"text-align: center;\">"
-                       "The AI's king is in checkmate. You have won."
+                       + "The AI's king is in checkmate. You have won."
                 + "</div></html>");
         }
         pawnPromExplLabel.setHorizontalAlignment(SwingConstants.CENTER);
