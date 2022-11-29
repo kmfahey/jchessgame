@@ -21,6 +21,9 @@ public class Chessboard {
     public static final int LEFT = BoardArrays.LEFT;
     public static final int RIGHT = BoardArrays.RIGHT;
 
+    public static final String ALG_NOTN_ALPHA = "abcdefgh";
+    public static final String ALG_NOTN_NUM = "87654321";
+
     public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<Integer>() {{
         this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
         this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
@@ -119,6 +122,7 @@ public class Chessboard {
 
     private int colorOnTop;
     private int colorPlaying;
+    private int colorOpposing;
     private static HashMap<String, Piece> piecesLocations;
     private int[][] boardArray;
     private boolean blackKingsRookHasMoved = false;
@@ -142,6 +146,7 @@ public class Chessboard {
                       final int onTopColor) {
         colorOnTop = onTopColor;
         colorPlaying = playingColor;
+        colorOpposing = colorPlaying == WHITE ? BLACK : WHITE;
 
         colorOnTop = colorPlaying == WHITE ? BLACK : WHITE;
 
@@ -187,6 +192,10 @@ public class Chessboard {
         return colorPlaying;
     }
 
+    public int getColorOpposing() {
+        return colorOpposing;
+    }
+
     public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
         int pieceInt = boardArray[xCoord][yCoord];
         if ((pieceInt & PAWN) == 0) {
@@ -209,11 +218,70 @@ public class Chessboard {
         return new Piece(pieceInt, pieceImages.get(pieceInt), xCoord, yCoord);
     }
 
-    public int[][] getValidMoveCoordsArray(final int[] coords) throws AlgorithmBadArgumentException {
+    private int[] algNotnToCoords(final String location) {
+        int xCoord = ALG_NOTN_ALPHA.indexOf(location.charAt(0));
+        int yCoord = ALG_NOTN_NUM.indexOf(location.charAt(1));
+        return new int[] {xCoord, yCoord};
+    }
+
+    private String coordsToAlgNotn(final int[] coords) {
+        return coordsToAlgNotn(coords[0], coords[1]);
+    }
+
+    private String coordsToAlgNotn(final int xCoord, final int yCoord) {
+        String alphaComponent = String.valueOf(ALG_NOTN_ALPHA.charAt(xCoord));
+        String numComponent = String.valueOf(ALG_NOTN_NUM.charAt(yCoord));
+        return alphaComponent + numComponent;
+    }
+
+    public boolean doesPossibleMovesContainMove(final HashMap<String, HashSet<String>> moveMapOfSets,
+                                                final int[] fromCoords, final int[] toCoords) {
+        return doesPossibleMovesContainMove(moveMapOfSets, fromCoords[0], fromCoords[1], toCoords[0], toCoords[1]);
+    }
+
+    public boolean doesPossibleMovesContainMove(final HashMap<String, HashSet<String>> moveMapOfSets,
+                                                final int fromXCoord, final int fromYCoord,
+                                                final int toXCoord, final int toYCoord) {
+        String fromLocation = coordsToAlgNotn(fromXCoord, fromYCoord);
+        if (!moveMapOfSets.containsKey(fromLocation)) {
+            return false;
+        }
+        String toLocation = coordsToAlgNotn(toXCoord, toYCoord);
+        return moveMapOfSets.get(fromLocation).contains(toLocation);
+    }
+
+    public HashMap<String, HashSet<String>> getPossibleMovesMapOfSets() {
+        int[][] movesArray = new int[128][7];
+
+        int movesArrayUsedLength = BoardArrays.generatePossibleMoves(boardArray, movesArray, colorPlaying, colorOnTop);
+
+        HashMap<String, HashSet<String>> movesMapOfSets = new HashMap<String, HashSet<String>>();
+
+        for (int index = 0; index < movesArrayUsedLength; index++) {
+            int[] moveArray = movesArray[index];
+            int fromXIdx = moveArray[1];
+            int fromYIdx = moveArray[2];
+            int toXIdx = moveArray[3];
+            int toYIdx = moveArray[4];
+            String fromLocation = coordsToAlgNotn(fromXIdx, fromYIdx);
+            String toLocation = coordsToAlgNotn(toXIdx, toYIdx);
+            if (!movesMapOfSets.containsKey(fromLocation)) {
+                HashSet<String> newSet = new HashSet<String>();
+                newSet.add(toLocation);
+                movesMapOfSets.put(fromLocation, newSet);
+            } else {
+                movesMapOfSets.get(fromLocation).add(toLocation);
+            }
+        }
+
+        return movesMapOfSets;
+    }
+
+    public int[][] getValidMoveCoordsArray(final int[] coords) throws IllegalArgumentException {
         return getValidMoveCoordsArray(coords[0], coords[1]);
     }
 
-    public int[][] getValidMoveCoordsArray(final int xCoord, final int yCoord) throws AlgorithmBadArgumentException {
+    public int[][] getValidMoveCoordsArray(final int xCoord, final int yCoord) throws IllegalArgumentException {
         int usedArrayLength = 0;
         int coordsIndex = 0;
         int[][] movesArray = new int[32][7];

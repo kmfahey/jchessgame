@@ -12,6 +12,8 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
 import javax.swing.JComponent;
@@ -55,9 +57,13 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private int colorOfAI;
     private final int timerDelayMlsec = 500;
     private MinimaxRunner minimaxRunner;
+    private boolean gameIsOver = false;
 
     private Timer opposingMoveDelayTimer;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
+    private int turnCount;
+    private boolean whiteHasMoved;
+    private boolean blackHasMoved;
 
     public BoardView(final JFrame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
                      final CoordinatesManager coordMgr, final Chessboard chessboardObj,
@@ -70,6 +76,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         colorOfPlayer = colorPlaying;
         colorOfAI = (colorPlaying == BoardArrays.WHITE) ? BoardArrays.BLACK : BoardArrays.WHITE;
         minimaxRunner = new MinimaxRunner(chessboard, colorOfAI);
+        turnCount = 0;
+        whiteHasMoved = false;
+        blackHasMoved = false;
         repaint();
 
         if (colorOfAI == BoardArrays.WHITE) {
@@ -192,16 +201,28 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             Chessboard.Move moveObj;
             clickEventMovingTo = clickSquareCoord;
 
-            try {
-                int[][] movesCoords = chessboard.getValidMoveCoordsArray(clickEventMovingFrom);
-                if (!BoardArrays.arrayOfCoordsContainsCoord(movesCoords, clickEventMovingTo)) {
-                    resetClickEventVars();
-                    return;
-                }
+            HashMap<String, HashSet<String>> movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
 
-            } catch (AlgorithmBadArgumentException exception) {
-                exception.printStackTrace();
-                System.exit(1);
+            if (movesMapOfSets.size() == 0) {
+                /* Chessboard.getPossibleMovesMapOfSets() just formats the
+                   output of BoardArrays.getPossibleMoves() into a mapping of
+                   sets. If that output is zero length, the map of sets will be
+                   too. That only happens when that side's king is in checkmate,
+                   so that means the player has lost. */
+                PopupGameOver popupGameOver = new PopupGameOver(PopupGameOver.PLAYER_LOST);
+                gameIsOver = true;
+                repaint();
+                return;
+            } else if (!chessboard.doesPossibleMovesContainMove(movesMapOfSets, clickEventMovingFrom, clickEventMovingTo)) {
+                /* movesMapOfSets uses algebraic notation to express
+                   board coordinates as Strings, so a Chessboard method
+                   doPossibleMovesContainMove is used to test if it associates
+                   a pair of coordinate int[]s clickEventMovingFrom and
+                   clickEventMovingTo. If not, the move is invalid and it's
+                   silently ignored. */
+                System.err.println("foo");
+                resetClickEventVars();
+                return;
             }
 
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);
@@ -256,6 +277,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
             }
 
+            if (colorOfPlayer == BoardArrays.WHITE) {
+                whiteHasMoved = true;
+            } else {
+                blackHasMoved = true;
+            }
+
             if ((moveObj.movingPiece().pieceInt() & Chessboard.PAWN) != 0) {
                 int pieceColor = moveObj.movingPiece().pieceInt() ^ Chessboard.PAWN;
                 int colorOnTop = chessboard.getColorOnTop();
@@ -264,6 +291,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                     pawnToPromoteCoords = new int[] {moveObj.toXCoord(), moveObj.toYCoord()};
                     popupPawnPromotion = new PopupPawnPromotion(this, moveObj.toXCoord(), moveObj.toYCoord());
                 }
+            }
+
+            if (whiteHasMoved && blackHasMoved) {
+                turnCount++;
+                whiteHasMoved = false;
+                blackHasMoved = false;
             }
 
             resetClickEventVars();
@@ -321,8 +354,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - starting algorithm");
 
         try {
-            moveToMake = minimaxRunner.algorithmTopLevel();
-        } catch (AlgorithmBadArgumentException | AlgorithmInternalException exception) {
+            moveToMake = minimaxRunner.algorithmTopLevel(turnCount);
+        } catch (AlgorithmInternalException | CastlingNotPossibleException | IllegalArgumentException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
             JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName
                                                           + ":\n" + exception.getMessage());
@@ -330,9 +363,15 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             exception.printStackTrace();
             System.exit(1);
             return;
-        } catch (KingIsInCheckmateException exception) {
-            JOptionPane.showMessageDialog(chessGameFrame, exception.getMessage());
-            System.exit(1);
+        }
+
+        timeRightNow = LocalDateTime.now();
+        System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
+
+        if (Objects.isNull(moveToMake.movingPiece())) {
+            PopupGameOver popupGameOver = new PopupGameOver(PopupGameOver.AI_LOST);
+            gameIsOver = true;
+            repaint();
             return;
         }
 
@@ -342,8 +381,17 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             return;
         }
 
-        timeRightNow = LocalDateTime.now();
-        System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
+        if (colorOfAI == BoardArrays.WHITE) {
+            whiteHasMoved = true;
+        } else {
+            blackHasMoved = true;
+        }
+
+        if (whiteHasMoved && blackHasMoved) {
+            turnCount++;
+            whiteHasMoved = false;
+            blackHasMoved = false;
+        }
 
         repaint();
     }

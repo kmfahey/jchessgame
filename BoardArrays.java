@@ -1,14 +1,13 @@
 package com.kmfahey.jchessgame;
 
-import java.util.Arrays;
-import java.util.Random;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.StringJoiner;
-import java.util.Random;
-import java.nio.file.Files;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Random;
+import java.util.StringJoiner;
 
 public final class BoardArrays {
 
@@ -61,7 +60,7 @@ public final class BoardArrays {
         return null;
     }
 
-    public static void shuffleMovesArray(int[][] movesArray, int usedLength) {
+    public static void shuffleMovesArray(final int[][] movesArray, final int usedLength) {
         /* This is Fisher–Yates shuffle I'm told. idk I just copied code off
            stackoverflow as is best practice :) */
         for (int startingIndex = usedLength - 1; startingIndex > 0; startingIndex--) {
@@ -75,7 +74,7 @@ public final class BoardArrays {
 
     public static int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray,
                                             final int colorsTurnItIs, final int colorOnTop
-                                            ) throws AlgorithmBadArgumentException {
+                                            ) throws IllegalArgumentException {
         int colorOpposing = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int moveIdx = 0;
         boolean kingIsInCheck;
@@ -85,10 +84,11 @@ public final class BoardArrays {
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 int pieceInt = boardArray[xIdx][yIdx];
-                if (pieceInt == 0 || (pieceInt & colorOpposing) != 0
+                if (pieceInt == 0 || (pieceInt & colorOpposing) != 0) {
+                    continue;
+                } else if (kingIsInCheck && (pieceInt ^ colorsTurnItIs) != KING) {
                     /* If the king is in check the AI must move their king out
                        of check, so pieces other than the king are skipped. */
-                    || kingIsInCheck && (pieceInt ^ colorsTurnItIs) != KING) {
                     continue;
                 }
                 moveIdx = generatePieceMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
@@ -100,7 +100,7 @@ public final class BoardArrays {
 
     public static int generatePieceMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdx,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
-                                  ) throws AlgorithmBadArgumentException {
+                                  ) throws IllegalArgumentException {
         int pieceInt = boardArray[xIdx][yIdx];
 
         switch (pieceInt ^ colorsTurnItIs) {
@@ -125,7 +125,7 @@ public final class BoardArrays {
 
     public static int generatePawnsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
-                                  ) throws AlgorithmBadArgumentException {
+                                  ) throws IllegalArgumentException {
         int colorOnBottom = colorOnTop == WHITE ? BLACK : WHITE;
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int pawnPieceInt;
@@ -136,7 +136,7 @@ public final class BoardArrays {
         pawnPieceInt = boardArray[xIdx][yIdx];
 
         if (pawnPieceInt != (colorsTurnItIs | PAWN)) {
-            throw new AlgorithmBadArgumentException("generatePawnsMoves() called with coordinates that point to cell "
+            throw new IllegalArgumentException("generatePawnsMoves() called with coordinates that point to cell "
                                                     + "on board that's not a pawn or not the color whose turn it is");
         }
 
@@ -267,14 +267,14 @@ public final class BoardArrays {
 
     public static int generateRooksMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs
-                                  ) throws AlgorithmBadArgumentException {
+                                  ) throws IllegalArgumentException {
         int rookPieceInt;
         int moveIdx = moveIdxArg;
 
         rookPieceInt = boardArray[xIdx][yIdx];
 
         if (rookPieceInt != (colorsTurnItIs | ROOK)) {
-            throw new AlgorithmBadArgumentException("generateRooksMoves() called with coordinates that point to cell "
+            throw new IllegalArgumentException("generateRooksMoves() called with coordinates that point to cell "
                                                     + "on board that's not a rook or not the color whose turn it is");
         }
 
@@ -332,14 +332,14 @@ public final class BoardArrays {
 
     public static int generateBishopsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                     final int xIdx, final int yIdx, final int colorsTurnItIs
-                                    ) throws AlgorithmBadArgumentException {
+                                    ) throws IllegalArgumentException {
         int bishopPieceInt;
         int moveIdx = moveIdxArg;
 
         bishopPieceInt = boardArray[xIdx][yIdx];
 
         if (bishopPieceInt != (colorsTurnItIs | BISHOP)) {
-            throw new AlgorithmBadArgumentException("generateBishopsMoves() called with coordinates that point to "
+            throw new IllegalArgumentException("generateBishopsMoves() called with coordinates that point to "
                                                     + "cell on board that's not a bishop or not the color whose turn "
                                                     + "it is");
         }
@@ -398,14 +398,14 @@ public final class BoardArrays {
 
     public static int generateKnightsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                     final int xIdx, final int yIdx, final int colorsTurnItIs
-                                    ) throws AlgorithmBadArgumentException {
+                                    ) throws IllegalArgumentException {
         int knightPieceInt;
         int moveIdx = moveIdxArg;
 
         knightPieceInt = boardArray[xIdx][yIdx];
 
         if (knightPieceInt != (colorsTurnItIs | KNIGHT | LEFT) && knightPieceInt != (colorsTurnItIs | KNIGHT | RIGHT)) {
-            throw new AlgorithmBadArgumentException("generateKnightsMoves() called with coordinates that point to "
+            throw new IllegalArgumentException("generateKnightsMoves() called with coordinates that point to "
                                                     + "cell on board that's not a knight or not the color whose turn "
                                                     + "it is");
         }
@@ -435,14 +435,14 @@ public final class BoardArrays {
 
     public static int generateQueensMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                    final int xIdx, final int yIdx, final int colorsTurnItIs
-                                   ) throws AlgorithmBadArgumentException {
+                                   ) throws IllegalArgumentException {
         int queenPieceInt;
         int moveIdx = moveIdxArg;
 
         queenPieceInt = boardArray[xIdx][yIdx];
 
         if (queenPieceInt != (colorsTurnItIs | QUEEN)) {
-            throw new AlgorithmBadArgumentException("generateQueensMoves() called with coordinates that point to cell "
+            throw new IllegalArgumentException("generateQueensMoves() called with coordinates that point to cell "
                                                     + "on board that's not a queen or not the color whose turn it is");
         }
 
@@ -547,7 +547,7 @@ public final class BoardArrays {
 
     public static int generateKingsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                          final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
-                                         ) throws AlgorithmBadArgumentException {
+                                         ) throws IllegalArgumentException {
         int colorThreatening = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int pieceInt;
         int atLocPieceInt;
@@ -558,7 +558,7 @@ public final class BoardArrays {
         pieceInt = boardArray[xIdx][yIdx];
 
         if (pieceInt != (colorsTurnItIs | KING)) {
-            throw new AlgorithmBadArgumentException("generateKingsMoves() called with coordinates that point to cell "
+            throw new IllegalArgumentException("generateKingsMoves() called with coordinates that point to cell "
                                                     + "on board that's not a king or not the color whose turn it is");
         }
 
@@ -617,16 +617,16 @@ public final class BoardArrays {
 
     private static void setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
                                      final int startXIdx, final int startYIdx, final int endXIdx, final int endYIdx,
-                                     final int capturedPiece) throws AlgorithmBadArgumentException {
+                                     final int capturedPiece) throws IllegalArgumentException {
         setMoveToMovesArray(movesArray, moveIdx, pieceInt, startXIdx, startYIdx, endXIdx, endYIdx, capturedPiece, 0);
     }
 
     private static void setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
                                      final int startXIdx, final int startYIdx, final int endXIdx, final int endYIdx,
                                      final int capturedPiece, final int promotedToPieceInt
-                                     ) throws AlgorithmBadArgumentException {
+                                     ) throws IllegalArgumentException {
         if (movesArray[moveIdx][0] != 0) {
-            throw new AlgorithmBadArgumentException("setMoveToMovesArray() called with moveIdx arg pointing to "
+            throw new IllegalArgumentException("setMoveToMovesArray() called with moveIdx arg pointing to "
                                                     + "non-zero entry in movesArray argument");
         }
         movesArray[moveIdx][0] = pieceInt;
@@ -675,7 +675,6 @@ public final class BoardArrays {
                 }
             }
         }
-
         return kingIsInCheck;
     }
 
