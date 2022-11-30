@@ -199,7 +199,7 @@ public final class BoardArrays {
                 moveIdx++;
             }
         }
-        if (xIdx < 7 && (boardArray[xIdx + 1][yIdxMod] & otherColor) != 0) {
+        if (xIdx < 7 && (boardArray[xIdx + 1][yIdxMod] & otherColor) != 0 && (boardArray[xIdx + 1][yIdxMod] ^ otherColor) != KING) {
             xIdxMod = xIdx + 1;
             if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
@@ -236,7 +236,7 @@ public final class BoardArrays {
                 moveIdx++;
             }
         }
-        if (xIdx > 0 && (boardArray[xIdx - 1][yIdxMod] & otherColor) != 0) {
+        if (xIdx > 0 && (boardArray[xIdx - 1][yIdxMod] & otherColor) != 0 && (boardArray[xIdx - 1][yIdxMod] ^ otherColor) != KING) {
             xIdxMod = xIdx - 1;
             if (yIdxMod == 7 && colorsTurnItIs == colorOnTop) {
                 for (int newPiece : PAWN_PROMOTION_PIECES) {
@@ -287,6 +287,7 @@ public final class BoardArrays {
     public static int generateRooksMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs
                                   ) throws IllegalArgumentException {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int rookPieceInt;
         int moveIdx = moveIdxArg;
 
@@ -301,9 +302,11 @@ public final class BoardArrays {
             for (int yIdxMod = yIdx + 1;
                  yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                    boardArray[xIdx][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                        boardArray[xIdx][yIdxMod]);
+                }
+                if (boardArray[xIdx][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -313,9 +316,11 @@ public final class BoardArrays {
             for (int yIdxMod = yIdx - 1;
                  yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                    boardArray[xIdx][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                        boardArray[xIdx][yIdxMod]);
+                }
+                if (boardArray[xIdx][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -325,9 +330,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx + 1;
                  xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                    boardArray[xIdxMod][yIdx]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                        boardArray[xIdxMod][yIdx]);
+                }
+                if (boardArray[xIdxMod][yIdx] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -337,9 +344,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx - 1;
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                    boardArray[xIdxMod][yIdx]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                        boardArray[xIdxMod][yIdx]);
+                }
+                if (boardArray[xIdxMod][yIdx] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -352,6 +361,7 @@ public final class BoardArrays {
     public static int generateBishopsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                     final int xIdx, final int yIdx, final int colorsTurnItIs
                                     ) throws IllegalArgumentException {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int bishopPieceInt;
         int moveIdx = moveIdxArg;
 
@@ -367,9 +377,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1;
                 xIdxMod < 8 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
                 xIdxMod++, yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                        boardArray[xIdxMod][yIdxMod]);
+                }
+                if (boardArray[xIdxMod][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -379,9 +391,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1;
                 xIdxMod >= 0 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
                 xIdxMod--, yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                        boardArray[xIdxMod][yIdxMod]);
+                }
+                if (boardArray[xIdxMod][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -391,9 +405,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1;
                 xIdxMod < 8 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
                 xIdxMod++, yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                        boardArray[xIdxMod][yIdxMod]);
+                }
+                if (boardArray[xIdxMod][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -403,9 +419,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1;
                 xIdxMod >= 0 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
                 xIdxMod--, yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                        boardArray[xIdxMod][yIdxMod]);
+                }
+                if (boardArray[xIdxMod][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -418,6 +436,7 @@ public final class BoardArrays {
     public static int generateKnightsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                     final int xIdx, final int yIdx, final int colorsTurnItIs
                                     ) throws IllegalArgumentException {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int knightPieceInt;
         int moveIdx = moveIdxArg;
 
@@ -439,7 +458,8 @@ public final class BoardArrays {
                 int yIdxMod = yIdx + yIdxDelta;
 
                 if (xIdxMod > 7 || xIdxMod < 0 || yIdxMod > 7 || yIdxMod < 0
-                    || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
+                    || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0
+                    || (boardArray[xIdxMod][yIdxMod] ^ otherColor) == KING) {
                     continue;
                 }
 
@@ -455,6 +475,7 @@ public final class BoardArrays {
     public static int generateQueensMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                    final int xIdx, final int yIdx, final int colorsTurnItIs
                                    ) throws IllegalArgumentException {
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int queenPieceInt;
         int moveIdx = moveIdxArg;
 
@@ -469,9 +490,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx + 1;
                 xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                 xIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                    boardArray[xIdxMod][yIdx]);
-                if (movesArray[moveIdx][5] != 0) {
+                if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                        boardArray[xIdxMod][yIdx]);
+                }
+                if (boardArray[xIdxMod][yIdx] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -480,9 +503,11 @@ public final class BoardArrays {
                 for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1;
                      xIdxMod < 8 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
                      xIdxMod++, yIdxMod++, moveIdx++) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
-                    if (movesArray[moveIdx][5] != 0) {
+                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod]);
+                    }
+                    if (boardArray[xIdxMod][yIdxMod] != 0) {
                         moveIdx++;
                         break;
                     }
@@ -491,9 +516,11 @@ public final class BoardArrays {
             if (yIdx > 0) {
                 for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0
                      && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0; xIdxMod++, yIdxMod--, moveIdx++) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
-                    if (movesArray[moveIdx][5] != 0) {
+                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod]);
+                    }
+                    if (boardArray[xIdxMod][yIdxMod] != 0) {
                         moveIdx++;
                         break;
                     }
@@ -504,9 +531,11 @@ public final class BoardArrays {
             for (int yIdxMod = yIdx + 1;
                  yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod++, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                    boardArray[xIdx][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                 if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                        boardArray[xIdx][yIdxMod]);
+                }
+                if (boardArray[xIdx][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -516,9 +545,11 @@ public final class BoardArrays {
             for (int yIdxMod = yIdx - 1;
                  yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                    boardArray[xIdx][yIdxMod]);
-                if (movesArray[moveIdx][5] != 0) {
+                 if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                        boardArray[xIdx][yIdxMod]);
+                }
+                if (boardArray[xIdx][yIdxMod] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -528,9 +559,11 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx - 1;
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod--, moveIdx++) {
-                setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                    boardArray[xIdxMod][yIdx]);
-                if (movesArray[moveIdx][5] != 0) {
+                 if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
+                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                        boardArray[xIdxMod][yIdx]);
+                }
+                if (boardArray[xIdxMod][yIdx] != 0) {
                     moveIdx++;
                     break;
                 }
@@ -539,9 +572,11 @@ public final class BoardArrays {
                 for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1;
                      xIdxMod >= 0 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
                      xIdxMod--, yIdxMod++, moveIdx++) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
-                    if (movesArray[moveIdx][5] != 0) {
+                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod]);
+                    }
+                    if (boardArray[xIdxMod][yIdxMod] != 0) {
                         moveIdx++;
                         break;
                     }
@@ -551,9 +586,11 @@ public final class BoardArrays {
                 for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1;
                      xIdxMod >= 0 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
                      xIdxMod--, yIdxMod--, moveIdx++) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
-                    if (movesArray[moveIdx][5] != 0) {
+                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                            boardArray[xIdxMod][yIdxMod]);
+                    }
+                    if (boardArray[xIdxMod][yIdxMod] != 0) {
                         moveIdx++;
                         break;
                     }
@@ -567,7 +604,7 @@ public final class BoardArrays {
     public static int generateKingsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                          final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
                                          ) throws IllegalArgumentException {
-        int colorThreatening = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
+        int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
         int pieceInt;
         int atLocPieceInt;
         int kingPieceInt;
@@ -598,13 +635,14 @@ public final class BoardArrays {
                 int xIdxMod = xIdx + xIdxDelta;
                 int yIdxMod = yIdx + yIdxDelta;
                 if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
-                    || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0) {
+                    || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0
+                    || (boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
                     continue;
                 }
 
                 atLocPieceInt = kingsMovesSpareBoardArray[xIdxMod][yIdxMod];
                 kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = kingPieceInt;
-                kingIsInCheckHere = isKingInCheck(kingsMovesSpareBoardArray, colorThreatening, colorOnTop);
+                kingIsInCheckHere = isKingInCheck(kingsMovesSpareBoardArray, otherColor, colorOnTop);
                 kingsMovesSpareBoardArray[xIdxMod][yIdxMod] = atLocPieceInt;
 
                 if (kingIsInCheckHere) {
@@ -619,15 +657,31 @@ public final class BoardArrays {
             }
         }
 
-        if (yIdx == 0 || yIdx == 7 && xIdx == 3) {
+        if ((yIdx == 0 || yIdx == 7) && xIdx == 3) {
             if (boardArray[2][yIdx] == 0 && boardArray[1][yIdx] == 0
                 && (boardArray[0][yIdx] == (colorsTurnItIs | ROOK))) {
-                setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx, boardArray[0][0]);
-                moveIdx++;
+
+                atLocPieceInt = kingsMovesSpareBoardArray[2][yIdx];
+                kingsMovesSpareBoardArray[2][yIdx] = kingPieceInt;
+                kingIsInCheckHere = isKingInCheck(kingsMovesSpareBoardArray, otherColor, colorOnTop);
+                kingsMovesSpareBoardArray[2][yIdx] = atLocPieceInt;
+                
+                if (!kingIsInCheckHere) {
+                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx, boardArray[0][yIdx]);
+                    moveIdx++;
+                }
             } else if (boardArray[4][yIdx] == 0 && boardArray[5][yIdx] == 0 && boardArray[6][yIdx] == 0
                        && (boardArray[7][yIdx] == (colorsTurnItIs | ROOK))) {
-                setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx, boardArray[7][yIdx]);
-                moveIdx++;
+
+                atLocPieceInt = kingsMovesSpareBoardArray[6][yIdx];
+                kingsMovesSpareBoardArray[6][yIdx] = kingPieceInt;
+                kingIsInCheckHere = isKingInCheck(kingsMovesSpareBoardArray, otherColor, colorOnTop);
+                kingsMovesSpareBoardArray[6][yIdx] = atLocPieceInt;
+                
+                if (!kingIsInCheckHere) {
+                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx, boardArray[7][yIdx]);
+                    moveIdx++;
+                }
             }
         }
 
