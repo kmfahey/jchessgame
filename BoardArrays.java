@@ -636,7 +636,7 @@ public final class BoardArrays {
                 int yIdxMod = yIdx + yIdxDelta;
                 if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
                     || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0
-                    || (boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
+                    || (boardArray[xIdxMod][yIdxMod] ^ otherColor) == KING) {
                     continue;
                 }
 

@@ -32,6 +32,8 @@ public class ChessGame extends JFrame implements ActionListener {
     private PopupColorChoice popupColorChoice;
     private String fileName = null;
     private Timer colorChoicePopupDelayTimer;
+    private Chessboard chessboard = null;
+    private BoardView boardView;
 
     public ChessGame() throws IOException, FileNotFoundException {
         this(null);
@@ -65,6 +67,12 @@ public class ChessGame extends JFrame implements ActionListener {
 
         imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
 
+        chooseColor();
+    }
+
+    public void chooseColor() {
+        colorPlaying = -1;
+
         popupColorChoice = new PopupColorChoice(this);
 
         colorChoicePopupDelayTimer = new Timer(timerDelayMlsec, this);
@@ -75,10 +83,10 @@ public class ChessGame extends JFrame implements ActionListener {
 
     public void setColorPlaying(final int colorToPlay) {
         colorPlaying = colorToPlay;
+        colorOnTop = colorPlaying == BoardArrays.WHITE ? BoardArrays.BLACK : BoardArrays.WHITE;
     }
 
     public void actionPerformed(final ActionEvent event) {
-        Chessboard chessboard;
         int[][] boardArray = null;
 
         if (!event.getActionCommand().equals("resume")) {
@@ -102,29 +110,45 @@ public class ChessGame extends JFrame implements ActionListener {
                 exception.printStackTrace();
                 System.exit(1);
             }
-            chessboard = new Chessboard(boardArray, imagesManager, colorPlaying, colorOnTop);
+            if (Objects.nonNull(chessboard)) {
+                chessboard.setColors(colorPlaying, colorOnTop);
+                chessboard.setBoardArray(boardArray);
+                chessboard.layOutPieces();
+            } else {
+                chessboard = new Chessboard(boardArray, imagesManager, colorPlaying, colorOnTop);
+            }
         } else {
-            chessboard = new Chessboard(imagesManager, colorPlaying, colorOnTop);
+            if (Objects.nonNull(chessboard)) {;
+                chessboard.setColors(colorPlaying, colorOnTop);
+                chessboard.layOutPieces();
+            } else {
+                chessboard = new Chessboard(imagesManager, colorPlaying, colorOnTop);
+                colorOnTop = (colorPlaying == BoardArrays.WHITE) ? BoardArrays.BLACK : BoardArrays.WHITE;
+            }
         }
 
-        colorOnTop = (colorPlaying == BoardArrays.WHITE) ? BoardArrays.BLACK : BoardArrays.WHITE;
+        if (Objects.nonNull(boardView)) {
+            if (colorPlaying == BoardArrays.BLACK) {
+                boardView.aiMovesFirst();
+            } else {
+                boardView.repaint();
+            }
+        } else {
+            GridBagConstraints boardConstraints = new GridBagConstraints();
+            boardConstraints.fill = GridBagConstraints.BOTH;
+            boardConstraints.gridy = 0;
+            boardConstraints.gridx = 0;
+            boardConstraints.gridheight = 1;
+            boardConstraints.gridwidth = 1;
+            boardConstraints.insets = new Insets(20, 20, 20, 20);
 
-        GridBagConstraints boardConstraints = new GridBagConstraints();
-        boardConstraints.fill = GridBagConstraints.BOTH;
-        boardConstraints.gridy = 0;
-        boardConstraints.gridx = 0;
-        boardConstraints.gridheight = 1;
-        boardConstraints.gridwidth = 1;
-        boardConstraints.insets = new Insets(20, 20, 20, 20);
-
-        gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
-        gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
-
-        BoardView boardView = new BoardView(this, boardDims, imagesManager,
-                                            coordinatesManager, chessboard, colorPlaying);
-        gamePanel.add(boardView, boardConstraints);
-
-        boardView.addMouseListener(boardView);
+            gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
+            gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
+            
+            boardView = new BoardView(this, boardDims, imagesManager, coordinatesManager, chessboard, colorPlaying);
+            gamePanel.add(boardView, boardConstraints);
+            boardView.addMouseListener(boardView);
+        }
 
         validate();
         pack();

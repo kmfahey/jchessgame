@@ -141,29 +141,13 @@ public class Chessboard {
 
     public Chessboard(final int[][] boardArrayVal, final ImagesManager imagesManager, final int playingColor,
                       final int onTopColor) {
-        colorOnTop = onTopColor;
-        colorPlaying = playingColor;
-        colorOpposing = colorPlaying == WHITE ? BLACK : WHITE;
 
-        colorOnTop = colorPlaying == WHITE ? BLACK : WHITE;
-
-        HashMap<Integer, Integer[][]> piecesStartingCoords = (colorPlaying == WHITE)
-                                                             ? piecesStartingLocsWhiteBelow
-                                                             : piecesStartingLocsBlackBelow;
+        setColors(playingColor, onTopColor);
 
         if (Objects.nonNull(boardArrayVal)) {
             boardArray = boardArrayVal;
         } else {
-            boardArray = new int[8][8];
-
-            for (Entry<Integer, Integer[][]> pieceToCoords : piecesStartingCoords.entrySet()) {
-                int pieceInt = pieceToCoords.getKey();
-                for (Integer[] coords : pieceToCoords.getValue()) {
-                    int xIdx = coords[0];
-                    int yIdx = coords[1];
-                    boardArray[xIdx][yIdx] = pieceInt;
-                }
-            }
+            layOutPieces();
         }
 
         /* We only need the ImagesManager object to instantiate Piece objects
@@ -177,8 +161,45 @@ public class Chessboard {
         }
     }
 
+    public void setColors(final int playingColor, final int onTopColor) {
+        colorPlaying = playingColor;
+        colorOnTop = onTopColor;
+        colorOpposing = colorPlaying == WHITE ? BLACK : WHITE;
+    }
+
+    public void layOutPieces() {
+        HashMap<Integer, Integer[][]> piecesStartingCoords;
+
+        if (colorPlaying == WHITE) {
+            piecesStartingCoords = piecesStartingLocsWhiteBelow;
+        } else {
+            piecesStartingCoords = piecesStartingLocsBlackBelow;
+        }
+
+        boardArray = new int[8][8];
+
+        for (Entry<Integer, Integer[][]> pieceToCoords : piecesStartingCoords.entrySet()) {
+            int pieceInt = pieceToCoords.getKey();
+            for (Integer[] coords : pieceToCoords.getValue()) {
+                int xIdx = coords[0];
+                int yIdx = coords[1];
+                boardArray[xIdx][yIdx] = pieceInt;
+            }
+        }
+    }
+
     public int[][] getBoardArray() {
         return boardArray;
+    }
+
+    public void setBoardArray(int[][] arrayBoard) {
+        boardArray = new int[8][8];
+
+        for (int xIdx = 0; xIdx < 8; xIdx++) {
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                boardArray[xIdx][yIdx] = arrayBoard[xIdx][yIdx];
+            }
+        }
     }
 
     public int getColorOnTop() {

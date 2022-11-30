@@ -24,9 +24,14 @@ public class PopupGameOver extends JFrame {
     private int pawnYCoord;
     private int newPiece;
     private Random randomNumberGenerator = new Random();
+    private ChessGame chessgame;
+    private BoardView boardview;
 
-    public PopupGameOver(final int losingSide) {
+    public PopupGameOver(final ChessGame chessGameObj, final BoardView boardViewObj, final int losingSide) {
         super("Game Over");
+
+        chessgame = chessGameObj;
+        boardview = boardViewObj;
 
         JLabel pawnPromExplLabel;
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -57,6 +62,11 @@ public class PopupGameOver extends JFrame {
         pawnPromExplLabel.setVerticalAlignment(SwingConstants.CENTER);
         dboxPane.add(pawnPromExplLabel, colorChoiceLabConstraints);
 
+        JButton playAgainButton = buildPlayAgainButton();
+        GridBagConstraints playAgainButtonConstraints = buildConstraints(1, 0, 1, 1);
+        playAgainButtonConstraints.insets = new Insets(20, 40, 20, 40);
+        dboxPane.add(playAgainButton, playAgainButtonConstraints);
+
         JButton okayButton = buildOkayButton();
         GridBagConstraints okayButtonConstraints = buildConstraints(1, 1, 1, 1);
         okayButtonConstraints.insets = new Insets(20, 40, 20, 40);
@@ -85,6 +95,20 @@ public class PopupGameOver extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent event) {
+                enclosingDbox.dispose();
+            }
+        });
+        return button;
+    }
+
+    private JButton buildPlayAgainButton() {
+        PopupGameOver enclosingDbox = this;
+        JButton button = new JButton("Play Again");
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(final ActionEvent event) {
+                boardview.blankBoard();
+                chessgame.chooseColor();
                 enclosingDbox.dispose();
             }
         });

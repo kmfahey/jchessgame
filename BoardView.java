@@ -49,9 +49,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private boolean pawnHasntBeenPromotedYet = false;
     private PopupPawnPromotion popupPawnPromotion = null;
     private int[] pawnToPromoteCoords = null;
+    HashMap<String, HashSet<String>> movesMapOfSets = null;
 
     private Chessboard.Piece lastPieceMovedByPlayer;
-    private JFrame chessGameFrame;
+    private ChessGame chessGameFrame;
 
     private int colorOfPlayer;
     private int colorOfAI;
@@ -65,9 +66,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private boolean whiteHasMoved;
     private boolean blackHasMoved;
 
-    public BoardView(final JFrame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
+    public BoardView(final ChessGame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
                      final CoordinatesManager coordMgr, final Chessboard chessboardObj,
                      final int colorPlaying) {
+
         chessGameFrame = chessGame;
         boardDims = cmpntDims;
         imagesManager = imgMgr;
@@ -89,13 +91,30 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         }
     }
 
+    public void aiMovesFirst() {
+        opposingMoveDelayTimer.start();
+    }
+
     public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
         chessboard.promotePawn(xCoord, yCoord, newPiece);
         pawnHasntBeenPromotedYet = false;
     }
 
+    public void blankBoard() {
+        int[][] boardArray = chessboard.getBoardArray();
+
+        for (int xIdx = 0; xIdx < 8; xIdx++) {
+            for (int yIdx = 0; yIdx < 8; yIdx++) {
+                boardArray[xIdx][yIdx] = 0;
+            }
+        }
+
+        repaint();
+    }
+
     @Override
     protected void paintComponent(final Graphics graphics) {
+        int piecesDrawn = 0;
         int[][] squareCoords;
         int[][] boardArray;
         super.paintComponent(graphics);
@@ -141,6 +160,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         squareCoords = chessboard.occupiedSquareCoords();
 
         for (int coordsIdx = 0; coordsIdx < squareCoords.length; coordsIdx++) {
+            piecesDrawn++;
             int[] pieceCoords = squareCoords[coordsIdx];
             Chessboard.Piece piece = chessboard.getPieceAtCoords(pieceCoords[0], pieceCoords[1]);
             Image pieceIcon = piece.pieceImage();
@@ -148,12 +168,22 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                                          .getSquareUpperLeftCorner(piece.xCoord(), piece.yCoord());
             graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
         }
+
+        if (piecesDrawn != 0 && chessboard.getPossibleMovesMapOfSets().size() == 0) {
+            /* Chessboard.getPossibleMovesMapOfSets() just formats the
+               output of BoardArrays.getPossibleMoves() into a mapping of
+               sets. If that output is zero length, the map of sets will be
+               too. That only happens when that side's king is in checkmate,
+               so that means the player has lost. */
+            PopupGameOver popupGameOver = new PopupGameOver(chessGameFrame, this, PopupGameOver.PLAYER_LOST);
+            gameIsOver = true;
+            return;
+        }
     }
 
     public void mouseClicked(final MouseEvent event) {
         int eventXCoord = event.getX();
         int eventYCoord = event.getY();
-        HashMap<String, HashSet<String>> movesMapOfSets;
 
         Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
@@ -200,30 +230,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             Chessboard.Move moveObj;
             clickEventMovingTo = clickSquareCoord;
 
-            movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
-
-            if (movesMapOfSets.size() == 0) {
-                /* Chessboard.getPossibleMovesMapOfSets() just formats the
-                   output of BoardArrays.getPossibleMoves() into a mapping of
-                   sets. If that output is zero length, the map of sets will be
-                   too. That only happens when that side's king is in checkmate,
-                   so that means the player has lost. */
-                PopupGameOver popupGameOver = new PopupGameOver(PopupGameOver.PLAYER_LOST);
-                gameIsOver = true;
-                repaint();
-                return;
-            } else { 
-                /* Integer coordinate pairs work poorly as map keys or set
-                   members, so with moveMapOfSets algebraic notation is used. */
-                String fromLocation = BoardArrays.coordsToAlgNotn(clickEventMovingFrom);
-                String toLocation = BoardArrays.coordsToAlgNotn(clickEventMovingTo);
-                if (!movesMapOfSets.containsKey(fromLocation)
-                    || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
-                    resetClickEventVars();
-                    return;
-                }
-            }
-
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);
 
             boolean firstPieceIsKing = (clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0;
@@ -257,6 +263,19 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                    in check, so movement is cancelled. */
                 resetClickEventVars();
                 return;
+            } else {
+                movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
+
+                /* Integer coordinate pairs work poorly as map keys or set
+                   members, so with moveMapOfSets algebraic notation is used. */
+                String fromLocation = BoardArrays.coordsToAlgNotn(clickEventMovingFrom);
+                String toLocation = BoardArrays.coordsToAlgNotn(clickEventMovingTo);
+
+                if (!movesMapOfSets.containsKey(fromLocation)
+                    || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
+                    resetClickEventVars();
+                    return;
+                }
             }
 
             moveObj = new Chessboard.Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
@@ -368,7 +387,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         System.out.println(dateTimeFormatter.format(timeRightNow) + " - algorithm finished");
 
         if (Objects.isNull(moveToMake.movingPiece())) {
-            PopupGameOver popupGameOver = new PopupGameOver(PopupGameOver.AI_LOST);
+            PopupGameOver popupGameOver = new PopupGameOver(chessGameFrame, this, PopupGameOver.AI_LOST);
             gameIsOver = true;
             repaint();
             return;

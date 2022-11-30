@@ -23,6 +23,7 @@ public class PopupColorChoice extends JFrame {
     private int newPiece;
     private Random randomNumberGenerator = new Random();
     private ChessGame callingChessGame;
+    private boolean isLaterGame;
 
     public PopupColorChoice(final ChessGame callingChessGameObj) {
         super("Color Choice");
