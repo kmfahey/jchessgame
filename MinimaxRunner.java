@@ -65,6 +65,7 @@ public class MinimaxRunner {
         int movesArrayUsedLength;
         int toXIdx;
         int toYIdx;
+        int useableMovesCount;
         double thisScore;
         Chessboard.Move bestMoveObj;
         boolean isCastlingKingside;
@@ -76,6 +77,7 @@ public class MinimaxRunner {
         boardArray = chessboard.getBoardArray();
 
         movesArrayUsedLength = BoardArrays.generatePossibleMoves(boardArray, movesArray, colorOfAI, colorOnTop);
+        useableMovesCount = movesArrayUsedLength;
 
         if (movesArrayUsedLength == 0) {
             /* BoardArrays.generatePossibleMoves() found zero moves. That only
@@ -98,6 +100,7 @@ public class MinimaxRunner {
                 thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx], (colorOfAI == WHITE ? BLACK : WHITE),
                                                   algorithmStartingDepth, alpha, beta);
             } catch (KingIsInCheckException exception) {
+                useableMovesCount--;
                 continue;
             }
             if (thisScore >= bestScore) {
@@ -107,6 +110,10 @@ public class MinimaxRunner {
             if (thisScore > alpha) {
                 alpha = thisScore;
             }
+        }
+
+        if (useableMovesCount == 0) {
+            throw new IllegalStateException("out of " + useableMovesCount + " generated moves, all were eliminated due to KingIsInCheckException exceptions");
         }
 
         movedPieceInt = bestMoveArray[0];

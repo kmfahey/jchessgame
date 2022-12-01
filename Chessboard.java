@@ -128,7 +128,22 @@ public class Chessboard {
 
     public record Move(Chessboard.Piece movingPiece, int fromXCoord, int fromYCoord,
                 int toXCoord, int toYCoord, int capturedPieceInt, boolean isCastlingKingside,
-                boolean isCastlingQueenside, int promotedToPieceInt) { };
+                boolean isCastlingQueenside, int promotedToPieceInt) {
+        public String toString() {
+            if (isCastlingKingside) {
+                return "0-0";
+            } else if (isCastlingQueenside) {
+                return "0-0-0";
+            }
+            int pieceInt = movingPiece.pieceInt();
+            pieceInt = (pieceInt & WHITE) != 0 ? pieceInt ^ WHITE : pieceInt ^ BLACK;
+            String retval = BoardArrays.PIECES_ABBRS.get(pieceInt);
+            retval += BoardArrays.coordsToAlgNotn(fromXCoord, fromYCoord);
+            retval += (capturedPieceInt != 0) ? "x" : "-";
+            retval += BoardArrays.coordsToAlgNotn(toXCoord, toYCoord);
+            return retval;
+        }
+    };
 
     public Chessboard(final ImagesManager imagesManager, final int playingColor, final int onTopColor) {
         this(null, imagesManager, playingColor, onTopColor);
@@ -398,6 +413,13 @@ public class Chessboard {
         }
     }
 
+    /* 
+     * This method executes a Chessboard.Move object and moves the given piece
+     * on the object's internal chessboard model.
+     *
+     * @param moveObj The Chessboard.Move object describing the movement of a
+     *                piece that movePiece will execute.
+     */
     private void movePieceNonCastling(final Chessboard.Move moveObj) throws KingIsInCheckException,
                                                                             IllegalArgumentException {
         int fromXCoord = moveObj.fromXCoord();
@@ -410,32 +432,33 @@ public class Chessboard {
         int capturedPieceInt = boardArray[toXCoord][toYCoord];
         String thisColorStr = (colorOfPiece == WHITE ? "White" : "Black");
 
+        /* It's illegal in chess to make a move that leaves one's king in check.
+        /* BoardArrays.wouldKingBeInCheck() is used to test if this move would
+        /* do that; if so, a KingIsInCheckException is thrown. */
+        if (BoardArrays.wouldKingBeInCheck(boardArray, fromXCoord, fromYCoord, toXCoord, toYCoord,
+                                           colorOfPiece, colorOnTop)) {
+            throw new KingIsInCheckException(
+                          "Move would place " + thisColorStr + "'s king in check or " + thisColorStr + "'s King is in "
+                          + "check and this move doesn't fix that; move can't be made.");
+        }
+
+        /* If the moveObj has a promotedToPieceInt attribute set, this is a pawn
+           promotion move; so the desintration square is set to the new piece. */
         if (moveObj.promotedToPieceInt() != 0) {
             int promotedToPieceInt = moveObj.promotedToPieceInt();
             int promotedFromPieceInt = boardArray[fromXCoord][fromYCoord];
             boardArray[toXCoord][toYCoord] = promotedToPieceInt;
             boardArray[fromXCoord][fromYCoord] = 0;
-
-            if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
-                boardArray[fromXCoord][fromYCoord] = promotedFromPieceInt;
-                boardArray[toXCoord][toYCoord] = capturedPieceInt;
-                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
-                                                 + thisColorStr + "'s King is in check and this move doesn't fix that; "
-                                                 + "move can't be made.");
-            }
         } else {
+            /* Otherwise this is a normal move. */
             boardArray[toXCoord][toYCoord] = boardArray[fromXCoord][fromYCoord];
             boardArray[fromXCoord][fromYCoord] = 0;
-
-            if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
-                boardArray[fromXCoord][fromYCoord] = boardArray[toXCoord][toYCoord];
-                boardArray[toXCoord][toYCoord] = capturedPieceInt;
-                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
-                                                 + thisColorStr + "'s King is in check and this move doesn't fix that; "
-                                                 + "move can't be made.");
-            }
         }
 
+        /* Castling is only possible if the king and the rook involved both
+           haven't moved since the start of play. This switch statement detects
+           if the piece is a king or rook, and updates the instance booleans
+           accordingly. */
         switch (pieceInt) {
             case BLACK | KING -> {
                     if (!blackKingHasMoved) {
@@ -465,6 +488,13 @@ public class Chessboard {
         }
     }
 
+    /**
+     * This method executes a Chessboard.Move object and moves the given piece
+     * (or pieces, if it's castling) on the object's internal chessboard model.
+     *
+     * @param moveObj The Chessboard.Move object describing the movement of a
+     *                piece that movePiece will execute.
+     */
     public void movePiece(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException,
                                                                 CastlingNotPossibleException {
         if (moveObj.isCastlingKingside() || moveObj.isCastlingQueenside()) {
@@ -474,10 +504,19 @@ public class Chessboard {
         }
     }
 
+    /**
+     * This method derives an int[][2] array of the coordinates for every square
+     * on the board that is occupied by a piece of either color.
+     *
+     * @return An array of 2-element arrays as long as the number of pieces on
+     *         the board.
+     */
     public int[][] occupiedSquareCoords() {
         int pieceCount = 0;
         int pieceIndex = 0;
 
+        /* The first iteration across the board is just to count the number of
+           pieces so the array can be sized correctly. */
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 if (boardArray[xIdx][yIdx] != 0) {
@@ -488,6 +527,8 @@ public class Chessboard {
 
         int[][] squareCoords = new int[pieceCount][2];
 
+        /* The second iteration across the board saves the coordinate of every
+        /* square that's found to be occupied. */
         for (int xIdx = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 if (boardArray[xIdx][yIdx] != 0) {

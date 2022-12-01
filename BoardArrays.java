@@ -56,8 +56,14 @@ public final class BoardArrays {
 
     /* These strings are used by algNotnToCoords() and coordsToAlgNotn() to
        translate between algebraic notation and numeric coordinates. */
-    public static String ALG_NOTN_ALPHA = "abcdefgh";
-    public static String ALG_NOTN_NUM = "87654321";
+    public static final String ALG_NOTN_ALPHA = "abcdefgh";
+    public static final String ALG_NOTN_NUM = "87654321";
+
+    public static final HashMap<Integer, String> PIECES_ABBRS = new HashMap<>() {{
+        this.put(PAWN, "P"); this.put(BISHOP, "B"); this.put(ROOK, "R");
+        this.put(KNIGHT | LEFT, "N"); this.put(KNIGHT | RIGHT, "N");
+        this.put(QUEEN, "Q"); this.put(KING, "K");
+    }};
 
     /* This array contains the pieces that a pawn can be promoted to. */
     public static int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
@@ -69,6 +75,43 @@ public final class BoardArrays {
 
     /* A Random object, used for a few cases where a coin toss is needed. */
     private static Random randomNumberGenerator = new Random();
+
+    public static String pieceIntToString(final int pieceInt) {
+        String retval;
+        int privPieceInt;
+
+        if ((pieceInt & WHITE) != 0) {
+            retval = "White ";
+            privPieceInt = pieceInt ^ WHITE;
+        } else {
+            retval = "Black ";
+            privPieceInt = pieceInt ^ BLACK;
+        }
+
+        if ((pieceInt & LEFT) != 0) {
+            privPieceInt ^= LEFT;
+        } else if ((pieceInt & RIGHT) != 0) {
+            privPieceInt ^= RIGHT;
+        }
+
+        switch (privPieceInt) {
+            case PAWN:
+                retval += "pawn"; break;
+            case ROOK:
+                retval += "rook"; break;
+            case KNIGHT:
+                retval += "knight"; break;
+            case BISHOP:
+                retval += "bishop"; break;
+            case QUEEN:
+                retval += "queen"; break;
+            case KING:
+                retval += "king"; break;
+            default: break;
+        }
+
+        return retval;
+    }
 
     /**
      * This method accepts the algebraic notation for a square on a notional
@@ -1348,10 +1391,14 @@ public final class BoardArrays {
                                              final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
                                              final int colorsTurnItIs, final int colorOnTop) {
         int otherColor = colorsTurnItIs == WHITE ? BLACK : WHITE;
+        int pieceInt;
         int xIdx = kingXIdx;
         int yIdx = kingYIdx;
         int xIdxMod;
         int yIdxMod;
+        boolean kingMoved;
+
+        kingMoved = boardArray[kingXIdx][kingYIdx] != (colorsTurnItIs | KING);
 
         /* This method is also available as wouldKingBeInCheck(boardArray,
            kingXIdx, kingYIdx, colorsTurnItIs, colorOnTop). It calls this method
@@ -1384,10 +1431,9 @@ public final class BoardArrays {
         /* Checking for a king. */
         for (xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod++) {
             for (yIdxMod = yIdx - 1; yIdxMod <= yIdx + 1; yIdxMod++) {
-                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7) {
-                    break;
-                }
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7 || xIdxMod == xIdx && yIdxMod == yIdx) {
+                    continue;
+                } else if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
                     return true;
                 }
             }
@@ -1424,117 +1470,101 @@ public final class BoardArrays {
         // Bishops, Rooks, and Queens
         // Checking eastward on this rank for a queen or a rook
         for (xIdxMod = xIdx + 1; xIdxMod <= 7; xIdxMod++) {
-            int pieceInt = boardArray[xIdxMod][yIdx];
-            if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdx == fromYIdx)
-                && pieceInt != (colorsTurnItIs | KING)) {
-                break;
-            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+            pieceInt = boardArray[xIdxMod][yIdx];
+            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
                 return true;
-            } else if ((pieceInt & otherColor) != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the southeast diagonal for a queen or a bishop
-        for (xIdxMod = xIdx + 1; xIdxMod <= 7; xIdxMod++) {
-            for (yIdxMod = yIdx + 1; yIdxMod <= 7; yIdxMod++) {
-                int pieceInt = boardArray[xIdxMod][yIdxMod];
-                if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdx == fromYIdx)
-                    && pieceInt != (colorsTurnItIs | KING)) {
-                    break;
-                } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                    return true;
-                } else if ((pieceInt & otherColor) != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
-                    break;
-                }
+        for (xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod <= 7 && yIdxMod <= 7; xIdxMod++, yIdxMod++) {
+            pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
+                break;
             }
         }
 
         // Checking southward on this file for a queen or a rook
         for (yIdxMod = yIdx + 1; yIdxMod <= 7; yIdxMod++) {
-            int pieceInt = boardArray[xIdx][yIdxMod];
-            if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdx == fromYIdx)
-                && pieceInt != (colorsTurnItIs | KING)) {
-                break;
-            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+            pieceInt = boardArray[xIdx][yIdxMod];
+            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
                 return true;
-            } else if ((pieceInt & otherColor) != 0 || xIdx == toXIdx && yIdxMod == toYIdx) {
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the southwest diagonal for a queen or a bishop
-        for (xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-            for (yIdxMod = yIdx + 1; yIdxMod <= 7; yIdxMod++) {
-                int pieceInt = boardArray[xIdxMod][yIdxMod];
-                if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdx == fromYIdx)
-                    && pieceInt != (colorsTurnItIs | KING)) {
-                    break;
-                } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                    return true;
-                } else if ((pieceInt & otherColor) != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
-                    break;
-                }
+        for (xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod <= 7; xIdxMod--, yIdxMod++) {
+            pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                break;
             }
         }
 
         // Checking westward on this rank for a queen or a rook
         for (xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-            int pieceInt = boardArray[xIdxMod][yIdx];
-            if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdx == fromYIdx)
-                && pieceInt != (colorsTurnItIs | KING)) {
-                break;
-            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+            pieceInt = boardArray[xIdxMod][yIdx];
+            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
                 return true;
-            } else if ((pieceInt & otherColor) != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the northwest diagonal for a queen or a bishop
-        for (xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-            for (yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-                int pieceInt = boardArray[xIdxMod][yIdxMod];
-                if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdxMod == fromYIdx)
-                    && pieceInt != (colorsTurnItIs | KING)) {
-                    break;
-                } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                    return true;
-                } else if ((pieceInt & otherColor) != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
-                    break;
-                }
+        for (xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
+            pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                break;
             }
         }
 
         // Checking northward on this file for a queen or a rook
         for (yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-            int pieceInt = boardArray[xIdx][yIdxMod];
-            if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdxMod == fromYIdx)
-                && pieceInt != (colorsTurnItIs | KING)) {
-                break;
-            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+            pieceInt = boardArray[xIdx][yIdxMod];
+            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
                 return true;
-            } else if ((pieceInt & otherColor) != 0 || xIdx == toXIdx && yIdxMod == toYIdx) {
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
 
         // Checking the northeast diagonal for a queen or a bishop
-        for (xIdxMod = xIdx + 1; xIdxMod <= 7; xIdxMod++) {
-            for (yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-                int pieceInt = boardArray[xIdxMod][yIdxMod];
-                if ((pieceInt & colorsTurnItIs) != 0 && !(xIdxMod == fromXIdx && yIdxMod == fromYIdx)
-                    && pieceInt != (colorsTurnItIs | KING)) {
-                    break;
-                } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                    return true;
-                } else if ((pieceInt & otherColor) != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
-                    break;
-                }
+        for (xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod <= 7 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
+            pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
+            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+                continue;
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                break;
             }
         }
 
-        /* If execution reaches this point in the method, than no possible
+        /* If execution reaches this point in the method, then no possible
            avenue of attack contains a threatening piece. The king is not in
            check, and false is returned. */
         return false;

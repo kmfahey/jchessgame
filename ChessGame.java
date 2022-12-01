@@ -11,6 +11,7 @@ import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.Timer;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -23,8 +24,10 @@ public class ChessGame extends JFrame implements ActionListener {
     private int colorOnTop;
     private int colorPlaying = -1;
     private CoordinatesManager coordinatesManager;
-    private Dimension boardDims;
     private Dimension windowDims;
+    private Dimension boardDims;
+    private Dimension boardSectionDims;
+    private Dimension movesLogSectionDims;
     private GridBagLayout gameLayout;
     private ImagesManager imagesManager;
     private JPanel gamePanel;
@@ -33,6 +36,7 @@ public class ChessGame extends JFrame implements ActionListener {
     private Timer colorChoicePopupDelayTimer;
     private Chessboard chessboard = null;
     private BoardView boardView;
+    private MovesLog movesLog;
 
     public ChessGame() throws IOException, FileNotFoundException {
         this(null);
@@ -50,15 +54,17 @@ public class ChessGame extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         Dimension screenDims = Toolkit.getDefaultToolkit().getScreenSize();
-        windowDims = new Dimension((int) Math.floor(0.8D * (double) screenDims.getHeight()),
-                                             (int) Math.floor(0.8D * (double) screenDims.getHeight()));
+        boardSectionDims = new Dimension((int) Math.floor(0.8D * (double) screenDims.getHeight()),
+                                         (int) Math.floor(0.8D * (double) screenDims.getHeight()));
+        movesLogSectionDims = new Dimension((int) Math.floor(0.2D * (double) screenDims.getHeight()),
+                                            (int) Math.floor(0.8D * (double) screenDims.getHeight()));
 
         gameLayout = new GridBagLayout();
         gamePanel = new JPanel(gameLayout);
         setContentPane(gamePanel);
-        setSize(windowDims);
+        setSize(boardSectionDims);
 
-        boardDims = new Dimension((int) windowDims.getWidth() - 40, (int) windowDims.getHeight() - 40);
+        boardDims = new Dimension((int) boardSectionDims.getWidth() - 40, (int) boardSectionDims.getHeight() - 40);
 
         scalingProportion = (float) boardDims.getWidth()
                                     / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
@@ -126,6 +132,26 @@ public class ChessGame extends JFrame implements ActionListener {
             }
         }
 
+        gameLayout.columnWidths = new int[] {(int) boardSectionDims.getWidth(), (int) movesLogSectionDims.getWidth()};
+        gameLayout.rowHeights = new int[] {(int) boardSectionDims.getHeight()};
+
+        if (Objects.nonNull(movesLog)) {
+            movesLog.clear();
+        } else {
+            movesLog = new MovesLog();
+            JScrollPane scrollableMovesLog = new JScrollPane(movesLog);
+
+            GridBagConstraints movesLogConstraints = new GridBagConstraints();
+            movesLogConstraints.fill = GridBagConstraints.BOTH;
+            movesLogConstraints.gridy = 0;
+            movesLogConstraints.gridx = 1;
+            movesLogConstraints.gridheight = 1;
+            movesLogConstraints.gridwidth = 1;
+            movesLogConstraints.insets = new Insets(20, 20, 20, 20);
+
+            gamePanel.add(scrollableMovesLog, movesLogConstraints);
+        }
+
         if (Objects.nonNull(boardView)) {
             if (colorPlaying == BoardArrays.BLACK) {
                 boardView.aiMovesFirst();
@@ -141,9 +167,6 @@ public class ChessGame extends JFrame implements ActionListener {
             boardConstraints.gridwidth = 1;
             boardConstraints.insets = new Insets(20, 20, 20, 20);
 
-            gameLayout.columnWidths = new int[] {(int) windowDims.getWidth()};
-            gameLayout.rowHeights = new int[] {(int) windowDims.getHeight()};
-            
             boardView = new BoardView(this, boardDims, imagesManager, coordinatesManager, chessboard, colorPlaying);
             gamePanel.add(boardView, boardConstraints);
             boardView.addMouseListener(boardView);
