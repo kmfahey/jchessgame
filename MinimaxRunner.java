@@ -53,8 +53,7 @@ public class MinimaxRunner {
     }
 
     public Chessboard.Move algorithmTopLevel(final int turnCount
-                                            ) throws AlgorithmInternalException, CastlingNotPossibleException,
-                                                     IllegalArgumentException {
+                                            ) throws CastlingNotPossibleException, IllegalArgumentException {
         int[] bestMoveArray = null;
         int[][] boardArray = new int[8][8];
         int capturedPieceInt;
@@ -262,37 +261,33 @@ public class MinimaxRunner {
         } else if (moveArray[6] != 0) {
             /* The 7th element in a moveArray is only nonzero if the move is a
                pawn being promoted. */
+            if (BoardArrays.wouldKingBeInCheck(boardArray, fromXIdx, fromYIdx, toXIdx, toYIdx, colorsTurnItIs, colorOnTop)) {
+                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
+                                                 + thisColorStr + "'s King is in check and this move doesn't fix that. "
+                                                 + "Move can't be made.");
+            }
+
             int promotedFromPieceInt = boardArray[fromXIdx][fromYIdx];
             savedPieceNo1 = boardArray[toXIdx][toYIdx];
             boardArray[toXIdx][toYIdx] = moveArray[6];
             boardArray[fromXIdx][fromYIdx] = 0;
 
-            if (BoardArrays.isKingInCheck(boardArray, colorOpposing, colorOnTop)) {
-                boardArray[fromXIdx][fromYIdx] = promotedFromPieceInt;
-                boardArray[toXIdx][toYIdx] = savedPieceNo1;
-                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
-                                                 + thisColorStr + "'s King is in check and this move doesn't fix that. "
-                                                 + "Move can't be made.");
-            } else {
-                retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
-            }
+            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
             boardArray[fromXIdx][fromYIdx] = promotedFromPieceInt;
             boardArray[toXIdx][toYIdx] = savedPieceNo1;
         } else {
+            if (BoardArrays.wouldKingBeInCheck(boardArray, fromXIdx, fromYIdx, toXIdx, toYIdx, colorsTurnItIs, colorOnTop)) {
+                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
+                                                 + thisColorStr + "'s King is in check and this move doesn't fix that. "
+                                                 + "Move can't be made.");
+            }
+
             savedPieceNo1 = boardArray[toXIdx][toYIdx];
             boardArray[toXIdx][toYIdx] = moveArray[0];
             boardArray[fromXIdx][fromYIdx] = 0;
 
-            if (BoardArrays.isKingInCheck(boardArray, colorOpposing, colorOnTop)) {
-                boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
-                boardArray[toXIdx][toYIdx] = savedPieceNo1;
-                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
-                                                 + thisColorStr + "'s King is in check and this move doesn't fix that. "
-                                                 + "Move can't be made.");
-            } else {
-                retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
-            }
+            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
             boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
             boardArray[toXIdx][toYIdx] = savedPieceNo1;
@@ -372,13 +367,12 @@ public class MinimaxRunner {
 
         double[][] piecesCounts = new double[2][6];
 
-        int whiteKingNotInCheckBonus = BoardArrays.isKingInCheck(boardArray, BLACK, colorOnTop) ? 0 : 1;
-        int blackKingNotInCheckBonus = BoardArrays.isKingInCheck(boardArray, WHITE, colorOnTop) ? 0 : 1;
+        int whiteKingNotInCheckBonus = BoardArrays.isKingInCheck(boardArray, WHITE, colorOnTop) ? 0 : 1;
+        int blackKingNotInCheckBonus = BoardArrays.isKingInCheck(boardArray, BLACK, colorOnTop) ? 0 : 1;
 
         for (int[] boardRow : boardArray) {
             for (int pieceInt : boardRow) {
                 switch (pieceInt) {
-                    case 0: break;
                     case WHITE | KING:           piecesCounts[whiteIndex][kingIndex] = whiteKingNotInCheckBonus;
                     case WHITE | QUEEN:          piecesCounts[whiteIndex][queenIndex]++; break;
                     case WHITE | ROOK:           piecesCounts[whiteIndex][rookIndex]++; break;
@@ -428,20 +422,37 @@ public class MinimaxRunner {
         return totalScore;
     };
 
+    /* This is a utility method that handles some of the logic needed by
+       evaluateBoard(). It reviews the positions of all the friendly pawns on the
+       board, noting pawns which are blocked (a piece of either side that isn't
+       a friendly pawn occupies the square ahead of them), doubled (two pawns in
+       a row), or isolated (no pawns in the files to either side). It returns
+       those values in a double[3] array.
+
+       @param boardArray      The int[8][8] board representation to count pawns in.
+       @param colorInQuestion The color of pawns to count.
+       @param colorOnTop      Which color is playing from the top the board (the
+                              lowest y values).
+       @return                A double[3] array of doubledPawnsCount,
+                              blockedPawnsCount, and isolatedPawnsCount.
+       @see evaluateBoard()
+       */
     private double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion) {
         int[][] doubledPawnsCoords = new int[8][2];
         double[] retval = new double[3];
+        double blockedPawnsCount = 0;
         double doubledPawnsCount = 0;
         double isolatedPawnsCount = 0;
-        double blockedPawnsCount = 0;
-        int pawnsCount;
+        int dblpIdx = 0;
+        int pawnsCount = 0;
         int X_IDX = 0;
         int Y_IDX = 1;
-        int dblpIdx = 0;
         int maxPawnIndex;
 
-        pawnsCount = 0;
-
+        /* These loops traverse the int[8][8] boardArray detecting pawns of this
+           color and saving their coordinates to int[8][2] so that the rest
+           of the loops in this method can just iterate over the saved pawns
+           coordinates. */
         for (int xIdx = 0, pawnIndex = 0; xIdx < 8; xIdx++) {
             for (int yIdx = 0; yIdx < 8; yIdx++) {
                 if (boardArray[xIdx][yIdx] == (colorInQuestion | PAWN)) {
@@ -489,7 +500,11 @@ public class MinimaxRunner {
                         if (prevPawnXIdx - thisPawnXIdx > 1) {
                             isolatedPawnsCount++;
                         }
-                    } else if (0 <= pawnIndex - 1 && pawnIndex + 1 <= maxPawnIndex) {
+                    /* Otherwise, it's isolated if the difference between its x
+                       index and the previous pawn's x index, and the difference
+                       between the next pawn's x index and its x index, are both
+                       more than 1. */
+                    } else { // 0 < pawnIndex && pawnIndex < maxPawnIndex
                         int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
                         int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
                         if (nextPawnXIdx - thisPawnXIdx > 1 && thisPawnXIdx - prevPawnXIdx > 1) {
@@ -500,6 +515,9 @@ public class MinimaxRunner {
             }
         }
 
+        /* This loop counts doubled pawns and blocked pawns. It tracks pawns
+           that are doubled in doubledPawnsCoords, so it can avoid
+           double-counting any. */
         for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
             int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
             int thisPawnYIdx = tallyPawnsCoords[pawnIndex][Y_IDX];
@@ -538,6 +556,7 @@ public class MinimaxRunner {
                         doubledPawnsCoords[dblpIdx][Y_IDX] = prevPawnYIdx;
                         dblpIdx++;
                         doubledPawnsCount++;
+
                         doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
                         doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
                         dblpIdx++;
@@ -557,8 +576,8 @@ public class MinimaxRunner {
             }
         }
 
-        /* This method returns three doubles, so they're packed into a length-3
-           array and that's returned. */
+        /* This method has 3 doubles to return, so they're packed into a double[3]
+           array and that's the return value. */
         retval[DOUBLED] = doubledPawnsCount;
         retval[BLOCKED] = blockedPawnsCount;
         retval[ISOLATED] = isolatedPawnsCount;

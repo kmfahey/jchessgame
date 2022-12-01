@@ -66,6 +66,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private boolean whiteHasMoved;
     private boolean blackHasMoved;
 
+    private int[][] boardArray = null;
+
     public BoardView(final ChessGame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
                      final CoordinatesManager coordMgr, final Chessboard chessboardObj,
                      final int colorPlaying) {
@@ -82,6 +84,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         whiteHasMoved = false;
         blackHasMoved = false;
         repaint();
+
+        boardArray = chessboard.getBoardArray();
 
         if (colorOfAI == BoardArrays.WHITE) {
             opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
@@ -116,7 +120,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     protected void paintComponent(final Graphics graphics) {
         int piecesDrawn = 0;
         int[][] squareCoords;
-        int[][] boardArray;
         super.paintComponent(graphics);
 
         Dimension totalBoardDimensions = coordinatesManager.getTotalBoardDimensions();
@@ -155,8 +158,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                               (int) squareDimensions.getHeight());
         }
 
-        boardArray = chessboard.getBoardArray();
-
         squareCoords = chessboard.occupiedSquareCoords();
 
         for (int coordsIdx = 0; coordsIdx < squareCoords.length; coordsIdx++) {
@@ -169,12 +170,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             graphics.drawImage(pieceIcon, pieceUpperLeftCorner.x, pieceUpperLeftCorner.y, this);
         }
 
-        if (piecesDrawn != 0 && chessboard.getPossibleMovesMapOfSets().size() == 0) {
-            /* Chessboard.getPossibleMovesMapOfSets() just formats the
-               output of BoardArrays.getPossibleMoves() into a mapping of
-               sets. If that output is zero length, the map of sets will be
-               too. That only happens when that side's king is in checkmate,
-               so that means the player has lost. */
+        if (piecesDrawn != 0 && BoardArrays.isKingInCheckmate(boardArray, chessboard.getColorPlaying(), chessboard.getColorOnTop())) {
+            /* The player's color king is in checkmate. It's game over. */
             PopupGameOver popupGameOver = new PopupGameOver(chessGameFrame, this, PopupGameOver.PLAYER_LOST);
             gameIsOver = true;
             return;
@@ -184,6 +181,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     public void mouseClicked(final MouseEvent event) {
         int eventXCoord = event.getX();
         int eventYCoord = event.getY();
+        int colorOnTop = chessboard.getColorOnTop();
 
         Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
@@ -253,12 +251,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 return;
 
             } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0
-                        && chessboard.isSquareThreatened(
-                               clickEventMovingTo,
-                               ((clickEventClickedPiece.pieceInt() & Chessboard.WHITE) != 0)
-                                   ? Chessboard.BLACK : Chessboard.WHITE
-                           )) {
-
+                       && BoardArrays.wouldKingBeInCheck(
+                              chessboard.getBoardArray(), clickEventMovingTo[0], clickEventMovingTo[1],
+                              colorOfPlayer, colorOnTop)) {
                 /* The piece is a King and moving it to that square would put it
                    in check, so movement is cancelled. */
                 resetClickEventVars();
@@ -303,7 +298,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
             if ((moveObj.movingPiece().pieceInt() & Chessboard.PAWN) != 0) {
                 int pieceColor = moveObj.movingPiece().pieceInt() ^ Chessboard.PAWN;
-                int colorOnTop = chessboard.getColorOnTop();
                 if ((pieceColor == colorOnTop) ? (moveObj.toYCoord() == 7) : (moveObj.toYCoord() == 0)) {
                     pawnHasntBeenPromotedYet = true;
                     pawnToPromoteCoords = new int[] {moveObj.toXCoord(), moveObj.toYCoord()};
@@ -373,7 +367,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         try {
             moveToMake = minimaxRunner.algorithmTopLevel(turnCount);
-        } catch (AlgorithmInternalException | CastlingNotPossibleException | IllegalArgumentException exception) {
+        } catch (CastlingNotPossibleException | IllegalArgumentException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
             JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName
                                                           + ":\n" + exception.getMessage());

@@ -21,12 +21,7 @@ public class Chessboard {
     public static final int LEFT = BoardArrays.LEFT;
     public static final int RIGHT = BoardArrays.RIGHT;
 
-    public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<Integer>() {{
-        this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
-        this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
-        this.add(WHITE | KING); this.add(WHITE | QUEEN); this.add(WHITE | ROOK); this.add(WHITE | BISHOP);
-        this.add(WHITE | KNIGHT | RIGHT); this.add(WHITE | KNIGHT | LEFT); this.add(WHITE | PAWN);
-    }};
+    public static final HashSet<Integer> VALID_PIECE_INTS = BoardArrays.VALID_PIECE_INTS;
 
     private static final int DOUBLED = 0;
     private static final int ISOLATED = 1;
@@ -285,28 +280,6 @@ public class Chessboard {
         return movesCoords;
     }
 
-    public boolean isSquareThreatened(final int[] coords, final int opposingColor) {
-        return isSquareThreatened(coords[0], coords[1], opposingColor);
-    }
-
-    public boolean isSquareThreatened(final int xCoord, final int yCoord, final int opposingColor) {
-        int otherColor = opposingColor;
-        int thisColor = otherColor == WHITE ? BLACK : WHITE;
-        boolean retval;
-        /* This operation momentarily changes the boardArray to an invalid state
-           to use BoardArray.isKingInCheck() method to detect a threatened
-           square. Although this is not a threaded package, synchronized(){} is
-           used just in case it's possible that another part of the calling code
-           might try to use the boardArray at the same time. */
-        synchronized (boardArray) {
-            int savedPieceInt = boardArray[xCoord][yCoord];
-            boardArray[xCoord][yCoord] = thisColor | KING;
-            retval = BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop);
-            boardArray[xCoord][yCoord] = savedPieceInt;
-        }
-        return retval;
-    }
-
     public boolean isCastlingPossible(final int colorOfKing, final int kingOrQueen) throws IllegalArgumentException {
         switch (colorOfKing | kingOrQueen) {
             case BLACK | KING -> {
@@ -375,6 +348,12 @@ public class Chessboard {
                 throw new CastlingNotPossibleException("Castling kingside is not possible for " + colorOfPieceStr);
             }
 
+            if (BoardArrays.wouldKingBeInCheck(boardArray, 2, kingYCoord, colorOfPiece, colorOnTop)) {
+                throw new KingIsInCheckException("Castling kingside would place " + colorOfPieceStr + "'s king in "
+                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
+                                                 + "doesn't fix that. Move can't be made.");
+            }
+
             savedPieceIntNo1 = boardArray[2][rookYCoord];
             boardArray[2][rookYCoord] = boardArray[rookXCoord][rookYCoord];
             boardArray[rookXCoord][rookYCoord] = 0;
@@ -382,18 +361,6 @@ public class Chessboard {
             savedPieceIntNo2 = boardArray[1][kingYCoord];
             boardArray[1][kingYCoord] = boardArray[kingXCoord][kingYCoord];
             boardArray[kingXCoord][kingYCoord] = 0;
-
-            if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
-                boardArray[kingXCoord][kingYCoord] = boardArray[2][kingYCoord];
-                boardArray[2][kingYCoord] = savedPieceIntNo2;
-
-                boardArray[rookXCoord][rookYCoord] = boardArray[3][rookYCoord];
-                boardArray[3][rookYCoord] = savedPieceIntNo1;
-
-                throw new KingIsInCheckException("Castling kingside would place " + colorOfPieceStr + "'s king in "
-                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
-                                                 + "doesn't fix that. Move can't be made.");
-            }
 
             if (colorOfPiece == WHITE) {
                 whiteKingHasMoved = true;
@@ -407,6 +374,12 @@ public class Chessboard {
                 throw new CastlingNotPossibleException("Castling queenside is not possible for " + colorOfPieceStr);
             }
 
+            if (BoardArrays.wouldKingBeInCheck(boardArray, 6, kingYCoord, colorOfPiece, colorOnTop)) {
+                throw new KingIsInCheckException("Castling queenside would place " + colorOfPieceStr + "'s king in "
+                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
+                                                 + "doesn't fix that. Move can't be made.");
+            }
+
             savedPieceIntNo1 = boardArray[5][rookYCoord];
             boardArray[5][rookYCoord] = boardArray[rookXCoord][rookYCoord];
             boardArray[rookXCoord][rookYCoord] = 0;
@@ -414,18 +387,7 @@ public class Chessboard {
             savedPieceIntNo2 = boardArray[6][kingYCoord];
             boardArray[6][kingYCoord] = boardArray[kingXCoord][kingYCoord];
             boardArray[kingXCoord][kingYCoord] = 0;
-
-            if (BoardArrays.isKingInCheck(boardArray, otherColor, colorOnTop)) {
-                boardArray[kingXCoord][kingYCoord] = boardArray[6][kingYCoord];
-                boardArray[6][kingYCoord] = savedPieceIntNo2;
-
-                boardArray[rookXCoord][rookYCoord] = boardArray[5][rookYCoord];
-                boardArray[5][rookYCoord] = savedPieceIntNo1;
-
-                throw new KingIsInCheckException("Castling queenside would place " + colorOfPieceStr + "'s king in "
-                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
-                                                 + "doesn't fix that. Move can't be made.");
-            }
+            
             if (colorOfPiece == WHITE) {
                 whiteKingHasMoved = true;
                 whiteQueensRookHasMoved = true;
