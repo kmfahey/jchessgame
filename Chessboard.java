@@ -141,6 +141,12 @@ public class Chessboard {
             retval += BoardArrays.coordsToAlgNotn(fromXCoord, fromYCoord);
             retval += (capturedPieceInt != 0) ? "x" : "-";
             retval += BoardArrays.coordsToAlgNotn(toXCoord, toYCoord);
+            if (promotedToPieceInt != 0) {
+                int promotedToPieceIntWoColor = (promotedToPieceInt & WHITE) != 0
+                                                ? promotedToPieceInt ^ WHITE
+                                                : promotedToPieceInt ^ BLACK;
+                retval += BoardArrays.PIECES_ABBRS.get(promotedToPieceIntWoColor);
+            }
             return retval;
         }
     };

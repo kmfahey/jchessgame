@@ -66,10 +66,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private boolean whiteHasMoved;
     private boolean blackHasMoved;
 
+    private MovesLog movesLog;
+
     private int[][] boardArray = null;
 
     public BoardView(final ChessGame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
-                     final CoordinatesManager coordMgr, final Chessboard chessboardObj,
+                     final CoordinatesManager coordMgr, final Chessboard chessboardObj, final MovesLog movesLogObj,
                      final int colorPlaying) {
 
         chessGameFrame = chessGame;
@@ -77,6 +79,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         imagesManager = imgMgr;
         coordinatesManager = coordMgr;
         chessboard = chessboardObj;
+        movesLog = movesLogObj;
         colorOfPlayer = colorPlaying;
         colorOfAI = (colorPlaying == BoardArrays.WHITE) ? BoardArrays.BLACK : BoardArrays.WHITE;
         minimaxRunner = new MinimaxRunner(chessboard, colorOfAI);
@@ -240,6 +243,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             boolean moveIsCastlingKingside = moveIsCastling && xCoord == 0;
             boolean moveIsCastlingQueenside = moveIsCastling && xCoord == 7;
 
+            moveObj = new Chessboard.Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
+                                          clickEventMovingTo[0], clickEventMovingTo[1],
+                                          Objects.nonNull(clickEventToCapturePiece)
+                                              ? clickEventToCapturePiece.pieceInt() : 0,
+                                          moveIsCastlingKingside, moveIsCastlingQueenside, 0);
+
             /* The time that both pieces are the same color and it's a valid
                move is if the first one is a king and the second one is rook, bc
                that's how castling is signalled. */
@@ -247,6 +256,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 && (clickEventToCapturePiece.pieceInt() & chessboard.getColorPlaying()) != 0) {
 
                 /* Both pieces are the same color (and it's not castling) so it's a no-op. */
+                if (clickEventMovingFrom[0] != clickEventMovingTo[0] || clickEventMovingFrom[1] != clickEventMovingTo[1]) {
+                    // Clicking on a piece and then clicking on it again isn't an error.
+                    movesLog.addError(moveObj, MovesLog.MoveError.IS_A_FRIENDLY_PIECE);
+                }
                 resetClickEventVars();
                 return;
 
@@ -254,8 +267,25 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                        && BoardArrays.wouldKingBeInCheck(
                               chessboard.getBoardArray(), clickEventMovingTo[0], clickEventMovingTo[1],
                               colorOfPlayer, colorOnTop)) {
-                /* The piece is a King and moving it to that square would put it
-                   in check, so movement is cancelled. */
+                /* The piece is a King, and either moving it to that square would put it
+                   in check, or it's already in check and that move wouldn't change that, so movement is cancelled. */
+                if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
+                    movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
+                } else {
+                    movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
+                }
+                resetClickEventVars();
+                return;
+            } else if (BoardArrays.wouldKingBeInCheck(
+                              chessboard.getBoardArray(), clickEventMovingFrom[0], clickEventMovingFrom[1],
+                              clickEventMovingTo[0], clickEventMovingTo[1], colorOfPlayer, colorOnTop)) {
+                /* That move would put the king in check or the king is in check
+                   and that move doesn't resolve that. */
+                if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
+                    movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
+                } else {
+                    movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
+                }
                 resetClickEventVars();
                 return;
             } else {
@@ -268,16 +298,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
                 if (!movesMapOfSets.containsKey(fromLocation)
                     || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
+                    movesLog.addError(moveObj, MovesLog.MoveError.NOT_A_VALID_MOVE);
                     resetClickEventVars();
                     return;
                 }
             }
-
-            moveObj = new Chessboard.Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
-                                          clickEventMovingTo[0], clickEventMovingTo[1],
-                                          Objects.nonNull(clickEventToCapturePiece)
-                                              ? clickEventToCapturePiece.pieceInt() : 0,
-                                          moveIsCastlingKingside, moveIsCastlingQueenside, 0);
 
             try {
                 chessboard.movePiece(moveObj);
@@ -289,6 +314,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 resetClickEventVars();
                 return;
             }
+
+            movesLog.addMove(moveObj);
 
             if (colorOfPlayer == BoardArrays.WHITE) {
                 whiteHasMoved = true;
@@ -392,6 +419,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
             return;
         }
+
+        movesLog.addMove(moveToMake);
 
         if (colorOfAI == BoardArrays.WHITE) {
             whiteHasMoved = true;

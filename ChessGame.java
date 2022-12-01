@@ -167,7 +167,7 @@ public class ChessGame extends JFrame implements ActionListener {
             boardConstraints.gridwidth = 1;
             boardConstraints.insets = new Insets(20, 20, 20, 20);
 
-            boardView = new BoardView(this, boardDims, imagesManager, coordinatesManager, chessboard, colorPlaying);
+            boardView = new BoardView(this, boardDims, imagesManager, coordinatesManager, chessboard, movesLog, colorPlaying);
             gamePanel.add(boardView, boardConstraints);
             boardView.addMouseListener(boardView);
         }

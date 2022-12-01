@@ -9,7 +9,7 @@ public class MovesLog extends JTextArea {
     private ArrayList<Chessboard.Move> movesList;
     private ArrayList<MoveError> errorsList;
 
-    private record MoveError(Chessboard.Move moveObj, int issueFlag) {
+    public record MoveError(Chessboard.Move moveObj, int issueFlag) {
         public static final int WOULD_BE_IN_CHECK = 0;
         public static final int IS_IN_CHECK = 1;
         public static final int NOT_A_VALID_MOVE = 2;
@@ -40,17 +40,19 @@ public class MovesLog extends JTextArea {
         movesList = new ArrayList<>();
         errorsList = new ArrayList<>();
         setEditable(false);
+        setLineWrap(true);
+        setWrapStyleWord(true);
     }
 
     public void redraw() {
         int oldTextLength = getText().length();
         StringJoiner joiner = new StringJoiner("\n", "", "\n");
-        for (int index = 0; index <= movesList.size(); index++) {
+        for (int index = 0; index < movesList.size(); index++) {
             Chessboard.Move moveObj = movesList.get(index);
             int moveNumber = index + 1;
             joiner.add(moveNumber + ". " + moveObj.toString());
         }
-        for (int index = 0; index <= errorsList.size(); index++) {
+        for (int index = 0; index < errorsList.size(); index++) {
             MoveError errorObj = errorsList.get(index);
             joiner.add(errorObj.toString());
         }
