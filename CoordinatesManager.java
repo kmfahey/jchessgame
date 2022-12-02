@@ -12,6 +12,18 @@ public class CoordinatesManager {
     public static final float INNER_BLACK_BORDER_WIDTH_100PCT = 6F;
     public static final float SQUARE_MEASUREMENT_100PCT = 234F;
 
+    public static final int[][] LIGHT_COLORED_SQUARES_COORDS = new int[][] {
+        new int[] {0, 0}, new int[] {0, 2}, new int[] {0, 4}, new int[] {0, 6},
+        new int[] {1, 1}, new int[] {1, 3}, new int[] {1, 5}, new int[] {1, 7},
+        new int[] {2, 0}, new int[] {2, 2}, new int[] {2, 4}, new int[] {2, 6},
+        new int[] {3, 1}, new int[] {3, 3}, new int[] {3, 5}, new int[] {3, 7},
+        new int[] {4, 0}, new int[] {4, 2}, new int[] {4, 4}, new int[] {4, 6},
+        new int[] {5, 1}, new int[] {5, 3}, new int[] {5, 5}, new int[] {5, 7},
+        new int[] {6, 0}, new int[] {6, 2}, new int[] {6, 4}, new int[] {6, 6},
+        new int[] {7, 1}, new int[] {7, 3}, new int[] {7, 5}, new int[] {7, 7}
+    };
+
+
     private int totalBoardMeasurement;
     private int rightOuterBlackBorderWidth;
     private int leftOuterBlackBorderWidth;
