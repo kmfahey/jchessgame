@@ -83,13 +83,19 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * @param cmpntDims     A Dimension object with the dimensions of the board
      *                      that BoardView is displaying.
      * @param imgMgr        An ImagesManager object.
-     * @param coordMgr      A CoordinatesManager objedct.
+     * @param coordMgr      A CoordinatesManager object.
      * @param chessboardObj A Chessboard object.
      * @param movesLogObj   A MovesLog object, the textarea to the right of the
      *                      board that displays moves and error messages.
      * @param colorPlaying  An integer representing the color the player is
      *                      playing-- either BoardArrays.WHITE or 
      *                      BoardArrays.BLACK.
+     * @see ChessGame
+     * @see Dimension
+     * @see ImagesManager
+     * @see CoordinatesManager
+     * @see Chessboard
+     * @see MovesLog
      */
     public BoardView(final ChessGame chessGame, final Dimension cmpntDims, final ImagesManager imgMgr,
                      final CoordinatesManager coordMgr, final Chessboard chessboardObj, final MovesLog movesLogObj,
@@ -125,6 +131,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * previous game has been cleared, if the player chose to play Black. It
      * sets the timer that triggers the actionPerformed() method which contains
      * the AI's move generation and execution logic.
+     *
+     * @see ChessGame
      */
     public void aiMovesFirst() {
         opposingMoveDelayTimer.start();
@@ -140,6 +148,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * @param yCoord   The y-coordinate of the pawn that's being promoted.
      * @param newPiece The int value of the piece that the pawn is being 
      *                 promoted to.
+     * @see PopupPawnPromotion
      */
     public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
         chessboard.promotePawn(xCoord, yCoord, newPiece);
@@ -152,6 +161,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * the board, but the board is on-screen during that choice (unlike when
      * PopupColorChoice runs at the initialization of the program) so the board
      * needs to be empty.
+     *
+     * @see PopupGameOver
      */
     public void blankBoard() {
         int[][] boardArray = chessboard.getBoardArray();
@@ -166,9 +177,14 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /* This method redraws the board, using Graphics.fillRect() to create a
-       chessboard in the BoardView area, and (if not working from a blank
-       Chessboard object) using Graphics.drawImage() to place the piece icons in
-       the appropriate squares. */
+     * chessboard in the BoardView area, and (if not working from a blank
+     * Chessboard object) using Graphics.drawImage() to place the piece icons in
+     * the appropriate squares.
+     *
+     * @param graphics The Graphics object that gives the method access to
+     *                 graphical methods.
+     * @see java.awt.Graphics
+     **/
     @Override
     protected void paintComponent(final Graphics graphics) {
         int piecesDrawn = 0;
@@ -413,29 +429,20 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             /* The piece isn't a king, and that move would put the king in check
                or the king is in check and that move doesn't resolve that. */
             if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
+                System.err.println("foo");
                 movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
             } else {
                 movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
             }
             resetClickEventVars();
             return false;
-        } else {
-            HashMap<String, HashSet<String>> movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
-
-            /* Integer coordinate pairs work poorly as map keys or set
-               members, so with moveMapOfSets algebraic notation is used. */
-            String fromLocation = BoardArrays.coordsToAlgNotn(clickEventMovingFrom);
-            String toLocation = BoardArrays.coordsToAlgNotn(clickEventMovingTo);
-
-            /* If the movement-from location and the movement-to location don't
-               appear in movesMapOfSets as a key to a set and a member of that
-               set, then the move isn't a valid one. */
-            if (!movesMapOfSets.containsKey(fromLocation)
-                || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
-                movesLog.addError(moveObj, MovesLog.MoveError.NOT_A_VALID_MOVE);
-                resetClickEventVars();
-                return false;
-            }
+        /* This method checks whether a piece of the given type at the moveObj's
+           moving-from coordinates can move to a square at the moveObj's
+           moving-to coordinates. */
+        } else if (!chessboard.isMovePossible(moveObj)) {
+            movesLog.addError(moveObj, MovesLog.MoveError.NOT_A_VALID_MOVE);
+            resetClickEventVars();
+            return false;
         }
 
         return true;
@@ -444,17 +451,21 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     /* The moveObj is passed to Chessboard.movePiece() for execution, which may
        raise an exception. If one is raised, it returns false, otherwise true. */
     private boolean mouseClickedMovePieceAndCleanup(Chessboard.Move moveObj) {
+        int[][] boardArray = chessboard.getBoardArray();
         int colorOnTop = chessboard.getColorOnTop();
 
         /* An attempt to execute the moveObj using Chessboard.movePiece(). If an
            exception is thrown, this method returns false. */
         try {
+            BoardArrays.printBoard(boardArray);
+            System.err.println();
             chessboard.movePiece(moveObj);
         } catch (KingIsInCheckException exception) {
+            movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
             resetClickEventVars();
             return false;
         } catch (CastlingNotPossibleException exception) {
-            JOptionPane.showMessageDialog(chessGameFrame, exception.getMessage());
+            movesLog.addError(moveObj, MovesLog.MoveError.CASTLING_NOT_POSSIBLE);
             resetClickEventVars();
             return false;
         }
@@ -653,10 +664,13 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         /* Moving the piece, or handling the error that arises because the move
            isn't executable. Hasn't had an error on an AI move yet. */
         try {
+            int[][] boardArray = chessboard.getBoardArray();
+            BoardArrays.printBoard(boardArray);
+            System.err.println();
             chessboard.movePiece(moveToMake);
         } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
-            JOptionPane.showMessageDialog(chessGameFrame, "Moving the AI's piece caused a " + exceptionClassName
+            JOptionPane.showMessageDialog(chessGameFrame, "Moving the AI's piece (" + moveToMake.toString() + ") caused a " + exceptionClassName
                                                           + ":\n" + exception.getMessage());
             BoardArrays.printBoard(chessboard.getBoardArray());
             exception.printStackTrace();

@@ -14,6 +14,7 @@ public class MovesLog extends JTextArea {
         public static final int IS_IN_CHECK = 1;
         public static final int NOT_A_VALID_MOVE = 2;
         public static final int IS_A_FRIENDLY_PIECE = 3;
+        public static final int CASTLING_NOT_POSSIBLE = 4;
 
         public String toString() {
             String pieceStr = BoardArrays.pieceIntToString(moveObj.movingPiece().pieceInt());
@@ -29,6 +30,8 @@ public class MovesLog extends JTextArea {
                     retval += "that's not a valid move for that piece."; break;
                 case IS_A_FRIENDLY_PIECE:
                     retval += "can't capture a friendly piece."; break;
+                case CASTLING_NOT_POSSIBLE:
+                    retval += "castling is impossible."; break;
                 default:
                     break;
             }

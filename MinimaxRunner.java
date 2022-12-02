@@ -1,5 +1,6 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class MinimaxRunner {

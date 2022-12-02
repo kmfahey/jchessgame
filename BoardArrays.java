@@ -1,5 +1,6 @@
 package com.kmfahey.jchessgame;
 
+import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,9 +42,11 @@ public final class BoardArrays {
     public static final int WHITE =     0b0100000000;
     public static final int BLACK =     0b1000000000;
 
-    /* This set of valid piece int values is used by the debugging method
-       fileNameToBoardArray() to verify that field values in the board CSV its
-       parsing are valid piece ints. */
+    /**
+     * This set of valid piece int values is used by the debugging method
+     * fileNameToBoardArray() to verify that field values in the board CSV its
+     * parsing are valid piece ints.
+     */
     public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<Integer>() {{
         this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
         this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
@@ -62,6 +65,10 @@ public final class BoardArrays {
     public static final String ALG_NOTN_ALPHA = "abcdefgh";
     public static final String ALG_NOTN_NUM = "87654321";
 
+    /* This mapping associates piece integer values (absent any color flag)
+       with the abbreviations of those pieces used in algebraic notation; it's
+       used by Chessboard.Move.toString() to express a Move object in algebraic
+       notation. */
     public static final HashMap<Integer, String> PIECES_ABBRS = new HashMap<>() {{
         this.put(PAWN, "P"); this.put(BISHOP, "B"); this.put(ROOK, "R");
         this.put(KNIGHT | LEFT, "N"); this.put(KNIGHT | RIGHT, "N");
@@ -74,41 +81,49 @@ public final class BoardArrays {
     /* A Random object, used for a few cases where a coin toss is needed. */
     private static Random randomNumberGenerator = new Random();
 
-    public static String pieceIntToString(final int pieceInt) {
-        String retval;
-        int privPieceInt;
-
-        if ((pieceInt & WHITE) != 0) {
-            retval = "White ";
-            privPieceInt = pieceInt ^ WHITE;
+    /**
+     * This method converts an integer representing a piece into a textual
+     * representation of the piece. It is primarily used as a debugging tool.
+     *
+     * @param pieceInt The integer representing a piece to interpret"
+     * @return         A string value that describes the piece in plain English.
+     */
+    public static String pieceIntToString(int pieceInt) {
+        int privPieceInt = pieceInt;
+        String color = "";
+        String role = "";
+        String chirality = "";
+        if ((privPieceInt & WHITE) != 0) {
+            color = "white";
+            privPieceInt ^= WHITE;
         } else {
-            retval = "Black ";
-            privPieceInt = pieceInt ^ BLACK;
+            color = "black";
+            privPieceInt ^= BLACK;
         }
-
-        if ((pieceInt & LEFT) != 0) {
+        if ((privPieceInt & LEFT) != 0) {
+            chirality = "left ";
             privPieceInt ^= LEFT;
         } else if ((pieceInt & RIGHT) != 0) {
+            chirality = "right ";
             privPieceInt ^= RIGHT;
         }
-
         switch (privPieceInt) {
             case PAWN:
-                retval += "pawn"; break;
+                role = "pawn"; break;
             case ROOK:
-                retval += "rook"; break;
+                role = "rook"; break;
             case KNIGHT:
-                retval += "knight"; break;
+                role = "knight"; break;
             case BISHOP:
-                retval += "bishop"; break;
+                role = "bishop"; break;
             case QUEEN:
-                retval += "queen"; break;
+                role = "queen"; break;
             case KING:
-                retval += "king"; break;
-            default: break;
+                role = "king"; break;
+            default:
+                break;
         }
-
-        return retval;
+        return color + " " + chirality + role;
     }
 
     /**
@@ -309,6 +324,8 @@ public final class BoardArrays {
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
                                   ) throws IllegalArgumentException {
         int pieceInt = boardArray[xIdx][yIdx];
+        int retval = 0;
+        int culpritPiece;
 
         /* The color of the piece is Not'd off of the pieceInt found in
            boardArray at the given indexes, and the value is switched against;
@@ -316,22 +333,28 @@ public final class BoardArrays {
            called. The return value of that method is returned directly. */
         switch (pieceInt ^ colorsTurnItIs) {
             case PAWN:
-                return generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                retval = generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
             case ROOK:
-                return generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                retval = generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
             case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                return generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                retval = generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
             case BISHOP:
-                return generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                retval = generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
             case QUEEN:
-                return generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                retval = generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
             case KING:
-                return generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                retval = generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
             default:
                 throw new IllegalArgumentException(
                               "The integer value found in the board array at the specified indexes doesn't parse as a "
                               + "piece int value.");
         }
+
+        if (retval > moveIdx && Arrays.equals(movesArray[retval - 1], new int[7])) {
+            throw new IllegalStateException("move index has been incremented (moves for piece " + BoardArrays.pieceIntToString(pieceInt) + ") but most recent move array pointed to is 0s");
+        }
+
+        return retval;
     }
 
     /**
@@ -442,17 +465,14 @@ public final class BoardArrays {
                     }
                     /* The pawn promotion move is saved to movesArray, using the
                        7th array element to indicate the piece promoted to. */
-                    setMoveToMovesArray(
-                        movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                        boardArray[xIdxMod][yIdxMod], newPieceInt);
-                    moveIdx++;
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                  boardArray[xIdxMod][yIdxMod], newPieceInt);
                 }
             } else {
                 /* Otherwise this isn't a pawn promotion move and the move is
                    saved to movesArray as normal. */
-                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                moveIdx++;
+                moveIdx = setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                              boardArray[xIdxMod][yIdxMod]);
             }
         }
 
@@ -468,8 +488,7 @@ public final class BoardArrays {
             /* If the move wouldn't put this side's king in check (or fail to
                get it out of check), it's saved to the movesArray. */
             if (!wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdx, yIdxMod, colorsTurnItIs, colorOnTop)) {
-                setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0);
-                moveIdx++;
+                moveIdx = setMoveToMovesArray(movesArray, moveIdx, pawnPieceInt, xIdx, yIdx, xIdx, yIdxMod, 0);
             }
         }
 
@@ -508,7 +527,7 @@ public final class BoardArrays {
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
                                   ) throws IllegalArgumentException {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int rookPieceInt;
+        int rookPieceInt = boardArray[xIdx][yIdx];
         int moveIdx = moveIdxArg;
 
         rookPieceInt = boardArray[xIdx][yIdx];
@@ -528,7 +547,11 @@ public final class BoardArrays {
                piece. */
             for (int yIdxMod = yIdx + 1;
                  yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
-                 yIdxMod++, moveIdx++) {
+                 yIdxMod++) {
+
+                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
+                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
+
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdx, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -536,12 +559,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                        boardArray[xIdx][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                                  boardArray[xIdx][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdx][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -552,20 +574,24 @@ public final class BoardArrays {
                piece. */
             for (int yIdxMod = yIdx - 1;
                  yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
-                 yIdxMod--, moveIdx++) {
+                 yIdxMod--) {
+
+                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
+                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
+
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdx, yIdxMod, colorsTurnItIs, colorOnTop)) {
                     continue;
                 }
+
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                        boardArray[xIdx][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                                  boardArray[xIdx][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdx][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -576,7 +602,11 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx + 1;
                  xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
-                 xIdxMod++, moveIdx++) {
+                 xIdxMod++) {
+
+                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
+                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
+
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdx, colorsTurnItIs, colorOnTop)) {
@@ -584,12 +614,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                        boardArray[xIdxMod][yIdx]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                                  boardArray[xIdxMod][yIdx]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdx] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -600,7 +629,11 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx - 1;
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
-                 xIdxMod--, moveIdx++) {
+                 xIdxMod--) {
+
+                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
+                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
+
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdx, colorsTurnItIs, colorOnTop)) {
@@ -608,12 +641,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                        boardArray[xIdxMod][yIdx]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, rookPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                                  boardArray[xIdxMod][yIdx]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdx] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -674,7 +706,7 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1;
                 xIdxMod < 8 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod++, yIdxMod++, moveIdx++) {
+                xIdxMod++, yIdxMod++) {
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -682,12 +714,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                  boardArray[xIdxMod][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -698,7 +729,7 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1;
                 xIdxMod >= 0 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod--, yIdxMod++, moveIdx++) {
+                xIdxMod--, yIdxMod++) {
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -706,12 +737,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                  boardArray[xIdxMod][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -722,7 +752,7 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1;
                 xIdxMod < 8 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod++, yIdxMod--, moveIdx++) {
+                xIdxMod++, yIdxMod--) {
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -730,12 +760,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                  boardArray[xIdxMod][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -746,7 +775,7 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1;
                 xIdxMod >= 0 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                xIdxMod--, yIdxMod--, moveIdx++) {
+                xIdxMod--, yIdxMod--) {
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -754,12 +783,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, bishopPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                  boardArray[xIdxMod][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -847,9 +875,8 @@ public final class BoardArrays {
                 }
 
                 /* The move is saved to the movesArray. */
-                setMoveToMovesArray(movesArray, moveIdx, knightPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                    boardArray[xIdxMod][yIdxMod]);
-                moveIdx++;
+                moveIdx = setMoveToMovesArray(movesArray, moveIdx, knightPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                              boardArray[xIdxMod][yIdxMod]);
             }
         }
 
@@ -907,7 +934,7 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx + 1;
                 xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
-                xIdxMod++, moveIdx++) {
+                xIdxMod++) {
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdx, colorsTurnItIs, colorOnTop)) {
@@ -915,12 +942,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                        boardArray[xIdxMod][yIdx]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                                  boardArray[xIdxMod][yIdx]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdx] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -930,7 +956,7 @@ public final class BoardArrays {
                    friendly piece. */
                 for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1;
                      xIdxMod < 8 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                     xIdxMod++, yIdxMod++, moveIdx++) {
+                     xIdxMod++, yIdxMod++) {
                     /* If the move would put this side's king in check (or fail to
                        get it out of check), it's discarded. */
                     if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -938,12 +964,11 @@ public final class BoardArrays {
                     }
                     /* The move is saved if it wouldn't capture a king. */
                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                            boardArray[xIdxMod][yIdxMod]);
+                        moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                      boardArray[xIdxMod][yIdxMod]);
                     }
                     /* If the last move captured a piece, the loop breaks. */
                     if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        moveIdx++;
                         break;
                     }
                 }
@@ -953,7 +978,7 @@ public final class BoardArrays {
                    direction. It stops if it reaches a square occupied by a
                    friendly piece. */
                 for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod < 8 && yIdxMod >= 0
-                     && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0; xIdxMod++, yIdxMod--, moveIdx++) {
+                     && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0; xIdxMod++, yIdxMod--) {
                     /* If the move would put this side's king in check (or fail to
                        get it out of check), it's discarded. */
                     if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -961,12 +986,11 @@ public final class BoardArrays {
                     }
                     /* The move is saved if it wouldn't capture a king. */
                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                            boardArray[xIdxMod][yIdxMod]);
+                        moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                      boardArray[xIdxMod][yIdxMod]);
                     }
                     /* If the last move captured a piece, the loop breaks. */
                     if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        moveIdx++;
                         break;
                     }
                 }
@@ -978,7 +1002,7 @@ public final class BoardArrays {
                piece. */
             for (int yIdxMod = yIdx + 1;
                  yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
-                 yIdxMod++, moveIdx++) {
+                 yIdxMod++) {
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdx, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -986,12 +1010,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                        boardArray[xIdx][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                                  boardArray[xIdx][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdx][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -1002,7 +1025,7 @@ public final class BoardArrays {
                piece. */
             for (int yIdxMod = yIdx - 1;
                  yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
-                 yIdxMod--, moveIdx++) {
+                 yIdxMod--) {
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdx, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -1010,12 +1033,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdx][yIdxMod] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
-                                        boardArray[xIdx][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdx, yIdxMod,
+                                                  boardArray[xIdx][yIdxMod]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdx][yIdxMod] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -1026,7 +1048,8 @@ public final class BoardArrays {
                piece. */
             for (int xIdxMod = xIdx - 1;
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
-                 xIdxMod--, moveIdx++) {
+                 xIdxMod--) {
+                /* If the move would put this side's king in check (or fail to
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdx, colorsTurnItIs, colorOnTop)) {
@@ -1034,12 +1057,11 @@ public final class BoardArrays {
                 }
                 /* The move is saved if it wouldn't capture a king. */
                 if ((boardArray[xIdxMod][yIdx] ^ otherColor) != KING) {
-                    setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
-                                        boardArray[xIdxMod][yIdx]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdx,
+                                                  boardArray[xIdxMod][yIdx]);
                 }
                 /* If the last move captured a piece, the loop breaks. */
                 if (boardArray[xIdxMod][yIdx] != 0) {
-                    moveIdx++;
                     break;
                 }
             }
@@ -1049,7 +1071,7 @@ public final class BoardArrays {
                    friendly piece. */
                 for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1;
                      xIdxMod >= 0 && yIdxMod < 8 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                     xIdxMod--, yIdxMod++, moveIdx++) {
+                     xIdxMod--, yIdxMod++) {
                     /* If the move would put this side's king in check (or fail
                        to get it out of check), it's discarded. */
                     if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -1057,12 +1079,11 @@ public final class BoardArrays {
                     }
                     /* The move is saved if it wouldn't capture a king. */
                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                            boardArray[xIdxMod][yIdxMod]);
+                        moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                      boardArray[xIdxMod][yIdxMod]);
                     }
                     /* If the last move captured a piece, the loop breaks. */
                     if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        moveIdx++;
                         break;
                     }
                 }
@@ -1073,7 +1094,7 @@ public final class BoardArrays {
                    friendly piece. */
                 for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1;
                      xIdxMod >= 0 && yIdxMod >= 0 && (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) == 0;
-                     xIdxMod--, yIdxMod--, moveIdx++) {
+                     xIdxMod--, yIdxMod--) {
                     /* If the move would put this side's king in check (or fail
                        to get it out of check), it's discarded. */
                     if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdxMod, colorsTurnItIs, colorOnTop)) {
@@ -1081,12 +1102,11 @@ public final class BoardArrays {
                     }
                     /* The move is saved if it wouldn't capture a king. */
                     if ((boardArray[xIdxMod][yIdxMod] ^ otherColor) != KING) {
-                        setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                            boardArray[xIdxMod][yIdxMod]);
+                        moveIdx = setMoveToMovesArray(movesArray, moveIdx, queenPieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                      boardArray[xIdxMod][yIdxMod]);
                     }
                     /* If the last move captured a piece, the loop breaks. */
                     if (boardArray[xIdxMod][yIdxMod] != 0) {
-                        moveIdx++;
                         break;
                     }
                 }
@@ -1175,10 +1195,9 @@ public final class BoardArrays {
                 /* If the method was called with a movesArray, the possible move
                    is set to the current index on that array. */
                 if (movesArray != null) {
-                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
-                                        boardArray[xIdxMod][yIdxMod]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, xIdxMod, yIdxMod,
+                                                  boardArray[xIdxMod][yIdxMod]);
                 }
-                moveIdx++;
             }
         }
 
@@ -1202,8 +1221,7 @@ public final class BoardArrays {
                    the corner the rook is in and listing the rook as a capture
                    (although the rook is the same color and can't be captured). */
                 if (!wouldKingBeInCheck(boardArray, 2, yIdx, colorsTurnItIs, colorOnTop)) {
-                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx, boardArray[0][yIdx]);
-                    moveIdx++;
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx, boardArray[0][yIdx]);
                 }
             }
             /* The second conditional checks whether queenside castling
@@ -1217,8 +1235,7 @@ public final class BoardArrays {
                    the corner the rook is in and listing the rook as a capture
                    (although the rook is the same color and can't be captured). */
                 if (!wouldKingBeInCheck(boardArray, 6, yIdx, colorsTurnItIs, colorOnTop)) {
-                    setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx, boardArray[7][yIdx]);
-                    moveIdx++;
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx, boardArray[7][yIdx]);
                 }
             }
         }
@@ -1236,10 +1253,16 @@ public final class BoardArrays {
      * pawn promotion. See the other signature of setMoveToMovesArray() for the
      * full docs.
      */
-    private static void setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
-                                     final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
-                                     final int capturedPiece) throws IllegalArgumentException {
-        setMoveToMovesArray(movesArray, moveIdx, pieceInt, fromXIdx, fromYIdx, toXIdx, toYIdx, capturedPiece, 0);
+    private static int setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
+                                           final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
+                                           final int capturedPiece) throws IllegalArgumentException {
+        if (pieceInt == 0) {
+            throw new IllegalStateException("invalid values to save to a movesArray: "
+                                            + Arrays.toString(new int[] {
+                                                  pieceInt, fromXIdx, fromYIdx, toXIdx, toYIdx, capturedPiece}));
+        }
+        return setMoveToMovesArray(movesArray, moveIdx, pieceInt, fromXIdx, fromYIdx, toXIdx, toYIdx, capturedPiece, 0);
+        
     }
 
     /*
@@ -1277,10 +1300,10 @@ public final class BoardArrays {
      * @see generateQueensMoves
      * @see generateKingsMoves
      */
-    private static void setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
-                                     final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
-                                     final int capturedPiece, final int promotedToPieceInt
-                                     ) throws IllegalArgumentException {
+    private static int setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
+                                           final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
+                                           final int capturedPiece, final int promotedToPieceInt
+                                           ) throws IllegalArgumentException {
         if (movesArray[moveIdx][0] != 0) {
             throw new IllegalArgumentException("setMoveToMovesArray() called with moveIdx arg pointing to "
                                                     + "non-zero entry in movesArray argument");
@@ -1292,6 +1315,8 @@ public final class BoardArrays {
         movesArray[moveIdx][4] = toYIdx;
         movesArray[moveIdx][5] = capturedPiece;
         movesArray[moveIdx][6] = promotedToPieceInt;
+
+        return moveIdx + 1;
     }
 
     /**
@@ -1496,7 +1521,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdxMod][yIdx];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdxMod == toXIdx && yIdx == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a horizontal, then
                the king is in check, return true. */
@@ -1515,7 +1540,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
@@ -1524,7 +1549,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
@@ -1534,7 +1559,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdx][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdx == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a vertical, then the
                king is in check, return true. */
@@ -1543,7 +1568,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdx == toXIdx && yIdx == toYIdx) {
+            } else if (pieceInt != 0 || xIdx == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
@@ -1553,7 +1578,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
@@ -1572,7 +1597,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdxMod][yIdx];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdxMod == toXIdx && yIdx == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a horizontal, then
                the king is in check, return true. */
@@ -1591,7 +1616,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
@@ -1610,7 +1635,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdx][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdx == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a vertical, then the
                king is in check, return true. */
@@ -1629,7 +1654,7 @@ public final class BoardArrays {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */

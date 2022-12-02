@@ -42,7 +42,7 @@ public class ImagesManager {
                     pieceRole = pieceRole + "-" + chirality;
                 }
                 String pieceStr = pieceColor + "-" + pieceRole;
-                int pieceInt = Chessboard.pieceStrsToInts.get(pieceStr);
+                int pieceInt = Chessboard.PIECE_STRS_TO_INTS.get(pieceStr);
                 piecesImages.put(pieceInt, imageData);
             }
         }
