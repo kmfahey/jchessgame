@@ -260,6 +260,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                     // Clicking on a piece and then clicking on it again isn't an error.
                     movesLog.addError(moveObj, MovesLog.MoveError.IS_A_FRIENDLY_PIECE);
                 }
+                BoardArrays.printBoard(boardArray);
+                System.out.println();
                 resetClickEventVars();
                 return;
 
@@ -274,9 +276,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 } else {
                     movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
                 }
+                BoardArrays.printBoard(boardArray);
+                System.out.println();
                 resetClickEventVars();
                 return;
-            } else if (BoardArrays.wouldKingBeInCheck(
+            } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) == 0
+                       && BoardArrays.wouldKingBeInCheck(
                               chessboard.getBoardArray(), clickEventMovingFrom[0], clickEventMovingFrom[1],
                               clickEventMovingTo[0], clickEventMovingTo[1], colorOfPlayer, colorOnTop)) {
                 /* That move would put the king in check or the king is in check
@@ -286,6 +291,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                 } else {
                     movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
                 }
+                BoardArrays.printBoard(boardArray);
+                System.out.println();
                 resetClickEventVars();
                 return;
             } else {
@@ -300,6 +307,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                     || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
                     movesLog.addError(moveObj, MovesLog.MoveError.NOT_A_VALID_MOVE);
                     resetClickEventVars();
+                    BoardArrays.printBoard(boardArray);
+                    System.out.println();
                     return;
                 }
             }
@@ -316,6 +325,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             }
 
             movesLog.addMove(moveObj);
+
+            BoardArrays.printBoard(boardArray);
+            System.out.println();
 
             if (colorOfPlayer == BoardArrays.WHITE) {
                 whiteHasMoved = true;

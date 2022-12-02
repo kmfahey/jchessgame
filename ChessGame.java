@@ -147,7 +147,7 @@ public class ChessGame extends JFrame implements ActionListener {
             movesLogConstraints.gridx = 1;
             movesLogConstraints.gridheight = 1;
             movesLogConstraints.gridwidth = 1;
-            movesLogConstraints.insets = new Insets(20, 20, 20, 20);
+            movesLogConstraints.insets = new Insets(20, 0, 20, 20);
 
             gamePanel.add(scrollableMovesLog, movesLogConstraints);
         }

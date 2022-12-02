@@ -397,7 +397,7 @@ public final class BoardArrays {
 
         /* This for loop checks both the forward diagonals from the pawn's
            square for a capturing move. */
-        for (xIdxMod = xIdx - 1; xIdxMod <= xIdx + 2; xIdxMod++) {
+        for (xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod++) {
             /* If the xIdxMod value is off either side of the board, this
                iteration is skipped. */
             if (xIdxMod < 0 || xIdxMod > 7) {
@@ -405,15 +405,16 @@ public final class BoardArrays {
             }
             /* If the current xIdxMod value is equal to xIdx and the square
                ahead is occupied, */
-            if (xIdxMod == xIdx && boardArray[xIdxMod][yIdxMod] != 0
-                // Or it's not equal to xIdx (so it's a diagonal)
-                || xIdxMod != xIdx
-                    // and the square on the diagonal isn't occupied,
-                    && ((boardArray[xIdxMod][yIdxMod] & otherColor) == 0
-                        // or it's occupied by the other side's king,
-                        || (boardArray[xIdxMod][yIdxMod] ^ otherColor) == KING)
-                // or xIdxMod is off the board in either direction,
-                || xIdxMod < 0 || xIdxMod > 7) {
+            if (xIdxMod == xIdx && boardArray[xIdxMod][yIdxMod] != 0) {
+                // Then skip this iteration of the loop.
+                continue;
+            // If it's not equal to xIdx (so it's a diagonal)
+            } else if (xIdxMod != xIdx && (boardArray[xIdxMod][yIdxMod] == 0
+                                           // and the square on the diagonal isn't occupied,
+                                           || (boardArray[xIdxMod][yIdxMod] & colorsTurnItIs) != 0
+                                           // or it's occupied by a piece on our side
+                                           || (boardArray[xIdxMod][yIdxMod] ^ otherColor) == KING)) {
+                                           // or it's occupied by the other side's king,
                 // Then skip this iteration of the loop.
                 continue;
             }
@@ -1391,11 +1392,8 @@ public final class BoardArrays {
                                              final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
                                              final int colorsTurnItIs, final int colorOnTop) {
         int otherColor = colorsTurnItIs == WHITE ? BLACK : WHITE;
-        int pieceInt;
         int xIdx = kingXIdx;
         int yIdx = kingYIdx;
-        int xIdxMod;
-        int yIdxMod;
         boolean kingMoved;
 
         kingMoved = boardArray[kingXIdx][kingYIdx] != (colorsTurnItIs | KING);
@@ -1409,29 +1407,36 @@ public final class BoardArrays {
            conditionals proceed as normal. */
 
         // Pawns
-        if (colorOnTop == colorsTurnItIs) {
-            yIdxMod = yIdx + 1;
-        } else {
-            yIdxMod = yIdx - 1;
-        }
+        {
+            int yIdxMod;
 
-        /* Checking the two forward diagonals to see if either contains an
-           opposing pawn. */
-        if (0 <= yIdxMod && yIdxMod <= 7) {
-            for (xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod += 2) {
-                if (xIdxMod < 0 || xIdxMod > 7) {
-                    continue;
-                }
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | PAWN)) {
-                    return true;
+            if (colorOnTop == colorsTurnItIs) {
+                yIdxMod = yIdx + 1;
+            } else {
+                yIdxMod = yIdx - 1;
+            }
+
+            /* Checking the two forward diagonals to see if either contains an
+               opposing pawn. */
+            if (0 <= yIdxMod && yIdxMod <= 7) {
+                for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod += 2) {
+                    if (xIdxMod < 0 || xIdxMod > 7 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                        continue;
+                    }
+                    if (boardArray[xIdxMod][yIdxMod] == (otherColor | PAWN)) {
+                        return true;
+                    }
                 }
             }
         }
 
-        /* Checking for a king. */
-        for (xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod++) {
-            for (yIdxMod = yIdx - 1; yIdxMod <= yIdx + 1; yIdxMod++) {
-                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7 || xIdxMod == xIdx && yIdxMod == yIdx) {
+        // King
+
+        for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod++) {
+            for (int yIdxMod = yIdx - 1; yIdxMod <= yIdx + 1; yIdxMod++) {
+                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
+                    || xIdxMod == xIdx && yIdxMod == yIdx
+                    || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                     continue;
                 } else if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
                     return true;
@@ -1449,19 +1454,21 @@ public final class BoardArrays {
                    that produces the 8 knight's moves from the king's location.
                    They're tested to see if an opposing knight is in any one of
                    them. */
-                if (xIdxDelta == 0 && yIdxDelta == 0 || Math.abs(xIdxDelta) == Math.abs(yIdxDelta)) {
+                if (xIdxDelta == 0 || yIdxDelta == 0 || Math.abs(xIdxDelta) == Math.abs(yIdxDelta)) {
                     continue;
                 }
 
-                xIdxMod = xIdx + xIdxDelta;
-                yIdxMod = yIdx + yIdxDelta;
+                int xIdxMod = xIdx + xIdxDelta;
+                int yIdxMod = yIdx + yIdxDelta;
 
-                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7) {
+                if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
+                    || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                     continue;
                 }
 
-                if (boardArray[xIdxMod][yIdxMod] == (otherColor | KNIGHT | LEFT)
-                    || boardArray[xIdxMod][yIdxMod] == (otherColor | KNIGHT | RIGHT)) {
+                int pieceInt = boardArray[xIdxMod][yIdxMod];
+
+                if (pieceInt == (otherColor | KNIGHT | LEFT) || pieceInt == (otherColor | KNIGHT | RIGHT)) {
                     return true;
                 }
             }
@@ -1469,96 +1476,96 @@ public final class BoardArrays {
 
         // Bishops, Rooks, and Queens
         // Checking eastward on this rank for a queen or a rook
-        for (xIdxMod = xIdx + 1; xIdxMod <= 7; xIdxMod++) {
-            pieceInt = boardArray[xIdxMod][yIdx];
-            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int xIdxMod = xIdx + 1; xIdxMod <= 7; xIdxMod++) {
+            int pieceInt = boardArray[xIdxMod][yIdx];
+            if (xIdxMod == toXIdx && yIdx == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
+            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+                return true;
             } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the southeast diagonal for a queen or a bishop
-        for (xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod <= 7 && yIdxMod <= 7; xIdxMod++, yIdxMod++) {
-            pieceInt = boardArray[xIdxMod][yIdxMod];
-            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod <= 7 && yIdxMod <= 7; xIdxMod++, yIdxMod++) {
+            int pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
+            } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
             } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking southward on this file for a queen or a rook
-        for (yIdxMod = yIdx + 1; yIdxMod <= 7; yIdxMod++) {
-            pieceInt = boardArray[xIdx][yIdxMod];
-            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int yIdxMod = yIdx + 1; yIdxMod <= 7; yIdxMod++) {
+            int pieceInt = boardArray[xIdx][yIdxMod];
+            if (xIdx == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
+            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+                return true;
+            } else if (pieceInt != 0 || xIdx == toXIdx && yIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the southwest diagonal for a queen or a bishop
-        for (xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod <= 7; xIdxMod--, yIdxMod++) {
-            pieceInt = boardArray[xIdxMod][yIdxMod];
-            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod <= 7; xIdxMod--, yIdxMod++) {
+            int pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
+            } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
             } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
 
         // Checking westward on this rank for a queen or a rook
-        for (xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-            pieceInt = boardArray[xIdxMod][yIdx];
-            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
+            int pieceInt = boardArray[xIdxMod][yIdx];
+            if (xIdxMod == toXIdx && yIdx == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
+            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+                return true;
             } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the northwest diagonal for a queen or a bishop
-        for (xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
-            pieceInt = boardArray[xIdxMod][yIdxMod];
-            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
+            int pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
+            } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
             } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
 
         // Checking northward on this file for a queen or a rook
-        for (yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-            pieceInt = boardArray[xIdx][yIdxMod];
-            if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
+            int pieceInt = boardArray[xIdx][yIdxMod];
+            if (xIdx == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
+                return true;
+            } else if (pieceInt != 0 || xIdx == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
 
         // Checking the northeast diagonal for a queen or a bishop
-        for (xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod <= 7 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
-            pieceInt = boardArray[xIdxMod][yIdxMod];
-            if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
-                return true;
-            } else if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+        for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod <= 7 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
+            int pieceInt = boardArray[xIdxMod][yIdxMod];
+            if (xIdxMod == toXIdx && yIdxMod == toYIdx || kingMoved && pieceInt == (colorsTurnItIs | KING)) {
                 continue;
+            } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
+                return true;
             } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
@@ -1582,9 +1589,9 @@ public final class BoardArrays {
      * @see com.kmfahey.jchessgame.Chessboard
      */
     public static void printBoard(final int[][] boardArray) {
-        StringJoiner outerJoiner = new StringJoiner(",\n", "new int[][] {\n", "\n}\n");
+        StringJoiner outerJoiner = new StringJoiner("\n");
         for (int outerIndex = 0; outerIndex < 8; outerIndex++) {
-            StringJoiner innerJoiner = new StringJoiner(", ", "new int[] {", "}");
+            StringJoiner innerJoiner = new StringJoiner(",");
             for (int innerIndex = 0; innerIndex < 8; innerIndex++) {
                 innerJoiner.add(String.valueOf(boardArray[outerIndex][innerIndex]));
             }

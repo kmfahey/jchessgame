@@ -439,14 +439,23 @@ public class Chessboard {
         String thisColorStr = (colorOfPiece == WHITE ? "White" : "Black");
 
         /* It's illegal in chess to make a move that leaves one's king in check.
-        /* BoardArrays.wouldKingBeInCheck() is used to test if this move would
-        /* do that; if so, a KingIsInCheckException is thrown. */
-        if (BoardArrays.wouldKingBeInCheck(boardArray, fromXCoord, fromYCoord, toXCoord, toYCoord,
-                                           colorOfPiece, colorOnTop)) {
-            throw new KingIsInCheckException(
-                          "Move would place " + thisColorStr + "'s king in check or " + thisColorStr + "'s King is in "
-                          + "check and this move doesn't fix that; move can't be made.");
+           BoardArrays.wouldKingBeInCheck() is used to test if this move would
+           do that; if so, a KingIsInCheckException is thrown. */
+        if ((pieceInt & KING) != 0) {
+            if (BoardArrays.wouldKingBeInCheck(boardArray, toXCoord, toYCoord, colorOfPiece, colorOnTop)) {
+                throw new KingIsInCheckException(
+                              "Move would place " + thisColorStr + "'s king in check or " + thisColorStr + "'s King is in "
+                              + "check and this move doesn't fix that; move can't be made.");
+            }
+        } else {
+            if (BoardArrays.wouldKingBeInCheck(boardArray, fromXCoord, fromYCoord, toXCoord, toYCoord,
+                                              colorOfPiece, colorOnTop)) {
+                throw new KingIsInCheckException(
+                              "Move would place " + thisColorStr + "'s king in check or " + thisColorStr + "'s King is in "
+                              + "check and this move doesn't fix that; move can't be made.");
+            }
         }
+
 
         /* If the moveObj has a promotedToPieceInt attribute set, this is a pawn
            promotion move; so the desintration square is set to the new piece. */
