@@ -140,9 +140,11 @@ public class PopupPawnPromotion extends JFrame {
                     default:
                         break;
                 }
-                callingBoardView.promotePawn(pawnXCoord, pawnYCoord, newPiece);
-                callingBoardView.repaint();
-                enclosingDbox.dispose();
+                if (newPiece != 0) {
+                    callingBoardView.promotePawn(pawnXCoord, pawnYCoord, newPiece);
+                    callingBoardView.repaint();
+                    enclosingDbox.dispose();
+                }
             }
         });
         return button;

@@ -181,10 +181,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         }
     }
 
-    public void mouseClicked(final MouseEvent event) {
+    private int[] mouseClickedEventToCoords(final MouseEvent event) {
         int eventXCoord = event.getX();
         int eventYCoord = event.getY();
-        int colorOnTop = chessboard.getColorOnTop();
 
         Insets boardSquareFieldInsets = coordinatesManager.getBoardSquareFieldInsets();
         Dimension squareDimensions = coordinatesManager.getSquareDimensions();
@@ -194,9 +193,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             || eventXCoord > boardSquareFieldInsets.left + boardSquareFieldDimensions.getWidth()
             || eventYCoord <= boardSquareFieldInsets.top
             || eventYCoord > boardSquareFieldInsets.top + boardSquareFieldDimensions.getHeight()) {
-            return;
+            return null;
         }
-        int[] clickSquareCoord;
         int tempXCoord = eventXCoord;
         int tempYCoord = eventYCoord;
         int xCoord = 0;
@@ -213,10 +211,14 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         if (xCoord > 7 || yCoord > 7) {
             resetClickEventVars();
-            return;
+            return null;
         }
 
-        clickSquareCoord = new int[] {xCoord, yCoord};
+        return new int[] {xCoord, yCoord};
+    }
+
+    private Chessboard.Move mouseClickedCoordsToMoveObj(int[] clickSquareCoord) {
+        Chessboard.Move moveObj;
 
         if (Objects.isNull(clickEventClickedPiece)) {
             clickEventMovingFrom = clickSquareCoord;
@@ -225,10 +227,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             if (Objects.isNull(clickEventClickedPiece)
                 || (clickEventClickedPiece.pieceInt() & chessboard.getColorPlaying()) == 0) {
                 resetClickEventVars();
-                return;
             }
+
+            return null;
         } else {
-            Chessboard.Move moveObj;
             clickEventMovingTo = clickSquareCoord;
 
             clickEventToCapturePiece = chessboard.getPieceAtCoords(clickEventMovingTo);
@@ -240,132 +242,174 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                                                  && (clickEventClickedPiece.pieceInt() & Chessboard.WHITE)
                                                  == (clickEventToCapturePiece.pieceInt() & Chessboard.WHITE);
             boolean moveIsCastling = firstPieceIsKing && secondPieceIsRook && bothPiecesAreSameColor;
-            boolean moveIsCastlingKingside = moveIsCastling && xCoord == 0;
-            boolean moveIsCastlingQueenside = moveIsCastling && xCoord == 7;
+            boolean moveIsCastlingKingside = moveIsCastling && clickEventMovingTo[0] == 0;
+            boolean moveIsCastlingQueenside = moveIsCastling && clickEventMovingTo[0] == 7;
 
             moveObj = new Chessboard.Move(clickEventClickedPiece, clickEventMovingFrom[0], clickEventMovingFrom[1],
                                           clickEventMovingTo[0], clickEventMovingTo[1],
                                           Objects.nonNull(clickEventToCapturePiece)
                                               ? clickEventToCapturePiece.pieceInt() : 0,
                                           moveIsCastlingKingside, moveIsCastlingQueenside, 0);
+            return moveObj;
+        }
+    }
 
-            /* The time that both pieces are the same color and it's a valid
-               move is if the first one is a king and the second one is rook, bc
-               that's how castling is signalled. */
-            if (!moveIsCastling && Objects.nonNull(clickEventToCapturePiece)
-                && (clickEventToCapturePiece.pieceInt() & chessboard.getColorPlaying()) != 0) {
+    private boolean mouseClickedTestForMoveErrors(final Chessboard.Move moveObj) {
+        int colorOnTop = chessboard.getColorOnTop();
 
-                /* Both pieces are the same color (and it's not castling) so it's a no-op. */
-                if (clickEventMovingFrom[0] != clickEventMovingTo[0] || clickEventMovingFrom[1] != clickEventMovingTo[1]) {
-                    // Clicking on a piece and then clicking on it again isn't an error.
-                    movesLog.addError(moveObj, MovesLog.MoveError.IS_A_FRIENDLY_PIECE);
-                }
-                BoardArrays.printBoard(boardArray);
-                System.out.println();
-                resetClickEventVars();
-                return;
+        /* The time that both pieces are the same color and it's a valid
+           move is if the first one is a king and the second one is rook, bc
+           that's how castling is signalled. */
+        if (!(moveObj.isCastlingQueenside() || moveObj.isCastlingKingside()) 
+            && Objects.nonNull(clickEventToCapturePiece)
+            && (clickEventToCapturePiece.pieceInt() & chessboard.getColorPlaying()) != 0) {
 
-            } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0
-                       && BoardArrays.wouldKingBeInCheck(
-                              chessboard.getBoardArray(), clickEventMovingTo[0], clickEventMovingTo[1],
-                              colorOfPlayer, colorOnTop)) {
-                /* The piece is a King, and either moving it to that square would put it
-                   in check, or it's already in check and that move wouldn't change that, so movement is cancelled. */
-                if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
-                    movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
-                } else {
-                    movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
-                }
-                BoardArrays.printBoard(boardArray);
-                System.out.println();
-                resetClickEventVars();
-                return;
-            } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) == 0
-                       && BoardArrays.wouldKingBeInCheck(
-                              chessboard.getBoardArray(), clickEventMovingFrom[0], clickEventMovingFrom[1],
-                              clickEventMovingTo[0], clickEventMovingTo[1], colorOfPlayer, colorOnTop)) {
-                /* That move would put the king in check or the king is in check
-                   and that move doesn't resolve that. */
-                if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
-                    movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
-                } else {
-                    movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
-                }
-                BoardArrays.printBoard(boardArray);
-                System.out.println();
-                resetClickEventVars();
-                return;
-            } else {
-                movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
-
-                /* Integer coordinate pairs work poorly as map keys or set
-                   members, so with moveMapOfSets algebraic notation is used. */
-                String fromLocation = BoardArrays.coordsToAlgNotn(clickEventMovingFrom);
-                String toLocation = BoardArrays.coordsToAlgNotn(clickEventMovingTo);
-
-                if (!movesMapOfSets.containsKey(fromLocation)
-                    || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
-                    movesLog.addError(moveObj, MovesLog.MoveError.NOT_A_VALID_MOVE);
-                    resetClickEventVars();
-                    BoardArrays.printBoard(boardArray);
-                    System.out.println();
-                    return;
-                }
-            }
-
-            try {
-                chessboard.movePiece(moveObj);
-            } catch (KingIsInCheckException exception) {
-                resetClickEventVars();
-                return;
-            } catch (CastlingNotPossibleException exception) {
-                JOptionPane.showMessageDialog(chessGameFrame, exception.getMessage());
-                resetClickEventVars();
-                return;
-            }
-
-            movesLog.addMove(moveObj);
-
-            BoardArrays.printBoard(boardArray);
-            System.out.println();
-
-            if (colorOfPlayer == BoardArrays.WHITE) {
-                whiteHasMoved = true;
-            } else {
-                blackHasMoved = true;
-            }
-
-            if ((moveObj.movingPiece().pieceInt() & Chessboard.PAWN) != 0) {
-                int pieceColor = moveObj.movingPiece().pieceInt() ^ Chessboard.PAWN;
-                if ((pieceColor == colorOnTop) ? (moveObj.toYCoord() == 7) : (moveObj.toYCoord() == 0)) {
-                    pawnHasntBeenPromotedYet = true;
-                    pawnToPromoteCoords = new int[] {moveObj.toXCoord(), moveObj.toYCoord()};
-                    popupPawnPromotion = new PopupPawnPromotion(this, moveObj.toXCoord(), moveObj.toYCoord());
-                }
-            }
-
-            if (whiteHasMoved && blackHasMoved) {
-                turnCount++;
-                whiteHasMoved = false;
-                blackHasMoved = false;
+            /* Both pieces are the same color (and it's not castling) so it's a no-op. */
+            if (clickEventMovingFrom[0] != clickEventMovingTo[0] || clickEventMovingFrom[1] != clickEventMovingTo[1]) {
+                /* Clicking on a piece and then clicking on it again isn't an
+                   error, it's how you cancel a move. */
+                movesLog.addError(moveObj, MovesLog.MoveError.IS_A_FRIENDLY_PIECE);
             }
 
             resetClickEventVars();
-
-            repaint();
-
-            /* This timer is used both to introduce a hangtime between the
-               player's move and the opposing move, and to break the opposing
-               move logic out of this mouseClicked() method and run it in its
-               own execution by using an event to trigger another, unconnected
-               method call. */
-            if (Objects.isNull(opposingMoveDelayTimer)) {
-                opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
-                opposingMoveDelayTimer.setActionCommand("move");
-                opposingMoveDelayTimer.setRepeats(true);
+            return false;
+        } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0
+                   && BoardArrays.wouldKingBeInCheck(
+                          chessboard.getBoardArray(), clickEventMovingTo[0], clickEventMovingTo[1],
+                          colorOfPlayer, colorOnTop)) {
+            /* The piece is a King, and either moving it to that square would put it
+               in check, or it's already in check and that move wouldn't change that, so movement is cancelled. */
+            if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
+                movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
+            } else {
+                movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
             }
-            opposingMoveDelayTimer.start();
+            resetClickEventVars();
+            return false;
+        } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) == 0
+                   && BoardArrays.wouldKingBeInCheck(
+                          chessboard.getBoardArray(), clickEventMovingFrom[0], clickEventMovingFrom[1],
+                          clickEventMovingTo[0], clickEventMovingTo[1], colorOfPlayer, colorOnTop)) {
+            /* That move would put the king in check or the king is in check
+               and that move doesn't resolve that. */
+            if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
+                movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
+            } else {
+                movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
+            }
+            resetClickEventVars();
+            return false;
+        } else {
+            movesMapOfSets = chessboard.getPossibleMovesMapOfSets();
+
+            /* Integer coordinate pairs work poorly as map keys or set
+               members, so with moveMapOfSets algebraic notation is used. */
+            String fromLocation = BoardArrays.coordsToAlgNotn(clickEventMovingFrom);
+            String toLocation = BoardArrays.coordsToAlgNotn(clickEventMovingTo);
+
+            if (!movesMapOfSets.containsKey(fromLocation)
+                || !movesMapOfSets.get(fromLocation).contains(toLocation)) {
+                movesLog.addError(moveObj, MovesLog.MoveError.NOT_A_VALID_MOVE);
+                resetClickEventVars();
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    private boolean mouseClickedMovePieceAndCleanup(Chessboard.Move moveObj) {
+        int colorOnTop = chessboard.getColorOnTop();
+
+        try {
+            chessboard.movePiece(moveObj);
+        } catch (KingIsInCheckException exception) {
+            resetClickEventVars();
+            return false;
+        } catch (CastlingNotPossibleException exception) {
+            JOptionPane.showMessageDialog(chessGameFrame, exception.getMessage());
+            resetClickEventVars();
+            return false;
+        }
+
+        movesLog.addMove(moveObj);
+
+        if (colorOfPlayer == BoardArrays.WHITE) {
+            whiteHasMoved = true;
+        } else {
+            blackHasMoved = true;
+        }
+
+        if ((moveObj.movingPiece().pieceInt() & Chessboard.PAWN) != 0) {
+            int pieceColor = moveObj.movingPiece().pieceInt() ^ Chessboard.PAWN;
+            if ((pieceColor == colorOnTop) ? (moveObj.toYCoord() == 7) : (moveObj.toYCoord() == 0)) {
+                pawnHasntBeenPromotedYet = true;
+                pawnToPromoteCoords = new int[] {moveObj.toXCoord(), moveObj.toYCoord()};
+                popupPawnPromotion = new PopupPawnPromotion(this, moveObj.toXCoord(), moveObj.toYCoord());
+            }
+        }
+
+        if (whiteHasMoved && blackHasMoved) {
+            turnCount++;
+            whiteHasMoved = false;
+            blackHasMoved = false;
+        }
+
+        resetClickEventVars();
+
+        repaint();
+
+        return true;
+    }
+
+    public void mouseClicked(final MouseEvent event) {
+        int colorOnTop = chessboard.getColorOnTop();
+        int[] clickSquareCoord;
+        boolean isMoveValid;
+        boolean didMoveExecute;
+
+        clickSquareCoord = mouseClickedEventToCoords(event);
+
+        if (Objects.isNull(clickSquareCoord)) {
+            return;
+        }
+
+        Chessboard.Move moveObj;
+
+        moveObj = mouseClickedCoordsToMoveObj(clickSquareCoord);
+
+        if (Objects.isNull(moveObj)) {
+            return;
+        }
+
+        isMoveValid = mouseClickedTestForMoveErrors(moveObj);
+
+        if (!isMoveValid) {
+            return;
+        }
+
+        didMoveExecute = mouseClickedMovePieceAndCleanup(moveObj);
+
+        if (!didMoveExecute) {
+            return;
+        }
+
+        /* This timer is used both to introduce a hangtime between the
+           player's move and the opposing move, and to break the opposing
+           move logic out of this mouseClicked() method and run it in its
+           own execution by using an event to trigger another, unconnected
+           method call.
+
+           In the special case of pawn promotion, there's a PopupPawnPromotion()
+           dialog box waiting for player interaction, and this timer repeatedly
+           triggers actionPerformed, which aborts unless the pawn promotion
+           dialog has finished and called promotePawn() with the result. */
+        if (Objects.isNull(opposingMoveDelayTimer)) {
+            opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
+            opposingMoveDelayTimer.setActionCommand("move");
+            opposingMoveDelayTimer.setRepeats(true);
+        }
+        opposingMoveDelayTimer.start();
     }
 
     private void resetClickEventVars() {
@@ -434,6 +478,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
         movesLog.addMove(moveToMake);
 
+        /* Turns are counted so that algorithmTopLevel can be called with a
+           turnCount value (it handles its moves differently on the first turn).
+           If both sides have moved then a turn has happened. */
         if (colorOfAI == BoardArrays.WHITE) {
             whiteHasMoved = true;
         } else {
