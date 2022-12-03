@@ -481,46 +481,46 @@ public class Chessboard {
      *                    kingside castling, and queen indicates queenside
      *                    castling.
      */
-    private boolean isCastlingPossible(final int colorOfKing, final int kingOrQueen) throws IllegalArgumentException {
+    private boolean isCastlingImpossible(final int colorOfKing, final int kingOrQueen) throws IllegalArgumentException {
         switch (colorOfKing | kingOrQueen) {
             case BLACK | KING -> {
                 int yIdx = colorOnTop == BLACK ? 0 : 7;
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (blackKingHasMoved || blackKingsRookHasMoved) {
-                    return false;
+                    return true;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
                 } else if (boardArray[1][yIdx] != 0 || boardArray[2][yIdx] != 0) {
-                    return false;
+                    return true;
                 }
-                return true;
+                return false;
             }
             case BLACK | QUEEN -> {
                 int yIdx = colorOnTop == BLACK ? 0 : 7;
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (blackKingHasMoved || blackQueensRookHasMoved) {
-                    return false;
+                    return true;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
                 } else if (boardArray[4][yIdx] != 0 || boardArray[5][yIdx] != 0 || boardArray[6][yIdx] != 0) {
-                    return false;
+                    return true;
                 }
-                return true;
+                return false;
             }
             case WHITE | KING -> {
                 int yIdx = colorOnTop == WHITE ? 0 : 7;
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (whiteKingHasMoved || whiteKingsRookHasMoved) {
-                    return false;
+                    return true;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
                 } else if (boardArray[1][yIdx] != 0 || boardArray[2][yIdx] != 0) {
-                    return false;
+                    return true;
                 }
-                return true;
+                return false;
             }
             /* Testing whether castling queenside is possible for the White king. */
             case WHITE | QUEEN -> {
@@ -528,13 +528,13 @@ public class Chessboard {
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (whiteKingHasMoved || whiteQueensRookHasMoved) {
-                    return false;
+                    return true;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
                 } else if (boardArray[4][yIdx] != 0 || boardArray[5][yIdx] != 0 || boardArray[6][7] != 0) {
-                    return false;
+                    return true;
                 }
-                return true;
+                return false;
             }
             default -> throw new IllegalArgumentException("could not resolve arguments to isCastlingPossible()");
         }
@@ -573,7 +573,7 @@ public class Chessboard {
                moved since the start of play. Boolean state variables are used
                to track these conditions, and isCastlingPossible checks those
                values to see if castling can be done. */
-            if (!isCastlingPossible(colorOfPiece, KING)) {
+            if (isCastlingImpossible(colorOfPiece, KING)) {
                 throw new CastlingNotPossibleException("Castling kingside is not possible for " + colorOfPieceStr);
             /* A test to see if the move would somehow put the king in check. */
             } else if (BoardArrays.wouldKingBeInCheck(boardArray, 2, kingYCoord, colorOfPiece, colorOnTop)) {
@@ -589,7 +589,7 @@ public class Chessboard {
                moved since the start of play. Boolean state variables are used
                to track these conditions, and isCastlingPossible checks those
                values to see if castling can be done. */
-            if (!isCastlingPossible(colorOfPiece, QUEEN)) {
+            if (isCastlingImpossible(colorOfPiece, QUEEN)) {
                 throw new CastlingNotPossibleException("Castling queenside is not possible for " + colorOfPieceStr);
             /* A test to see if the move would somehow put the king in check. */
             } else if (BoardArrays.wouldKingBeInCheck(boardArray, 6, kingYCoord, colorOfPiece, colorOnTop)) {

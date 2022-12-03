@@ -59,7 +59,7 @@ public final class BoardArrays {
     public static final int LEFT =      0b0000000001; 
 
     /** Used to verify that an integer is a valid piece ints.
-        @see loadBoardArrayFromFile */
+            @see #loadBoardArrayFromFile */
     public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<>() {{
         this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
         this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
@@ -68,11 +68,11 @@ public final class BoardArrays {
     }};
 
     /** Used to translate between algebraic notation and numeric coordinates.
-        @see coordsToAlgNotn */
+        @see #coordsToAlgNotn */
     public static final String ALG_NOTN_ALPHA = "abcdefgh"; 
 
     /** Used to translate between algebraic notation and numeric coordinates.
-        @see coordsToAlgNotn */
+        @see #coordsToAlgNotn */
     public static final String ALG_NOTN_NUM = "87654321"; 
 
     /** Associates piece integer values (absent any color flag) with the
@@ -89,7 +89,8 @@ public final class BoardArrays {
     public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
 
     /** A Random object, used for a few cases where a coin toss is needed.
-        @see shuffleMovesArray @see generatePawnsMoves */
+        @see #shuffleMovesArray
+        @see #generatePawnsMoves */
     private static final Random RNG = new Random();
 
     private BoardArrays() { }
@@ -319,8 +320,8 @@ public final class BoardArrays {
         };
 
         /* The color of the piece is Not'd off of the pieceInt found in
-           boardArray at the given indexes, and the value is switched against;
-           whatever piece it is, the corresponding generate*sMoves() method is
+           boardArray at the given indexes, and the value is switched against.
+           The generate*sMoves() method corresponding to the piece is
            called. The return value of that method is returned directly. */
 
         if (retval > moveIdx && Arrays.equals(movesArray[retval - 1], new int[7])) {

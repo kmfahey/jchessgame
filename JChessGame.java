@@ -89,8 +89,8 @@ public class JChessGame extends JFrame implements ActionListener {
      *                     commandline indicating a board CSV file to load,
      *                     but an I/O error occurs reading from the file or a
      *                     malformed or unmappable byte sequence is read.
-     * @see actionPerformed
-     * @see setColorPlaying
+     * @see #actionPerformed
+     * @see #setColorPlaying
      */
     public JChessGame() throws IOException {
         this(null);
@@ -114,8 +114,8 @@ public class JChessGame extends JFrame implements ActionListener {
      *                     commandline indicating a board CSV file to load,
      *                     but an I/O error occurs reading from the file or a
      *                     malformed or unmappable byte sequence is read.
-     * @see actionPerformed
-     * @see setColorPlaying
+     * @see #actionPerformed
+     * @see #setColorPlaying
      */
     public JChessGame(final String fileNameStr) throws IOException {
         super("Chess Game");
@@ -200,8 +200,8 @@ public class JChessGame extends JFrame implements ActionListener {
      * first game), and it's also called from PopupGameOver when the player has
      * chosen to play again to restart the game setup process.
      * 
-     * @see setColorPlaying
-     * @see actionPerformed
+     * @see #setColorPlaying
+     * @see #actionPerformed
      */
     public void chooseColor() {
         colorPlaying = -1;

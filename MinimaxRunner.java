@@ -9,7 +9,7 @@ import java.util.HashMap;
  * its moves.
  *
  * @see MinimaxRunner#algorithmTopLevel
- * @see algorithmTopLevel
+ * @see #algorithmTopLevel
  */
 public class MinimaxRunner {
 
@@ -679,23 +679,18 @@ public class MinimaxRunner {
                        equality with the first doubled pawn. If they match, only
                        the second doubled pawn is counted and stored. Otherwise,
                        both are counted and stored. */
-                    if (dblpIdx > 1 && doubledPawnsCoords[dblpIdx - 1][0] == prevPawnXIdx
-                                    && doubledPawnsCoords[dblpIdx - 1][1] == prevPawnYIdx) {
-                        doubledPawnsCoords[dblpIdx][0] = thisPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][1] = thisPawnYIdx;
-                        dblpIdx++;
-                        doubledPawnsCount++;
-                    } else {
+                    if (dblpIdx <= 1 || doubledPawnsCoords[dblpIdx - 1][0] != prevPawnXIdx
+                            || doubledPawnsCoords[dblpIdx - 1][1] != prevPawnYIdx) {
                         doubledPawnsCoords[dblpIdx][0] = prevPawnXIdx;
                         doubledPawnsCoords[dblpIdx][1] = prevPawnYIdx;
                         dblpIdx++;
                         doubledPawnsCount++;
 
-                        doubledPawnsCoords[dblpIdx][0] = thisPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][1] = thisPawnYIdx;
-                        dblpIdx++;
-                        doubledPawnsCount++;
                     }
+                    doubledPawnsCoords[dblpIdx][0] = thisPawnXIdx;
+                    doubledPawnsCoords[dblpIdx][1] = thisPawnYIdx;
+                    dblpIdx++;
+                    doubledPawnsCount++;
                 }
 
                 int nextSquareXIdx = thisPawnXIdx;
@@ -753,6 +748,6 @@ public class MinimaxRunner {
            the length of the used arrays, so that is returned. It's returned as
            a double because the calculations in evaluateBoard() are all done in
            doubles. */
-        return (double) moveIdx;
+        return moveIdx;
     }
 }

@@ -146,7 +146,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     /**
      * Starts the Timer object that sends events to actionPerformed.
      *
-     * @see actionPerformed
+     * @see #actionPerformed
      * @see JChessGame
      */
     public void aiMovesFirst() {
@@ -162,7 +162,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * @param newPiece The int value of the piece that the pawn is being
      *                 promoted to.
      * @see PopupPawnPromotion
-     * @see actionPerformed
+     * @see #actionPerformed
      */
     public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
         chessboard.promotePawn(xCoord, yCoord, newPiece);
@@ -653,7 +653,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
            handling the error that results if the algorithm chokes. */
         try {
             moveToMake = minimaxRunner.algorithmTopLevel(turnCount);
-        } catch (CastlingNotPossibleException | IllegalArgumentException exception) {
+        } catch (IllegalArgumentException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
             JOptionPane.showMessageDialog(chessGameFrame, "Minimax algorithm experienced a " + exceptionClassName
                                                           + ":\n" + exception.getMessage());
