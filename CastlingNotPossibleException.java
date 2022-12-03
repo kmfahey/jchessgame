@@ -1,7 +1,8 @@
 package com.kmfahey.jchessgame;
 
 /**
- * Thrown by Chessboard.movePiece() when processing a castling move if it turns out castling is impossible.
+ * Thrown by Chessboard.movePiece() when processing a castling move if it turns
+ * out castling is impossible.
  *
  * @see Chessboard.movePiece
  */

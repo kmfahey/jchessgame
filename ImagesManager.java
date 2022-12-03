@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -45,7 +44,8 @@ public class ImagesManager {
         squareDimensions = squareDims;
         piecesImagesScaled = new HashMap<Integer, Image>();
 
-        /* This loop iterates over the .png files found in the directory indicates by the imageDirectory argument (by default, ./images/),
+        /* This loop iterates over the .png files found in the directory
+           indicates by the imageDirectory argument (by default, ./images/), */
         Path imageDirPath = Paths.get(imageDirectory);
         try (DirectoryStream<Path> imageDirStream = Files.newDirectoryStream(imageDirPath, "*.png")) {
             for (Path imagePath : imageDirStream) {
@@ -70,7 +70,7 @@ public class ImagesManager {
                 Image scaledImage = imageData.getScaledInstance((int) squareDimensions.getWidth(),
                                                                 (int) squareDimensions.getHeight(),
                                                                 BufferedImage.SCALE_SMOOTH);
-                
+
                 /* and saves each one to the piecesImagesScaled instance variable. */
                 piecesImagesScaled.put(pieceInt, scaledImage);
             }

@@ -12,12 +12,9 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
@@ -55,7 +52,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
        algorithm started and the time it stopped. */
     private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
     // FIXME: the algorithm running printout should go to a logger.
-    
+
     /* An rng used by actionPerformed to pick a random pawn promotion if the
        player declined to choose. */
     private Random randomNumberGenerator = new Random();
@@ -78,7 +75,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * This constructor instances a BoardView object. It accepts quite a few
      * arguments since it needs almost every object that was instanced in the
      * ChessGame constructor that called it so it can run the game.
-     * 
+     *
      * @param chessGame     A ChessGame object.
      * @param cmpntDims     A Dimension object with the dimensions of the board
      *                      that BoardView is displaying.
@@ -88,7 +85,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * @param movesLogObj   A MovesLog object, the textarea to the right of the
      *                      board that displays moves and error messages.
      * @param colorPlaying  An integer representing the color the player is
-     *                      playing-- either BoardArrays.WHITE or 
+     *                      playing-- either BoardArrays.WHITE or
      *                      BoardArrays.BLACK.
      * @see ChessGame
      * @see Dimension
@@ -146,7 +143,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      *
      * @param xCoord   The x-coordinate of the pawn that's being promoted.
      * @param yCoord   The y-coordinate of the pawn that's being promoted.
-     * @param newPiece The int value of the piece that the pawn is being 
+     * @param newPiece The int value of the piece that the pawn is being
      *                 promoted to.
      * @see PopupPawnPromotion
      */
@@ -329,7 +326,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     /* This method takes the clicked square coordinates-- if it's the 1st click,
        it's saved to state and null is returned. If it's the 2nd click, a
        Chessboard.Move is instanced and returned. */
-    private Chessboard.Move mouseClickedCoordsToMoveObj(int[] clickSquareCoord) {
+    private Chessboard.Move mouseClickedCoordsToMoveObj(final int[] clickSquareCoord) {
         Chessboard.Move moveObj;
 
         /* If clickEventClickedPiece is null, then this is the first click, so
@@ -395,7 +392,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         /* The time that both pieces are the same color and it's a valid
            move is if the first one is a king and the second one is rook, bc
            that's how castling is signalled. */
-        if (!(moveObj.isCastlingQueenside() || moveObj.isCastlingKingside()) 
+        if (!(moveObj.isCastlingQueenside() || moveObj.isCastlingKingside())
             && Objects.nonNull(clickEventToCapturePiece)
             && (clickEventToCapturePiece.pieceInt() & chessboard.getColorPlaying()) != 0) {
 
@@ -450,7 +447,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
     /* The moveObj is passed to Chessboard.movePiece() for execution, which may
        raise an exception. If one is raised, it returns false, otherwise true. */
-    private boolean mouseClickedMovePieceAndCleanup(Chessboard.Move moveObj) {
+    private boolean mouseClickedMovePieceAndCleanup(final Chessboard.Move moveObj) {
         int[][] boardArray = chessboard.getBoardArray();
         int colorOnTop = chessboard.getColorOnTop();
 
@@ -508,7 +505,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     public void mouseClicked(final MouseEvent event) {
-        int colorOnTop = chessboard.getColorOnTop();
         int[] clickSquareCoord;
         boolean isMoveValid;
         boolean didMoveExecute;
@@ -670,7 +666,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             chessboard.movePiece(moveToMake);
         } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
-            JOptionPane.showMessageDialog(chessGameFrame, "Moving the AI's piece (" + moveToMake.toString() + ") caused a " + exceptionClassName
+            JOptionPane.showMessageDialog(chessGameFrame, "Moving the AI's piece (" + moveToMake.toString()
+                                                          + ") caused a " + exceptionClassName
                                                           + ":\n" + exception.getMessage());
             BoardArrays.printBoard(chessboard.getBoardArray());
             exception.printStackTrace();

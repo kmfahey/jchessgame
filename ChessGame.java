@@ -25,7 +25,7 @@ import java.io.FileNotFoundException;
  * icon and clicking on the square to move it to. It also features a scrolling
  * log that displays the moves in algebraic notation, and lists error messages
  * if an illegal move was attempted.
- * 
+
  * The opposing AI is implemented using the minimax algorithm with the
  * alpha/beta pruning optimization. The user has the option to play either color
  * (with White always going first), and once a game is over the board can be
@@ -62,7 +62,7 @@ public class ChessGame extends JFrame implements ActionListener {
      * the GUI.
      */
     private JPanel gamePanel;
-    
+
     /**
      * ImagesManager manages the game's images directory and provides chess
      * piece icon Image objects that can be drawn to the board.
@@ -132,7 +132,7 @@ public class ChessGame extends JFrame implements ActionListener {
      */
     public ChessGame(final String fileNameStr) throws IOException, FileNotFoundException {
         super("Chess Game");
-        
+
         Dimension windowDims;
         float scalingProportion;
 
@@ -306,7 +306,7 @@ public class ChessGame extends JFrame implements ActionListener {
                 chessboard = new Chessboard(boardArray, imagesManager, colorPlaying, colorOnTop);
             }
         } else {
-            if (Objects.nonNull(chessboard)) {;
+            if (Objects.nonNull(chessboard)) {
                 /* If chessboard is non-null then this is a subsequent game.
                    The new color values are set, a blank boardArray is set, and
                    Chessboard.layOutPieces() is used to array the pieces on the
@@ -371,7 +371,8 @@ public class ChessGame extends JFrame implements ActionListener {
             boardConstraints.gridwidth = 1;
             boardConstraints.insets = new Insets(20, 20, 20, 20);
 
-            boardView = new BoardView(this, boardDims, imagesManager, coordinatesManager, chessboard, movesLog, colorPlaying);
+            boardView = new BoardView(this, boardDims, imagesManager, coordinatesManager, chessboard, movesLog,
+                                      colorPlaying);
             gamePanel.add(boardView, boardConstraints);
             boardView.addMouseListener(boardView);
         }

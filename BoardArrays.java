@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Objects;
@@ -76,7 +75,7 @@ public final class BoardArrays {
     }};
 
     /* This array contains the pieces that a pawn can be promoted to. */
-    public static int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
+    public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
 
     /* A Random object, used for a few cases where a coin toss is needed. */
     private static Random randomNumberGenerator = new Random();
@@ -88,7 +87,7 @@ public final class BoardArrays {
      * @param pieceInt The integer representing a piece to interpret"
      * @return         A string value that describes the piece in plain English.
      */
-    public static String pieceIntToString(int pieceInt) {
+    public static String pieceIntToString(final int pieceInt) {
         int privPieceInt = pieceInt;
         String color = "";
         String role = "";
@@ -325,7 +324,6 @@ public final class BoardArrays {
                                   ) throws IllegalArgumentException {
         int pieceInt = boardArray[xIdx][yIdx];
         int retval = 0;
-        int culpritPiece;
 
         /* The color of the piece is Not'd off of the pieceInt found in
            boardArray at the given indexes, and the value is switched against;
@@ -333,17 +331,23 @@ public final class BoardArrays {
            called. The return value of that method is returned directly. */
         switch (pieceInt ^ colorsTurnItIs) {
             case PAWN:
-                retval = generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
+                retval = generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                break;
             case ROOK:
-                retval = generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
+                retval = generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                break;
             case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                retval = generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
+                retval = generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                break;
             case BISHOP:
-                retval = generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
+                retval = generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                break;
             case QUEEN:
-                retval = generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
+                retval = generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                break;
             case KING:
-                retval = generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop); break;
+                retval = generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+                break;
             default:
                 throw new IllegalArgumentException(
                               "The integer value found in the board array at the specified indexes doesn't parse as a "
@@ -351,7 +355,9 @@ public final class BoardArrays {
         }
 
         if (retval > moveIdx && Arrays.equals(movesArray[retval - 1], new int[7])) {
-            throw new IllegalStateException("move index has been incremented (moves for piece " + BoardArrays.pieceIntToString(pieceInt) + ") but most recent move array pointed to is 0s");
+            throw new IllegalStateException("move index has been incremented (moves for piece "
+                                            + BoardArrays.pieceIntToString(pieceInt)
+                                            + ") but most recent move array pointed to is 0s");
         }
 
         return retval;
@@ -550,7 +556,6 @@ public final class BoardArrays {
                  yIdxMod++) {
 
                 int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
-                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
 
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
@@ -577,7 +582,6 @@ public final class BoardArrays {
                  yIdxMod--) {
 
                 int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
-                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
 
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
@@ -605,7 +609,6 @@ public final class BoardArrays {
                  xIdxMod++) {
 
                 int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
-                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
 
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
@@ -632,7 +635,6 @@ public final class BoardArrays {
                  xIdxMod--) {
 
                 int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
-                String pieceAbbr = PIECES_ABBRS.get(pieceIntLessColor);
 
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
@@ -1221,7 +1223,8 @@ public final class BoardArrays {
                    the corner the rook is in and listing the rook as a capture
                    (although the rook is the same color and can't be captured). */
                 if (!wouldKingBeInCheck(boardArray, 2, yIdx, colorsTurnItIs, colorOnTop)) {
-                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx, boardArray[0][yIdx]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx,
+                                                  boardArray[0][yIdx]);
                 }
             }
             /* The second conditional checks whether queenside castling
@@ -1235,7 +1238,8 @@ public final class BoardArrays {
                    the corner the rook is in and listing the rook as a capture
                    (although the rook is the same color and can't be captured). */
                 if (!wouldKingBeInCheck(boardArray, 6, yIdx, colorsTurnItIs, colorOnTop)) {
-                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx, boardArray[7][yIdx]);
+                    moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx,
+                                                  boardArray[7][yIdx]);
                 }
             }
         }
@@ -1262,7 +1266,6 @@ public final class BoardArrays {
                                                   pieceInt, fromXIdx, fromYIdx, toXIdx, toYIdx, capturedPiece}));
         }
         return setMoveToMovesArray(movesArray, moveIdx, pieceInt, fromXIdx, fromYIdx, toXIdx, toYIdx, capturedPiece, 0);
-        
     }
 
     /*
@@ -1711,7 +1714,9 @@ public final class BoardArrays {
      * @see com.kmfahey.jchessboard.Chessboard
      */
     public static int[][] fileNameToBoardArray(final String fileName)
-                                                throws NullPointerException, BoardArrayFileParsingException, IOException {
+                                                throws NullPointerException,
+                                                       BoardArrayFileParsingException,
+                                                       IOException {
         File boardFile;
         String fileContents;
         String[] fileLines;

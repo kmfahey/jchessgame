@@ -222,7 +222,7 @@ public class Chessboard {
      *
      * @param imagesManager The program's ImagesManager object, which is used
      *                      to retrieve piece images.
-     * @param playingColor  An integer representing the color the user is 
+     * @param playingColor  An integer representing the color the user is
      *                      playing as, either BoardArrays.WHITE or
      *                      BoardArrays.BLACK.
      * @param onTopColor    An integer representing the color that's playing
@@ -241,7 +241,7 @@ public class Chessboard {
      * @param boardArrayVal The value for the board array.
      * @param imagesManager The program's ImagesManager object, which is used
      *                      to retrieve piece images.
-     * @param playingColor  An integer representing the color the user is 
+     * @param playingColor  An integer representing the color the user is
      *                      playing as, either BoardArrays.WHITE or
      *                      BoardArrays.BLACK.
      * @param onTopColor    An integer representing the color that's playing
@@ -277,7 +277,7 @@ public class Chessboard {
      * @param colorPlayingVal The new integer value representing the color the
      *                        user is playing. One of either BoardArrays.WHITE
      *                        or BoardArrays.BLACK.
-     * @param colorOnTopVal   The new integer value representing the color 
+     * @param colorOnTopVal   The new integer value representing the color
      *                        playing from the top of the board. One of either
      *                        BoardArrays.WHITE or BoardArrays.BLACK.
      */
@@ -348,7 +348,7 @@ public class Chessboard {
      * @param boardArrayVal The int[8][8] array to set the boardArray instance
      *                      variable to.
      */
-    public void setBoardArray(int[][] boardArrayVal) {
+    public void setBoardArray(final int[][] boardArrayVal) {
         boardArray = new int[8][8];
 
         for (int xIdx = 0; xIdx < 8; xIdx++) {
@@ -396,7 +396,7 @@ public class Chessboard {
      * This method is used to promote a pawn at the specified location. The
      * pawn's integer value in the internal board array is replaced with the new
      * value given, Or'd with the color of the original piece.
-     * 
+     *
      * @param xCoord   The x coordinate of the pawn to promote.
      * @param yCoord   The y coordinate of the pawn to promote.
      * @param newPiece The integer value of the new piece to replace it with,
@@ -455,12 +455,13 @@ public class Chessboard {
      *                location, false otherwise.
      * @see BoardView.mouseClickedTestForMoveErrors
      */
-    public boolean isMovePossible(Chessboard.Move moveObj) {
+    public boolean isMovePossible(final Chessboard.Move moveObj) {
         int[][] movesArray = new int[32][7];
         int pieceColor = ((moveObj.movingPiece().pieceInt() & WHITE) != 0) ? WHITE : BLACK;
         int xCoord = moveObj.fromXCoord();
         int yCoord = moveObj.fromYCoord();
-        int usedLengthMovesArray = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xCoord, yCoord, pieceColor, colorOnTop);
+        int usedLengthMovesArray = BoardArrays.generatePieceMoves(boardArray, movesArray, 0, xCoord, yCoord,
+                                                                  pieceColor, colorOnTop);
 
         for (int index = 0; index < usedLengthMovesArray; index++) {
             if (movesArray[index][3] == moveObj.toXCoord() && movesArray[index][4] == moveObj.toYCoord()) {
@@ -546,7 +547,7 @@ public class Chessboard {
     }
 
     /**
-     * This method executes a Chessboard.Move object that describes a castling move 
+     * This method executes a Chessboard.Move object that describes a castling move
      * on the object's internal chessboard model.
      *
      * @param moveObj The Chessboard.Move object describing the move to be made.
@@ -563,7 +564,6 @@ public class Chessboard {
         boolean isCastlingKingside = moveObj.isCastlingKingside();
         boolean isCastlingQueenside = moveObj.isCastlingQueenside();
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
-        int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
         int rookPieceInt = boardArray[rookXCoord][rookYCoord];
         String colorOfPieceStr = (colorOfPiece == WHITE ? "White" : "Black");
 
@@ -608,7 +608,8 @@ public class Chessboard {
             kingNewXCoord = 6;
         } else {
             /* A can't happen error, but here for completeness. */
-            throw new IllegalStateException("movePieceCastling() called with a Move object that doesn't indicate castling");
+            throw new IllegalStateException("movePieceCastling() called with a Move object that doesn't indicate "
+                                            + "castling");
         }
 
         /* The actual exchange is done. The values of rookNewXCoord and
@@ -630,7 +631,7 @@ public class Chessboard {
         }
     }
 
-    /* 
+    /*
      * This method executes a Chessboard.Move object and moves the given piece
      * on the object's internal chessboard model.
      *
@@ -645,7 +646,6 @@ public class Chessboard {
         int toYCoord = moveObj.toYCoord();
         int pieceInt = moveObj.movingPiece().pieceInt();
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
-        int otherColor = (colorOfPiece == WHITE) ? BLACK : WHITE;
         int capturedPieceInt = boardArray[toXCoord][toYCoord];
         String thisColorStr = (colorOfPiece == WHITE ? "White" : "Black");
 
@@ -655,15 +655,15 @@ public class Chessboard {
         if ((pieceInt & KING) != 0) {
             if (BoardArrays.wouldKingBeInCheck(boardArray, toXCoord, toYCoord, colorOfPiece, colorOnTop)) {
                 throw new KingIsInCheckException(
-                              "Move would place " + thisColorStr + "'s king in check or " + thisColorStr + "'s King is in "
-                              + "check and this move doesn't fix that; move can't be made.");
+                              "Move would place " + thisColorStr + "'s king in check or " + thisColorStr
+                              + "'s King is in check and this move doesn't fix that; move can't be made.");
             }
         } else {
             if (BoardArrays.wouldKingBeInCheck(boardArray, fromXCoord, fromYCoord, toXCoord, toYCoord,
                                               colorOfPiece, colorOnTop)) {
                 throw new KingIsInCheckException(
-                              "Move would place " + thisColorStr + "'s king in check or " + thisColorStr + "'s King is in "
-                              + "check and this move doesn't fix that; move can't be made.");
+                              "Move would place " + thisColorStr + "'s king in check or " + thisColorStr
+                              + "'s King is in check and this move doesn't fix that; move can't be made.");
             }
         }
 
@@ -671,9 +671,7 @@ public class Chessboard {
         /* If the moveObj has a promotedToPieceInt attribute set, this is a pawn
            promotion move; so the desintration square is set to the new piece. */
         if (moveObj.promotedToPieceInt() != 0) {
-            int promotedToPieceInt = moveObj.promotedToPieceInt();
-            int promotedFromPieceInt = boardArray[fromXCoord][fromYCoord];
-            boardArray[toXCoord][toYCoord] = promotedToPieceInt;
+            boardArray[toXCoord][toYCoord] = moveObj.promotedToPieceInt();
             boardArray[fromXCoord][fromYCoord] = 0;
         } else {
             /* Otherwise this is a normal move. */
