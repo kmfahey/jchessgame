@@ -29,7 +29,7 @@ import java.io.IOException;
  * (with White always going first), and once a game is over the board can be
  * reset and another game run (with a fresh color choice) if the player wishes.
  */
-public class ChessGame extends JFrame implements ActionListener {
+public class JChessGame extends JFrame implements ActionListener {
 
     /**
      * The BoardView class is a JComponent subclass that displays the chessboard
@@ -99,25 +99,24 @@ public class ChessGame extends JFrame implements ActionListener {
 
     private int colorOnTop;
     private int colorPlaying = -1;
-    private final static int TIMER_DELAY_MLSEC = 500;
 
     /**
-     * This constructor begins initializing the ChessGame object, before
+     * This constructor begins initializing the JChessGame object, before
      * triggering PopupColorChoice to prompt the user to pick a color to play,
      * setting up a Timer, and exiting. The Timer calls this.actionPerformed()
      * repeatedly until the color is set, and it can execute, completing
-     * ChessGame's initialization.
+     * JChessGame's initialization.
      */
-    public ChessGame() throws IOException {
+    public JChessGame() throws IOException {
         this(null);
     }
 
     /**
-     * This constructor begins initializing the ChessGame object, before
+     * This constructor begins initializing the JChessGame object, before
      * triggering PopupColorChoice to prompt the user to pick a color to play,
      * setting up a Timer, and exiting. The Timer calls this.actionPerformed()
      * repeatedly until the color is set, and it can execute, completing
-     * ChessGame's initialization.
+     * JChessGame's initialization.
      *
      * @param fileNameStr The filename of a board.csv file that specifies a
      *                    chessboard, which is loaded and used to set up the board
@@ -127,7 +126,7 @@ public class ChessGame extends JFrame implements ActionListener {
      *                    integer value. (See the top of BoardArrays.java for
      *                    details.)
      */
-    public ChessGame(final String fileNameStr) throws IOException {
+    public JChessGame(final String fileNameStr) throws IOException {
         super("Chess Game");
 
         Dimension windowDims;
@@ -218,7 +217,7 @@ public class ChessGame extends JFrame implements ActionListener {
         popupColorChoice = new PopupColorChoice(this);
 
         if (Objects.isNull(colorChoicePopupDelayTimer)) {
-            colorChoicePopupDelayTimer = new Timer(TIMER_DELAY_MLSEC, this);
+            colorChoicePopupDelayTimer = new Timer(500, this);
             colorChoicePopupDelayTimer.setActionCommand("construct");
             colorChoicePopupDelayTimer.setRepeats(true);
         }
@@ -283,7 +282,7 @@ public class ChessGame extends JFrame implements ActionListener {
              */
             try {
                 /*
-                 * The utility method BoardArrays.fileNameToBoardArray() loads
+                 * The utility method BoardArrays.loadBoardArrayFromFile() loads
                  * the CSV file and interprets it to a boardArray, if it's
                  * validly composed. It must have no header, exactly 8 rows,
                  * exactly 8 columns for each row, have all its values be ints,
@@ -291,7 +290,7 @@ public class ChessGame extends JFrame implements ActionListener {
                  * representation of int flag constants (see the top of the
                  * BoardArrays class) Or'd together.
                  */
-                boardArray = BoardArrays.fileNameToBoardArray(fileName);
+                boardArray = BoardArrays.loadBoardArrayFromFile(fileName);
             } catch (NullPointerException | BoardArrayFileParsingException | IOException exception) {
                 /*
                  * The exception thrown has its name parsed out of the class,
@@ -348,8 +347,8 @@ public class ChessGame extends JFrame implements ActionListener {
          * (Chessboard), and a textarea on the right that lists moves made and
          * shows error messages if an invalid move is attempted.
          */
-        gameLayout.columnWidths = new int[] { (int) boardSectionDims.getWidth(), (int) movesLogSectionDims.getWidth() };
-        gameLayout.rowHeights = new int[] { (int) boardSectionDims.getHeight() };
+        gameLayout.columnWidths = new int[] {(int) boardSectionDims.getWidth(), (int) movesLogSectionDims.getWidth()};
+        gameLayout.rowHeights = new int[] {(int) boardSectionDims.getHeight()};
 
         if (Objects.nonNull(movesLog)) {
             /*
@@ -423,12 +422,12 @@ public class ChessGame extends JFrame implements ActionListener {
      *             filename of a board.csv file to prime the board with.
      */
     public static void main(final String[] args) throws IOException {
-        ChessGame chessgame;
+        JChessGame chessgame;
         if (args.length > 0) {
             String fileName = args[0];
-            chessgame = new ChessGame(fileName);
+            chessgame = new JChessGame(fileName);
         } else {
-            chessgame = new ChessGame();
+            chessgame = new JChessGame();
         }
     }
 }
