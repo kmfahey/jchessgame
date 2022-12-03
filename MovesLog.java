@@ -19,9 +19,6 @@ public class MovesLog extends JTextArea {
      * This ArrayList stores the Chessboard.Move objects recorded by the object.
      * redraw() prints the toString() value of each of them in sequence to the
      * textarea, followed by the toString() of any MoveError objects in errorsList.
-     *
-     * @see MovesLog#redraw
-     * @see MovesLog#errorsList
      */
     private final ArrayList<Chessboard.Move> movesList;
 
@@ -31,9 +28,6 @@ public class MovesLog extends JTextArea {
      * redraw() prints the toString() value of every Chessboard.Move object in
      * movesList, it prints the toString() of any MoveError objects in this
      * list.
-
-     * @see MovesLog#redraw
-     * @see MovesLog#movesList
      */
     private final ArrayList<MoveError> errorsList;
 
@@ -50,11 +44,20 @@ public class MovesLog extends JTextArea {
      *                  MovesLog.MoveError.CASTLING_NOT_POSSIBLE.
      */
     public record MoveError(Chessboard.Move moveObj, int issueFlag) {
-        public static final int WOULD_BE_IN_CHECK = 0;
-        public static final int IS_IN_CHECK = 1;
-        public static final int NOT_A_VALID_MOVE = 2;
-        public static final int IS_A_FRIENDLY_PIECE = 3;
-        public static final int CASTLING_NOT_POSSIBLE = 4;
+        /** Flag, move would place the king in check. */
+        public static final int WOULD_BE_IN_CHECK = 0;     
+
+        /** Flag, the king is in check and this move doesn't fix that. */
+        public static final int IS_IN_CHECK = 1;           
+
+        /** Flag, the move is illegal for the piece. */
+        public static final int NOT_A_VALID_MOVE = 2;      
+
+        /** Flag, the move captures a friendly piece. */
+        public static final int IS_A_FRIENDLY_PIECE = 3;   
+
+        /** Flag, that castling is illegal. */
+        public static final int CASTLING_NOT_POSSIBLE = 4; 
 
         /**
          * This method renders the error and the Chessboard.Move object it

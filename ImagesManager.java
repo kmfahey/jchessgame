@@ -36,6 +36,7 @@ public class ImagesManager {
      *                       describing the dimensions in pixels of a chessboard
      *                       square on the chessboard laid out in the GUI by
      *                       BoardView.
+     * @throws IOException If there is an error reading from the imageDirectory.
      */
     public ImagesManager(final String imageDirectory, final Dimension squareDims)
                             throws IOException {

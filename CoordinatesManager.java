@@ -19,15 +19,25 @@ public class CoordinatesManager {
        that resulted would be in proportion with the unmodified size of the
        chesspiece icons stored in the ./images/ directory; each one is 234px x
        234px. */
+
+    /** The measurement of the chessboard proportionate to the unscaled piece icons. */
     public static final float TOTAL_BOARD_MEASUREMENT_100PCT = 2002F;
+
+    /** The measurement of the outer black border proportionate to the unscaled piece icons. */
     public static final float OUTER_BLACK_BORDER_WIDTH_100PCT = 12F;
+
+    /** The measurement of the outer beige margin proportionate to the unscaled piece icons. */
     public static final float BEIGE_MARGIN_WIDTH_100PCT = 47F;
+
+    /** The measurement of the inner black border proportionate to the unscaled piece icons. */
     public static final float INNER_BLACK_BORDER_WIDTH_100PCT = 6F;
+
+    /** The measurement of a chessboard square proportionate to the unscaled piece icons. */
     public static final float SQUARE_MEASUREMENT_100PCT = 234F;
 
-    /* The locations, in squarefield coordinates, of the squares that should be
-       light-colored for the chessboard to have its correct alternating light
-       and dark square pattern. */
+    /** The locations, in squarefield coordinates, of the squares that should be
+        light-colored for the chessboard to have its correct alternating light
+        and dark square pattern. */
     public static final int[][] LIGHT_COLORED_SQUARES_COORDS = new int[][] {
         new int[] {0, 0}, new int[] {0, 2}, new int[] {0, 4}, new int[] {0, 6},
         new int[] {1, 1}, new int[] {1, 3}, new int[] {1, 5}, new int[] {1, 7},
@@ -39,16 +49,31 @@ public class CoordinatesManager {
         new int[] {7, 1}, new int[] {7, 3}, new int[] {7, 5}, new int[] {7, 7}
     };
 
-    /* The Dimension and Inset objects that are computed from the local
-       measurements, above. */
+    /** The dimensions of the entire chessboard, scaled by the scaleProportion. */
     private final Dimension totalBoardDimensions;
+
+    /** The insets of the board's outer beige margin, scaled by the scaleProportion. */
     private final Insets beigeMarginInsets;
+
+    /** The dimensions of the board's outer beige margin, scaled by the scaleProportion. */
     private final Dimension beigeMarginDimensions;
+
+    /** The insets of the board's inner black border, scaled by the scaleProportion. */
     private final Insets innerBlackBorderInsets;
+
+    /** The dimensions of the board's inner black border, scaled by the scaleProportion. */
     private final Dimension innerBlackBorderDimensions;
+
+    /** The insets of the board's squarefield, scaled by the scaleProportion. */
     private final Insets boardSquareFieldInsets;
+
+    /** The dimensions of the board's squarefield, scaled by the scaleProportion. */
     private final Dimension boardSquareFieldDimensions;
+
+    /** The dimensions of a single square on the board, scaled by the scaleProportion. */
     private final Dimension squareDimensions;
+
+    /** The coordinates of the upper left corner of the squarefield. */
     private final Point upperLeftCornerOfSquaresRegion;
 
     /**

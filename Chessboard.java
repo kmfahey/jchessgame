@@ -21,18 +21,35 @@ public class Chessboard {
        Knight icons in the icon set this package uses, a knight's piece int will
        also be Or'd with either LEFT or RIGHT. */
 
-    public static final int WHITE = BoardArrays.WHITE;
-    public static final int BLACK = BoardArrays.BLACK;
+    /** Flag for black pieces. */
+    public static final int BLACK = BoardArrays.BLACK;   
 
-    public static final int PAWN = BoardArrays.PAWN;
-    public static final int ROOK = BoardArrays.ROOK;
-    public static final int KNIGHT = BoardArrays.KNIGHT;
-    public static final int BISHOP = BoardArrays.BISHOP;
-    public static final int QUEEN = BoardArrays.QUEEN;
-    public static final int KING = BoardArrays.KING;
+    /** Flag for white pieces. */
+    public static final int WHITE = BoardArrays.WHITE;   
 
-    public static final int LEFT = BoardArrays.LEFT;
-    public static final int RIGHT = BoardArrays.RIGHT;
+    /** Flag for kings. */
+    public static final int KING = BoardArrays.KING;     
+
+    /** Flag for queens. */
+    public static final int QUEEN = BoardArrays.QUEEN;   
+
+    /** Flag for bishops. */
+    public static final int BISHOP = BoardArrays.BISHOP; 
+
+    /** Flag for knights. */
+    public static final int KNIGHT = BoardArrays.KNIGHT; 
+
+    /** Flag for rooks. */
+    public static final int ROOK = BoardArrays.ROOK;     
+
+    /** Flag for pawns. */
+    public static final int PAWN = BoardArrays.PAWN;     
+
+    /** Flag for right-facing knights. */
+    public static final int RIGHT = BoardArrays.RIGHT;   
+
+    /** Flag for left-facing knights. */
+    public static final int LEFT = BoardArrays.LEFT;     
 
     /**
      * This set of valid piece int values is used by Chessboard's constructor to
@@ -703,6 +720,14 @@ public class Chessboard {
      *
      * @param moveObj The Chessboard.Move object describing the movement of a
      *                piece that movePiece will execute.
+     * @throws KingIsInCheckException If the move would put the friendly king in
+     *                                check, or the king is in check and this
+     *                                move doesn't change that.
+     * @throws CastlingNotPossibleException If the move is a castling but the
+     *                                      castling is not possible because
+     *                                      an intervening square is occupied
+     *                                      or either the king or the rook has
+     *                                      already moved.
      */
     public void movePiece(final Chessboard.Move moveObj) throws KingIsInCheckException, IllegalArgumentException,
                                                                 CastlingNotPossibleException {

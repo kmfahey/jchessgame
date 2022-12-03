@@ -31,73 +31,51 @@ import java.io.IOException;
  */
 public class JChessGame extends JFrame implements ActionListener {
 
-    /**
-     * The BoardView class is a JComponent subclass that displays the chessboard
-     * in the GUI and manages the movement of chesspiece icons on the board.
-     */
+    /** Displays and manages the chessboard region of the GUI. */
     private BoardView boardView;
 
-    /**
-     * Chessboard is the class that manages the representation of the chessboard
-     * in the game and has methods for manipulating it.
-     */
+    /** Tracks the internal state of the chessboard. */
     private Chessboard chessboard = null;
 
-    /**
-     * CoordinatesManager contains all the logic needed to compute the
-     * dimensions and insets used by BoardView to build the board out of
-     * carefully-measured beige and black rectangles drawn in the board region.
-     */
+    /** Calculates the dimensions needed to draw the chessboard at the
+        appropriate scale. */
     private final CoordinatesManager coordinatesManager;
 
-    /**
-     * GridBagLayout manages the disposition of GUI elements in the window.
-     */
+    /** The layout object. */
     private final GridBagLayout gameLayout;
 
-    /**
-     * JPanel is the panel that other GUI elements are attached to while building
-     * the GUI.
-     */
-    private final JPanel gamePanel;
-
-    /**
-     * ImagesManager manages the game's images directory and provides chess
-     * piece icon Image objects that can be drawn to the board.
-     */
+    /** Manages the images directory and provides an accessor for retrieving
+        scaled piece icons. */
     private final ImagesManager imagesManager;
 
-    /**
-     * MovesLog is a JTextArea subclass that is placed alongside the chessboard
-     * display, where it logs moves in algebraic notation, and (more relevantly)
-     * also displays an error message if the user attempts an invalid move.
-     */
+    /** The panel that all the GUI elements are attached to. */
+    private final JPanel gamePanel;
+
+    /** The textarea beside the chessboard that logs the moves made and displays
+        recent error messages from errant moves. */
     private MovesLog movesLog;
 
-    /**
-     * This is a dialog box that spawns when instanced, prompting the user to
-     * pick a color to play. It spawns before the window does, and also spawns
-     * after a game over if the user chooses to play another game.
-     */
+    /** The dialog box spawned before the window is drawn for the player to
+        choose which color they're playing. */
     private PopupColorChoice popupColorChoice;
 
-    /**
-     * If this class's main() method was called with a filename argument, it's
-     * stored to this instance variable.
-     */
+    /** The fileName argument that was passed on the commandline, if any. */
     private String fileName = null;
 
-    /**
-     * This Timer object is used to repeatedly call actionPerformed() until the
-     * PopupColorChoice dialog box calls setColorPlaying() and with a color set
-     * actionPerformed() can complete execution.
-     */
+    /** The timer used to repeatedly prompt actionPerformed() to run until the
+        color choice popup has returned and actionPerformed is able to run. */
     private Timer colorChoicePopupDelayTimer;
 
+    /** The dimensions of the BoardView chessboard display in the GUI. */
     private final Dimension boardSectionDims;
+
+    /** The dimensions of the MovesLog textarea in the GUI. */
     private final Dimension movesLogSectionDims;
 
+    /** The color playing from the top of the board. */
     private int colorOnTop;
+
+    /** The color the player is playing. */
     private int colorPlaying = -1;
 
     /**
@@ -106,6 +84,11 @@ public class JChessGame extends JFrame implements ActionListener {
      * setting up a Timer, and exiting. The Timer calls this.actionPerformed()
      * repeatedly until the color is set, and it can execute, completing
      * JChessGame's initialization.
+     *
+     * @throws IOException If a file was passed as an argument on the
+     *                     commandline indicating a board CSV file to load,
+     *                     but an I/O error occurs reading from the file or a
+     *                     malformed or unmappable byte sequence is read.
      */
     public JChessGame() throws IOException {
         this(null);
@@ -125,6 +108,10 @@ public class JChessGame extends JFrame implements ActionListener {
      *                    only integers, and having each integer be a valid piece
      *                    integer value. (See the top of BoardArrays.java for
      *                    details.)
+     * @throws IOException If a file was passed as an argument on the
+     *                     commandline indicating a board CSV file to load,
+     *                     but an I/O error occurs reading from the file or a
+     *                     malformed or unmappable byte sequence is read.
      */
     public JChessGame(final String fileNameStr) throws IOException {
         super("Chess Game");
@@ -420,6 +407,10 @@ public class JChessGame extends JFrame implements ActionListener {
      *
      * @param args Either a 0-length array, or a 1-length array comprised of a
      *             filename of a board.csv file to prime the board with.
+     * @throws IOException If a file was passed as an argument on the
+     *                     commandline indicating a board CSV file to load,
+     *                     but an I/O error occurs reading from the file or a
+     *                     malformed or unmappable byte sequence is read.
      */
     public static void main(final String[] args) throws IOException {
         JChessGame chessgame;

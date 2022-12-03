@@ -27,48 +27,76 @@ import javax.swing.Timer;
  */
 public class BoardView extends JComponent implements MouseListener, ActionListener {
 
+    /** The color of the light-colored regions of the chessboard displayed. */
     private static final Color BEIGE = new Color(0.949019F, 0.901960F, 0.800000F);
 
     /* The state variables that store values between successive calls to
        mouseClicked() so the two-click process of selecting a piece and
        selecting a square for it to move to can be tracked. */
+
+    /** The piece the player clicked on first. */
     private Chessboard.Piece clickEventClickedPiece = null;
+
+    /** The coordinates of the square the player clicked on first. */
     private int[] clickEventMovingFrom = new int[] {-1, -1};
+
+    /** The piece the player clicked on second, if any. */
     private Chessboard.Piece clickEventToCapturePiece = null;
+
+    /** The coordinates of the square the player clicked on second. */
     private int[] clickEventMovingTo = new int[] {-1, -1};
 
     /* The state variables that retain their values between the mouseClicked()
        method that spawns a PopupPawnPromotion(), the promotePawn() method that
        collects its captured info, and the actionPerformed() method that waits
        on that call. */
+
+    /** The pawn promotion dialog box. */
     private PopupPawnPromotion popupPawnPromotion = null;
+
+    /** The coordinates of the pawn to promote, if that's happening. */
     private int[] pawnToPromoteCoords = null;
+
+    /** A state variable used to track whether the pawn promotion dialog box has returned its outcome. */
     private boolean pawnHasntBeenPromotedYet = false;
 
+    /** Manages the board's internal state. */
     private final Chessboard chessboard;
+
+    /** Implements the game window. */
     private final JChessGame chessGameFrame;
+
+    /** Manages the calculations to furnish exact measurements to draw the
+        chessboard using Graphics.fillRect() */
     private final CoordinatesManager coordinatesManager;
+
+    /** A textarea to the right of BoardViww that logs moves and recent player errors. */
     private final MovesLog movesLog;
 
-    /* The object that runs the minimax algorithm. */
+    /** A timer that triggers actionPerformed to run after mouseClicked is done
+        so the AI's move logic executes in a separate method. */
+    private Timer opposingMoveDelayTimer;
+
+    /** Hosts the minimax algorithm. */
     private final MinimaxRunner minimaxRunner;
 
-    /* A rng used by actionPerformed to pick a random pawn promotion if the
-       player declined to choose. */
-    private final Random randomNumberGenerator = new Random();
+    /** A random number generator used in a few places where a coin toss is
+        needed. */
+    private final Random RNG = new Random();
 
-    /* The Timer object and the time delay used by it. */
-    private Timer opposingMoveDelayTimer;
-    private final int timerDelayMlsec = 500;
-
-    /* A turn count that's maintained by the move logic of both sides, and the
-       has-moved booleans used to establish when it needs to be incremented. */
+    /** A turn count that's maintained by the move logic of both sides.  */
     private int turnCount;
+
+    /** A boolean used to track whether white has moved so far this turn. */
     private boolean blackHasMoved;
+
+    /** A boolean used to track whether white has moved so far this turn. */
     private boolean whiteHasMoved;
 
-    /* The colors the player and the AI are playing. */
+    /** The colors the AI is playing. */
     private final int colorOfAI;
+
+    /** The colors the player is playing. */
     private final int colorOfPlayer;
 
     /**
@@ -110,7 +138,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
            activated, so it can trigger actionPerformed() which contains the AI's
            move generation and execution logic. */
         if (colorOfAI == BoardArrays.WHITE) {
-            opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
+            opposingMoveDelayTimer = new Timer(500, this);
             opposingMoveDelayTimer.setActionCommand("move");
             opposingMoveDelayTimer.setRepeats(true);
             opposingMoveDelayTimer.start();
@@ -571,7 +599,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
            triggers actionPerformed, which aborts unless the pawn promotion
            dialog has finished and called promotePawn() with the result. */
         if (Objects.isNull(opposingMoveDelayTimer)) {
-            opposingMoveDelayTimer = new Timer(timerDelayMlsec, this);
+            opposingMoveDelayTimer = new Timer(500, this);
             opposingMoveDelayTimer.setActionCommand("move");
             opposingMoveDelayTimer.setRepeats(true);
         }
@@ -612,10 +640,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             if (Objects.nonNull(popupPawnPromotion) && !popupPawnPromotion.isDisplayable()) {
                 /* The player closed the pawn promotion dialog box via the X on
                    the top bar, so a promotion option is chosen at random. */
-                int randIndex = randomNumberGenerator.nextInt(BoardArrays.PAWN_PROMOTION_PIECES.length);
+                int randIndex = RNG.nextInt(BoardArrays.PAWN_PROMOTION_PIECES.length);
                 int pieceInt = BoardArrays.PAWN_PROMOTION_PIECES[randIndex];
                 if (pieceInt == BoardArrays.KNIGHT) {
-                    pieceInt = BoardArrays.KNIGHT | (randomNumberGenerator.nextInt(2) == 1
+                    pieceInt = BoardArrays.KNIGHT | (RNG.nextInt(2) == 1
                                                     ? BoardArrays.LEFT : BoardArrays.RIGHT);
                 }
                 promotePawn(pawnToPromoteCoords[0], pawnToPromoteCoords[1], pieceInt);

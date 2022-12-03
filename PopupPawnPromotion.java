@@ -30,12 +30,28 @@ import javax.swing.WindowConstants;
  */
 public class PopupPawnPromotion extends JFrame {
 
+    /** The BoardView object that spawned this dialog box. */
     private final BoardView callingBoardView;
+
+    /** The ButtonGroup that contains the radio buttons and enforces their
+        exclusivity. */
     private final ButtonGroup buttonGroup;
+
+    /** The x coordinate on the chessboard, in squares, of the pawn that's being
+        promoted. */
     private final int pawnXCoord;
+
+    /** The x coordinate on the chessboard, in squares, of the pawn that's being
+        promoted. */
     private final int pawnYCoord;
+
+    /** The integer representation of the piece the pawn is being promoted to
+        (not including color). */
     private int newPiece;
-    private final Random randomNumberGenerator = new Random();
+
+    /** A random number generator used to piece between LEFT and RIGHT in the
+        case of a knight. */
+    private final Random RNG = new Random();
 
     /**
      * This constructor initializes the PopupPawnPromotion object and displays the
@@ -190,8 +206,7 @@ public class PopupPawnPromotion extends JFrame {
                 case "Rook":
                     newPiece = BoardArrays.ROOK; break;
                 case "Knight":
-                    newPiece = BoardArrays.KNIGHT | (randomNumberGenerator.nextInt(2) == 1
-                                                    ? BoardArrays.LEFT : BoardArrays.RIGHT);
+                    newPiece = BoardArrays.KNIGHT | (RNG.nextInt(2) == 1 ? BoardArrays.LEFT : BoardArrays.RIGHT);
                     break;
                 case "Bishop":
                     newPiece = BoardArrays.BISHOP; break;

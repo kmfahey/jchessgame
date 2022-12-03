@@ -26,9 +26,10 @@ import javax.swing.WindowConstants;
  */
 public class PopupGameOver extends JFrame {
 
-    /* One of these two int flags is used when constructing this object, to
-       indicate who lost the last game. */
+    /** Flag, the player lost the game. */
     public static final int PLAYER_LOST = 0;
+
+    /** Flag, the AI lost the game. */
     public static final int AI_LOST = 1;
 
     /**

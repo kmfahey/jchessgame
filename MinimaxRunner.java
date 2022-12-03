@@ -15,27 +15,36 @@ public class MinimaxRunner {
 
     /* These statements copy the piece int constants from BoardArrays to this
        class for convenience. */
-    public static final int WHITE = BoardArrays.WHITE;
-    public static final int BLACK = BoardArrays.BLACK;
 
-    public static final int PAWN = BoardArrays.PAWN;
-    public static final int ROOK = BoardArrays.ROOK;
-    public static final int KNIGHT = BoardArrays.KNIGHT;
-    public static final int BISHOP = BoardArrays.BISHOP;
-    public static final int QUEEN = BoardArrays.QUEEN;
-    public static final int KING = BoardArrays.KING;
-
-    public static final int LEFT = BoardArrays.LEFT;
-    public static final int RIGHT = BoardArrays.RIGHT;
+    /** Flag for black pieces. */
+    public static final int BLACK = BoardArrays.BLACK;   
+    /** Flag for white pieces. */
+    public static final int WHITE = BoardArrays.WHITE;   
+    /** Flag for kings. */
+    public static final int KING = BoardArrays.KING;     
+    /** Flag for queens. */
+    public static final int QUEEN = BoardArrays.QUEEN;   
+    /** Flag for bishops. */
+    public static final int BISHOP = BoardArrays.BISHOP; 
+    /** Flag for knights. */
+    public static final int KNIGHT = BoardArrays.KNIGHT; 
+    /** Flag for rooks. */
+    public static final int ROOK = BoardArrays.ROOK;     
+    /** Flag for pawns. */
+    public static final int PAWN = BoardArrays.PAWN;     
+    /** Flag for right-facing knights. */
+    public static final int RIGHT = BoardArrays.RIGHT;   
+    /** Flag for left-facing knights. */
+    public static final int LEFT = BoardArrays.LEFT;     
 
     /* These three indexes are stored as a convenience so the return value
        from tallySpecialPawns() is readable in tallySpecialPawns() and
        evaluateBoard(). */
-    public static final int DOUBLED = 0;
-    public static final int ISOLATED = 1;
-    public static final int BLOCKED = 2;
+    private static final int DOUBLED = 0;
+    private static final int ISOLATED = 1;
+    private static final int BLOCKED = 2;
 
-    /** This mapping is used to memoize results of evaluateBoard(). */
+    /* This mapping is used to memoize results of evaluateBoard(). */
     private final HashMap<String, Double> evaluateBoardMemoizeMap;
 
     /* These three ints store relevant colors that decide how the algorithm
@@ -79,8 +88,7 @@ public class MinimaxRunner {
      * @return          A Chessboard.Move object describing the move that the
      *                  algorithm has selected.
      */
-    public Chessboard.Move algorithmTopLevel(final int turnCount
-                                            ) throws CastlingNotPossibleException, IllegalArgumentException {
+    public Chessboard.Move algorithmTopLevel(final int turnCount) {
         Chessboard.Move bestMoveObj;
         int[][] movesArray = new int[128][7];
         int[][] boardArray;
@@ -422,8 +430,7 @@ public class MinimaxRunner {
      * @param colorsTurnItIs An integer indicating which color the AI is
      *                       playing (either BoardArrays.WHITE or BoardArrays.BLACK).
      */
-    private double evaluateBoard(final int[][] boardArray, final int colorsTurnItIs
-                                ) throws IllegalArgumentException {
+    private double evaluateBoard(final int[][] boardArray, final int colorsTurnItIs) {
         /* This statement derives from the boardArray a string value that is
            guaranteed to be unique for that board configuration, so that this
            method's memoization HashMap evaluateBoardMemoizeMap can store
@@ -725,8 +732,7 @@ public class MinimaxRunner {
      * @return               A double, the total number of moves possible.
      * @see #evaluateBoard
      */
-    private double totalColorMobility(final int[][] boardArray, final int colorsTurnItIs
-                                ) throws IllegalArgumentException {
+    private double totalColorMobility(final int[][] boardArray, final int colorsTurnItIs) {
         int[][] colorMobilitySpareMovesArray = new int[128][7];
         int moveIdx = 0;
 

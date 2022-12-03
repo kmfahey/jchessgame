@@ -28,24 +28,38 @@ public final class BoardArrays {
        Knight icons in the icon set this package uses, a knight's piece int will
        also be Or'd with either LEFT or RIGHT. */
 
-    public static final int BLACK =     0b1000000000;
-    public static final int WHITE =     0b0100000000;
+    /** Flag for black pieces. */
+    public static final int BLACK =     0b1000000000; 
 
-    public static final int KING =      0b0010000000;
-    public static final int QUEEN =     0b0001000000;
-    public static final int BISHOP =    0b0000100000;
-    public static final int KNIGHT =    0b0000010000;
-    public static final int ROOK =      0b0000001000;
-    public static final int PAWN =      0b0000000100;
+    /** Flag for white pieces. */
+    public static final int WHITE =     0b0100000000; 
 
-    public static final int RIGHT =     0b0000000010;
-    public static final int LEFT =      0b0000000001;
+    /** Flag for kings. */
+    public static final int KING =      0b0010000000; 
 
-    /**
-     * This set of valid piece int values is used by the debugging method
-     * loadBoardArrayFromFile() to verify that field values in the board CSV its
-     * parsing are valid piece ints.
-     */
+    /** Flag for queens. */
+    public static final int QUEEN =     0b0001000000; 
+
+    /** Flag for bishops. */
+    public static final int BISHOP =    0b0000100000; 
+
+    /** Flag for knights. */
+    public static final int KNIGHT =    0b0000010000; 
+
+    /** Flag for rooks. */
+    public static final int ROOK =      0b0000001000; 
+
+    /** Flag for pawns. */
+    public static final int PAWN =      0b0000000100; 
+
+    /** Flag for right-facing knights. */
+    public static final int RIGHT =     0b0000000010; 
+
+    /** Flag for left-facing knights. */
+    public static final int LEFT =      0b0000000001; 
+
+    /** This set of valid piece int values is used to verify that integers are valid piece ints.
+        @see loadBoardArrayFromFile */
     public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<>() {{
         this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
         this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
@@ -53,25 +67,27 @@ public final class BoardArrays {
         this.add(WHITE | KNIGHT | RIGHT); this.add(WHITE | KNIGHT | LEFT); this.add(WHITE | PAWN);
     }};
 
-    /* These strings are used by algNotnToCoords() and coordsToAlgNotn() to
-       translate between algebraic notation and numeric coordinates. */
-    public static final String ALG_NOTN_ALPHA = "abcdefgh";
-    public static final String ALG_NOTN_NUM = "87654321";
+    /** This string is used to translate between algebraic notation and numeric coordinates. @see coordsToAlgNotn */
+    public static final String ALG_NOTN_ALPHA = "abcdefgh"; 
 
-    /* This mapping associates piece integer values (absent any color flag)
-       with the abbreviations of those pieces used in algebraic notation; it's
-       used by Chessboard.Move.toString() to express a Move object in algebraic
-       notation. */
+    /** This string is used to translate between algebraic notation and numeric coordinates. @see coordsToAlgNotn */
+    public static final String ALG_NOTN_NUM = "87654321"; 
+
+    /** This mapping associates piece integer values (absent any color flag)
+        with the abbreviations of those pieces used in algebraic notation.
+        @see Chessboard.Move#toString
+        */
     public static final HashMap<Integer, String> PIECES_ABBRS = new HashMap<>() {{
         this.put(PAWN, "P"); this.put(BISHOP, "B"); this.put(ROOK, "R");
         this.put(KNIGHT | LEFT, "N"); this.put(KNIGHT | RIGHT, "N");
         this.put(QUEEN, "Q"); this.put(KING, "K");
     }};
 
-    /* This array contains the pieces that a pawn can be promoted to. */
+    /** This array contains the pieces that a pawn can be promoted to. */
     public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
 
-    /* A Random object, used for a few cases where a coin toss is needed. */
+    /** A Random object, used for a few cases where a coin toss is needed.
+        @see shuffleMovesArray @see generatePawnsMoves */
     private static final Random RNG = new Random();
 
     private BoardArrays() { }
@@ -227,6 +243,9 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If an integer in the boardArray argument
+     *                                  doesn't parse as a valid composite of
+     *                                  integer piece flags.
      * @see #generatePawnsMoves
      * @see #generateRooksMoves
      * @see #generateBishopsMoves
@@ -273,6 +292,9 @@ public final class BoardArrays {
      * @param colorOnTop     The color playing from the top of the board.
      * @return               The new value for the index of the first empty
      *                       array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If an integer in the boardArray argument
+     *                                  doesn't parse as a valid composite of
+     *                                  integer piece flags.
      * @see #generatePawnsMoves
      * @see #generateRooksMoves
      * @see #generateBishopsMoves
@@ -336,6 +358,9 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If the coordinates point to a cell in
+     *                                  the boardArray argument that isn't a
+     *                                  pawn of the specified color.
      */
     public static int generatePawnsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
@@ -477,6 +502,9 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If the coordinates point to a cell in
+     *                                  the boardArray argument that isn't a
+     *                                  rook of the specified color.
      */
     public static int generateRooksMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
@@ -624,6 +652,9 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If the coordinates point to a cell in
+     *                                  the boardArray argument that isn't a
+     *                                  bishop of the specified color.
      */
     public static int generateBishopsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                     final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
@@ -766,6 +797,9 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If the coordinates point to a cell in
+     *                                  the boardArray argument that isn't a
+     *                                  knight of the specified color.
      */
     public static int generateKnightsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                     final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
@@ -853,6 +887,9 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If the coordinates point to a cell in
+     *                                  the boardArray argument that isn't a
+     *                                  queen of the specified color.
      */
     public static int generateQueensMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                    final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
@@ -1087,6 +1124,9 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
+     * @throws IllegalArgumentException If the coordinates point to a cell in
+     *                                  the boardArray argument that isn't a
+     *                                  king of the specified color.
      * @see #isKingInCheck
      */
     public static int generateKingsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
@@ -1370,7 +1410,7 @@ public final class BoardArrays {
            kingXIdx, kingYIdx, colorsTurnItIs, colorOnTop). It calls this method
            with fromXIdx = -1, fromYIdx = -1, toXIdx = -1, toYIdx = -1. That
            doesn't interfere with this method's execution; all it means is
-           that !(xIdxMod == fromXIdx && yIdx == fromYIdx) and (xIdxMod ==
+           that (xIdxMod == fromXIdx && yIdx == fromYIdx) and (xIdxMod ==
            toXIdx && yIdxMod == toYIdx) can never return true. The rest of the
            conditionals proceed as normal. */
 
@@ -1651,12 +1691,18 @@ public final class BoardArrays {
      * @param fileName The filename of the CSV file to import.
      * @return         An int[8][8] array representing a chessboard, suitable
      *                 for use by a Chessboard object.
+     * @throws BoardArrayFileParsingException If the file doesn't have 8 rows,
+     *                                        if a row doesn't have 8 columns,
+     *                                        if a cell in the CSV table isn't
+     *                                        an integer, or if an integer found
+     *                                        doesn't parse as a valid piece
+     *                                        integer.
+     * @throws IOException If there's an error reading from the file, or it's
+     *                     missing.
      * @see Chessboard
      */
     public static int[][] loadBoardArrayFromFile(final String fileName)
-                                                 throws NullPointerException,
-                                                        BoardArrayFileParsingException,
-                                                        IOException {
+                                                 throws BoardArrayFileParsingException, IOException {
         File boardFile;
         String fileContents;
         String[] fileLines;
