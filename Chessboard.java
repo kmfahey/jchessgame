@@ -195,6 +195,11 @@ public class Chessboard {
     public record Move(Chessboard.Piece movingPiece, int fromXCoord, int fromYCoord,
                 int toXCoord, int toYCoord, int capturedPieceInt, boolean isCastlingKingside,
                 boolean isCastlingQueenside, int promotedToPieceInt) {
+
+        /**
+         * This method renders the Move object into a string that describes the
+         * move in algebraic notation.
+         */
         public String toString() {
             if (isCastlingKingside) {
                 return "0-0";
