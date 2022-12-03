@@ -51,7 +51,7 @@ public class PopupGameOver extends JFrame {
     private BoardView boardview;
 
     /**
-     * This constructor initializes the PopupGameOver object and display the
+     * This constructor initializes the PopupGameOver object and displays the
      * dialog box it comprises.
      *
      * @param chessGameObj The ChessGame object that spawned this dialog box.
@@ -62,6 +62,8 @@ public class PopupGameOver extends JFrame {
      */
     public PopupGameOver(final ChessGame chessGameObj, final BoardView boardViewObj, final int losingSide) {
         super("Game Over");
+
+        JLabel pawnPromExplLabel;
 
         chessgame = chessGameObj;
         boardview = boardViewObj;
