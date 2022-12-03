@@ -16,13 +16,13 @@ import javax.swing.Timer;
 import java.io.IOException;
 
 /**
- * This class is the frontend of the program, a JFrame subclass that presents
- * as the GUI to the chess program. It sizes itself to have a height 80% of
- * the screen height and a width equal to the screen height. It contains a
- * chessboard display on which the game is played by clicking on a chesspiece
- * icon and clicking on the square to move it to. It also features a scrolling
- * log that displays the moves in algebraic notation, and lists error messages
- * if an illegal move was attempted.
+ * The frontend of the program, a JFrame subclass that presents as the GUI to
+ * the chess program. It sizes itself to have a height 80% of the screen height
+ * and a width equal to the screen height. It contains a chessboard display on
+ * which the game is played by clicking on a chesspiece icon and clicking on
+ * the square to move it to. It also features a scrolling log that displays the
+ * moves in algebraic notation, and lists error messages if an illegal move was
+ * attempted.
  * <p>
  * The opposing AI is implemented using the minimax algorithm with the
  * alpha/beta pruning optimization. The user has the option to play either color
@@ -41,47 +41,47 @@ public class JChessGame extends JFrame implements ActionListener {
         appropriate scale. */
     private final CoordinatesManager coordinatesManager;
 
-    /** The layout object. */
+    /** Layout object. */
     private final GridBagLayout gameLayout;
 
     /** Manages the images directory and provides an accessor for retrieving
         scaled piece icons. */
     private final ImagesManager imagesManager;
 
-    /** The panel that all the GUI elements are attached to. */
+    /** Panel that all the GUI elements are attached to. */
     private final JPanel gamePanel;
 
-    /** The textarea beside the chessboard that logs the moves made and displays
+    /** Textarea beside the chessboard that logs the moves made and displays
         recent error messages from errant moves. */
     private MovesLog movesLog;
 
-    /** The dialog box spawned before the window is drawn for the player to
+    /** Dialog box spawned before the window is drawn for the player to
         choose which color they're playing. */
     private PopupColorChoice popupColorChoice;
 
-    /** The fileName argument that was passed on the commandline, if any. */
+    /** Filename argument that was passed on the commandline, if any. */
     private String fileName = null;
 
-    /** The timer used to repeatedly prompt actionPerformed() to run until the
+    /** Timer used to repeatedly prompt actionPerformed() to run until the
         color choice popup has returned and actionPerformed is able to run. */
     private Timer colorChoicePopupDelayTimer;
 
-    /** The dimensions of the BoardView chessboard display in the GUI. */
+    /** Dimensions of the BoardView chessboard display in the GUI. */
     private final Dimension boardSectionDims;
 
-    /** The dimensions of the MovesLog textarea in the GUI. */
+    /** Dimensions of the MovesLog textarea in the GUI. */
     private final Dimension movesLogSectionDims;
 
-    /** The color playing from the top of the board. */
+    /** Color playing from the top of the board. */
     private int colorOnTop;
 
-    /** The color the player is playing. */
+    /** Color the player is playing. */
     private int colorPlaying = -1;
 
     /**
-     * This constructor begins initializing the JChessGame object, before
+     * Initializes the JChessGame object, before
      * triggering PopupColorChoice to prompt the user to pick a color to play,
-     * setting up a Timer, and exiting. The Timer calls this.actionPerformed()
+     * setting up a Timer, and exiting. The Timer calls actionPerformed()
      * repeatedly until the color is set, and it can execute, completing
      * JChessGame's initialization.
      *
@@ -89,15 +89,17 @@ public class JChessGame extends JFrame implements ActionListener {
      *                     commandline indicating a board CSV file to load,
      *                     but an I/O error occurs reading from the file or a
      *                     malformed or unmappable byte sequence is read.
+     * @see actionPerformed
+     * @see setColorPlaying
      */
     public JChessGame() throws IOException {
         this(null);
     }
 
     /**
-     * This constructor begins initializing the JChessGame object, before
+     * Initializes the JChessGame object partway, before
      * triggering PopupColorChoice to prompt the user to pick a color to play,
-     * setting up a Timer, and exiting. The Timer calls this.actionPerformed()
+     * setting up a Timer, and exiting. The Timer calls actionPerformed()
      * repeatedly until the color is set, and it can execute, completing
      * JChessGame's initialization.
      *
@@ -112,6 +114,8 @@ public class JChessGame extends JFrame implements ActionListener {
      *                     commandline indicating a board CSV file to load,
      *                     but an I/O error occurs reading from the file or a
      *                     malformed or unmappable byte sequence is read.
+     * @see actionPerformed
+     * @see setColorPlaying
      */
     public JChessGame(final String fileNameStr) throws IOException {
         super("Chess Game");
@@ -185,18 +189,19 @@ public class JChessGame extends JFrame implements ActionListener {
     }
 
     /**
-     * This method sets colorPlaying to an out-of-band value (-1), triggers
-     * the PopupColorChoice dialog box that asks the user what color they
-     * wish to play, and sets a Timer object to send "construct" events to
-     * this.actionPerformed(), which aborts when called until colorPlaying is
-     * set. When PopupColorChoice has set the value for colorPlaying using
-     * this.setColorPlaying(), the next call to this.actionPerformed() will not
-     * abort, the timer is turned off, and the rest of the constructor logic in
+     * Event trigger method called to spawn the PopupColorChoice dialog
+     * box and start the Timer which sends events to actionPerformed.
+     * When PopupColorChoice has set the value for colorPlaying using
+     * setColorPlaying(), the next call to actionPerformed() will not abort,
+     * the timer is turned off, and the rest of the constructor logic in
      * actionPerformed() will be executed.
      * <p>
      * This method is called at the end of this class's constructor (for the
      * first game), and it's also called from PopupGameOver when the player has
      * chosen to play again to restart the game setup process.
+     * 
+     * @see setColorPlaying
+     * @see actionPerformed
      */
     public void chooseColor() {
         colorPlaying = -1;
@@ -212,8 +217,8 @@ public class JChessGame extends JFrame implements ActionListener {
     }
 
     /**
-     * This mutator method sets the value for colorPlaying. It's used by
-     * PopupColorChoice to communicate the color chosen to this object.
+     * Mutator for the colorPlaying instance variable. Used by PopupColorChoice
+     * to communicate the color chosen to this object.
      *
      * @param colorPlayingVal The color the user has chosen to play, either
      *                        BoardArrays.WHITE or BoardArrays.BLACK.
@@ -224,13 +229,12 @@ public class JChessGame extends JFrame implements ActionListener {
     }
 
     /**
-     * This method is used to execute the rest of the logic needed to complete
-     * the constructor's initialization of the object. It's executed as an
-     * actionPerformed() method so that a break in the execution can occur while
-     * the user interacts with the PopupColorChoice dialog box and chooses a
-     * color; also so that it can be repeated if a subsequent game is held. A
-     * Timer is set at the end of the constructor that re-calls this method
-     * every 1/2 second.
+     * Execute the rest of the logic needed to complete the constructor's
+     * initialization of the object. It's executed as an actionPerformed()
+     * method so that a break in the execution can occur while the user
+     * interacts with the PopupColorChoice dialog box and chooses a color. Also,
+     * it can be repeated if a subsequent game is held. A Timer is set at the
+     * end of the constructor that re-calls this method every 1/2 second.
      * <p>
      * This method aborts immediately after being called if colorPlaying hasn't
      * been set. The PopupColorChoice has two buttons, [Play White] and [Play
@@ -401,9 +405,9 @@ public class JChessGame extends JFrame implements ActionListener {
     }
 
     /**
-     * The main method of this class, which instantiates an object of this class
-     * when run. If an argument is passed on the commandline, it's assumed to be
-     * a filename and used as an argument to this class's constructor.
+     * Main method, which instantiates an object of this class. If an argument
+     * is passed on the commandline, it's assumed to be a filename and used as
+     * an argument to this class's constructor.
      *
      * @param args Either a 0-length array, or a 1-length array comprised of a
      *             filename of a board.csv file to prime the board with.

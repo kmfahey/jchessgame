@@ -5,35 +5,34 @@ import java.util.StringJoiner;
 import javax.swing.JTextArea;
 
 /**
- * This class subclasses JTextArea, implementing a readonly textarea that sits
- * to the right of BoardView's chessboard in the GUI, listing every move that's
- * made in algebraic notation format, followed by any recent errors made. Any
- * errors made by the player since their last move accumulate as error messages
- * in this class's textarea, so the player gets feedback on why their clicks
- * didn't do anything. When a successful move is committed to this class's
- * object, all errors are wiped from the display.
+ * Implements a readonly textarea that sits to the right of BoardView's
+ * chessboard in the GUI, listing every move that's made in algebraic notation
+ * format, followed by any recent errors made. Any errors made by the player
+ * since their last move accumulate as error messages in this class's textarea,
+ * so the player gets feedback on why their clicks didn't do anything. When a
+ * successful move is committed to this class's object, all errors are wiped
+ * from the display.
  */
 public class MovesLog extends JTextArea {
 
     /**
-     * This ArrayList stores the Chessboard.Move objects recorded by the object.
-     * redraw() prints the toString() value of each of them in sequence to the
-     * textarea, followed by the toString() of any MoveError objects in errorsList.
+     * Stores the Chessboard.Move objects recorded by the object. redraw()
+     * prints the toString() value of each of them in sequence to the textarea,
+     * followed by the toString() of any MoveError objects in errorsList.
      */
     private final ArrayList<Chessboard.Move> movesList;
 
     /**
-     * This ArrayList stores the MoveError objects accumulated by the object.
-     * It is cleared every time a valid Move is stored to the object. After
-     * redraw() prints the toString() value of every Chessboard.Move object in
-     * movesList, it prints the toString() of any MoveError objects in this
-     * list.
+     * Stores the MoveError objects accumulated by the object. It is cleared
+     * every time a valid Move is stored to the object. After redraw() prints
+     * the toString() value of every Chessboard.Move object in movesList, it
+     * prints the toString() of any MoveError objects in this list.
      */
     private final ArrayList<MoveError> errorsList;
 
     /**
-     * This record implements a class that represents an error made in the
-     * course of picking a move to play in the chessgame this program runs.
+     * Implements a record that represents an error made in the course of
+     * picking a move to play in the chessgame this program runs.
      *
      * @param moveObj   The Move object that was formed in error.
      * @param issueFlag An integer flag representing the type of error made, one
@@ -60,8 +59,8 @@ public class MovesLog extends JTextArea {
         public static final int CASTLING_NOT_POSSIBLE = 4; 
 
         /**
-         * This method renders the error and the Chessboard.Move object it
-         * references in plain english.
+         * Renders the error and the Chessboard.Move object it references in
+         * plain english.
          *
          * @return A String representing the object's move in algebraic notation
          *         format.
@@ -90,8 +89,8 @@ public class MovesLog extends JTextArea {
     }
 
     /**
-     * This constructor initializes the MovesLog object. It is set to be
-     * uneditable, to use linewrap, and to use wordwrap.
+     * Initializes the MovesLog object. It is set to be uneditable, to use
+     * linewrap, and to use wordwrap.
      */
     public MovesLog() {
         movesList = new ArrayList<>();
@@ -102,9 +101,8 @@ public class MovesLog extends JTextArea {
     }
 
     /**
-     * This method causes the text of the logged moves plus the logged errors to
-     * be recreated, and the current contents of the textarea is replaced by the
-     * new text.
+     * Recreates the text of the logged moves plus the logged errors to, and
+     * replaces the current contents of the textarea wth the new text.
      */
     public void redraw() {
         int oldTextLength = getText().length();
@@ -122,8 +120,8 @@ public class MovesLog extends JTextArea {
     }
 
     /**
-     * This method is used to clear the log. All errors and all moves are
-     * removed, leaving the textarea blank.
+     * Clears the log. All errors and all moves are removed, leaving the
+     * textarea blank.
      */
     public void clear() {
         movesList.clear();
@@ -132,9 +130,8 @@ public class MovesLog extends JTextArea {
     }
 
     /**
-     * This method is used to add a move to the log. The output of
-     * Chessboard.Move.toString() will appear in the textarea adjacent to a move
-     * number.
+     * Adds a move to the log. The output of Chessboard.Move.toString() will
+     * appear in the textarea adjacent to a move number.
      *
      * @param moveObj The Chessboard.Move object to add to the loge.
      */
@@ -145,11 +142,11 @@ public class MovesLog extends JTextArea {
     }
 
     /**
-     * This method is used to add an error to the log. The Move object that
-     * was formed in error is accepted, along with an int flag (taken from the
-     * constants in MovesLog.MoveError) indicating what type of error it was.
+     * Adds an error to the log. The Move object that was formed in error
+     * is accepted, along with an int flag (taken from the constants in
+     * MovesLog.MoveError) indicating what type of error it was.
      * <p>
-     * NB. Whenever a valid move is added to the log, the object's list of
+     * Whenever a valid move is added to the log, the object's list of
      * MoveError objects is cleared. Error messages don't accumulate; they're
      * wiped out whenever a valid move is completed.
      *

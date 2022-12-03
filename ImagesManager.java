@@ -13,22 +13,19 @@ import javax.imageio.ImageIO;
 import java.io.IOException;
 
 /**
- * This class provides access to an images store of chesspiece icon Image
- * objects, which it loads from an images directory passed as a string to its
- * constructor. The Image objects are scaled to the correct size to be used
- * on the BoardView component where they'll fit the chessboard squares there
- * exactly.
+ * Manages an images store of chesspiece icon Image objects, which it loads from
+ * an images directory. The Image objects are scaled to the correct size to be
+ * used on the BoardView component where they'll fit the chessboard squares
+ * there exactly.
  */
 public class ImagesManager {
 
     private final HashMap<Integer, Image> piecesImagesScaled;
 
     /**
-     * This constructor initializes the ImagesManager object, loading the
-     * chesspiece icon files from the specified directory (by default,
-     * ./images/), scaling them, and associating each one with the matching
-     * piece integer in a mapping so an accessor can return chesspiece images on
-     * demand.
+     * Initializes the ImagesManager object, loading the chesspiece icon files
+     * from the specified directory (by default, ./images/). It scales each one
+     * to the size of the square indicated by the squareDims argument.
      *
      * @param imageDirectory The relative or absolute path to the directory to
      *                       load chesspiece icon .png files from.
@@ -76,9 +73,7 @@ public class ImagesManager {
     }
 
     /**
-     * This accessor retrieves an Image object stored in an internal mapping of
-     * piece integers given an integer representation of that piece. (See the
-     * top of BoardArrays.java for details.)
+     * Accessor for the Image object associated with the piece integer argument.
      *
      * @param pieceInt The integer representation of the piece to retrieve the
      *                 corresponding chesspiece icon.

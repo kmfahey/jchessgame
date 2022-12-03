@@ -7,19 +7,19 @@ import java.util.Objects;
 import java.awt.Image;
 
 /**
- * This class represents a chessboard. It stores a data structure, an int[8][8],
- * that it uses to keep track of the state of the board; that structure is
+ * Represents a chessboard, storing a data structure, an int[8][8] array,
+ * that it uses to keep track of the state of the board. That structure is
  * available via Chessboard.getBoardArray() so it can be manipulated directly,
  * such as by methods in BoardsArray or MinimaxRunner.
  */
 public class Chessboard {
 
-    /* These int flags are Or'd together to generate the integers that are used
+    /* These int flags are or'd together to generate the integers that are used
        in an int[8][8] boardArray to represent pieces on the chessboard. Every
-       piece is Or'd together from one of WHITE or BLACK, and one of KING,
+       piece is or'd together from one of WHITE or BLACK, and one of KING,
        QUEEN, BISHOP, KNIGHT, ROOK, or PAWN. Additionally, since there are two
        Knight icons in the icon set this package uses, a knight's piece int will
-       also be Or'd with either LEFT or RIGHT. */
+       also be or'd with either LEFT or RIGHT. */
 
     /** Flag for black pieces. */
     public static final int BLACK = BoardArrays.BLACK;   
@@ -52,16 +52,14 @@ public class Chessboard {
     public static final int LEFT = BoardArrays.LEFT;     
 
     /**
-     * This set of valid piece int values is used by Chessboard's constructor to
-     * iterate across when querying ImagesManager for piece icons to store to
-     * pieceImages.
+     * Comprises all the valid piece integer values.
      */
     public static final HashSet<Integer> VALID_PIECE_INTS = BoardArrays.VALID_PIECE_INTS;
 
     /**
-     * This mapping associates piece integer values with an Integer[][2]
-     * array of coordinates for squares the piece should be placed at by
-     * layOutPieces() when setting up the board for a user playing White.
+     * Associates piece integer values with an Integer[][2] array of coordinates
+     * for squares the piece should be placed at when the player is playing
+     * White.
      */
     private static final HashMap<Integer, Integer[][]> PIECES_STARTING_LOCS_WHITE_BELOW = new HashMap<>() {{
         put(BLACK | KING,           new Integer[][] {new Integer[] {3, 0}});
@@ -87,9 +85,9 @@ public class Chessboard {
     }};
 
     /**
-     * This mapping associates piece integer values with an Integer[][2]
-     * array of coordinates for squares the piece should be placed at by
-     * layOutPieces() when setting up the board for a user playing Black.
+     * Associates piece integer values with an Integer[][2] array of coordinates
+     * for squares the piece should be placed at when the player is playing
+     * Black.
      */
     private static final HashMap<Integer, Integer[][]> PIECES_STARTING_LOCS_BLACK_BELOW = new HashMap<>() {{
         put(WHITE | KING,           new Integer[][] {new Integer[] {3, 0}});
@@ -115,9 +113,8 @@ public class Chessboard {
     }};
 
     /**
-     * This mapping associates the piece strings that ImagesManager transforms
-     * the filenames of the icon files it loads into the piece integer values it
-     * should associate them with.
+     * Associates piece strings with the piece integer values that they're
+     * equivalent to.
      */
     public static final HashMap<String, Integer> PIECE_STRS_TO_INTS = new HashMap<>() {{
         put("white-king",           WHITE | KING);
@@ -137,8 +134,8 @@ public class Chessboard {
     }};
 
     /**
-     * This mapping is used to track the correct piece icon Image object to use
-     * for each piece (represented by an integer value) in play.
+     * Associates each piece integer with the piece icon Image object to use for
+     * it.
      */
     private final HashMap<Integer, Image> pieceImages;
 
@@ -148,9 +145,9 @@ public class Chessboard {
     private int colorPlaying;
 
     /**
-     * This int[8][8] array is used to represent the board. It's also a valid argument to
-     * most of the methods in BoardArray, whose utility methods this class uses
-     * to manipulate the board array.
+     * Represent the chessboard. It's also a valid argument to most of the
+     * methods in BoardArray, whose utility methods this class uses to
+     * manipulate the board array.
      *
      * @see BoardArrays
      */
@@ -168,7 +165,7 @@ public class Chessboard {
     private boolean whiteKingHasMoved = false;
 
     /**
-     * This record comprises a class that represents a Piece on the board.
+     * Represents a Piece on the chessboard.
      *
      * @param pieceInt   The piece's integer representation on the board.
      * @param pieceImage An Image object of the icon for the piece sourced from
@@ -180,10 +177,9 @@ public class Chessboard {
     public record Piece(int pieceInt, Image pieceImage, int xCoord, int yCoord) { }
 
     /**
-     * This record comprises a class that represents a possible Move on the
-     * board. The method Chessboard.movePiece() accepts a Move object as
-     * an argument and executes that move on the internal board array (if
-     * possible).
+     * Represents a possible move on the board. The method
+     * Chessboard.movePiece() accepts a Move object as an argument and executes
+     * that move on the internal board array (if possible).
      *
      * @param movingPiece         A Chessboard.Piece object of the piece to
      *                            move.
@@ -210,8 +206,8 @@ public class Chessboard {
                 boolean isCastlingQueenside, int promotedToPieceInt) {
 
         /**
-         * This method renders the Move object into a string that describes the
-         * move in algebraic notation.
+         * Renders the object into a string that describes the move in algebraic
+         * notation.
          *
          * @return A String representing the object's move in algebraic
          *         notation.
@@ -239,7 +235,7 @@ public class Chessboard {
     }
 
     /**
-     * This constructor instantiates the Chessboard object.
+     * Instantiates the Chessboard object.
      *
      * @param imagesManager The program's ImagesManager object, which is used
      *                      to retrieve piece images.
@@ -255,9 +251,8 @@ public class Chessboard {
     }
 
     /**
-     * This constructor instantiates the Chessboard object, including an
-     * initializing value for the board array (unlike the normal constructor
-     * which doesn't specify that value).
+     * Instantiates the Chessboard object, including an initializing value for
+     * the board array.
      *
      * @param boardArrayVal The value for the board array.
      * @param imagesManager The program's ImagesManager object, which is used
@@ -293,7 +288,7 @@ public class Chessboard {
     }
 
     /**
-     * This mutator method is used to set the colorPlaying and colorOnTop values.
+     * Mutator method for the colorPlaying and colorOnTop instance variables.
      *
      * @param colorPlayingVal The new integer value representing the color the
      *                        user is playing. One of either BoardArrays.WHITE
@@ -308,8 +303,8 @@ public class Chessboard {
     }
 
     /**
-     * This method resets the internal board array and populates it with the
-     * appropriate pieces, placing the color the user is playing at the bottom
+     * Resets the internal board array and populates it with the
+     * appropriate pieces. It places the color the user is playing at the bottom
      * of the board and the color the AI is playing at the top.
      */
     public void layOutPieces() {
@@ -347,9 +342,8 @@ public class Chessboard {
     }
 
     /**
-     * An accessor method that returns the value of the boardArray instance
-     * variable, which is the internal int[8][8] array used to represent the
-     * chessboard.
+     * Accessor for the boardArray instance variable, which is the internal
+     * int[8][8] array used to represent the chessboard.
      *
      * @return An int[8][8] array representing a chessboard. This value is not
      *         deepcopied; this is a reference to the Chessboard object's
@@ -362,8 +356,8 @@ public class Chessboard {
     }
 
     /**
-     * A mutator method that sets the boardArray instance variable to the
-     * supplied value.
+     * Mutator for the boardArray instance variable that represents the
+     * chessboard in play.
      *
      * @param boardArrayVal The int[8][8] array to set the boardArray instance
      *                      variable to.
@@ -377,9 +371,8 @@ public class Chessboard {
     }
 
     /**
-     * An accessor method that returns the value of the colorOnTop instance
-     * variable, which indicates the color that is playing from the top of the
-     * board.
+     * Accessor for the colorOnTop instance variable, which indicates the color
+     * that is playing from the top of the board.
      *
      * @return The value of colorOnTop, either BoardArrays.WHITE or
      *         BoardArrays.BLACK;
@@ -389,8 +382,8 @@ public class Chessboard {
     }
 
     /**
-     * An accessor method that returns the value of the colorPlaying instance
-     * variable, which indicates the color the user is playing.
+     * Accessor for the colorPlaying instance variable, which indicates the
+     * color the user is playing.
      *
      * @return The value of colorPlaying, either BoardArrays.WHITE or
      *         BoardArrays.BLACK;
@@ -400,9 +393,9 @@ public class Chessboard {
     }
 
     /**
-     * This method is used to promote a pawn at the specified location. The
-     * pawn's integer value in the internal board array is replaced with the new
-     * value given, Or'd with the color of the original piece.
+     * Promotes the pawn at the specified location. The pawn's integer value in
+     * the internal board array is replaced with the new value given, or'd with
+     * the color of the original piece.
      *
      * @param xCoord   The x coordinate of the pawn to promote.
      * @param yCoord   The y coordinate of the pawn to promote.
@@ -420,8 +413,8 @@ public class Chessboard {
     }
 
     /**
-     * This method accepts coordinates to a square on the board, and returns a
-     * Chessboard.Piece object that represents the piece in that location.
+     * Instances a Chessboard.Piece object that represents the piece on the
+     * board in the square specified by the argument.
      *
      * @param coords An int[2] comprising the coordinates of the piece to
      *               instance a Piece object of.
@@ -433,13 +426,13 @@ public class Chessboard {
     }
 
     /**
-     * This method accepts coordinates to a square on the board, and returns a
-     * Chessboard.Piece object that represents the piece in that location.
+     * Instances a Chessboard.Piece object that represents the piece on the
+     * board in the square specified by the arguments.
      *
      * @param xCoord The x coordinate of the piece to instance a Piece object of.
      * @param yCoord The y coordinate of the piece to instance a Piece object of.
      * @return       A Chessboard.Piece object representing the piece at that location.
-     * @see Chessboard.Move
+     * @see Chessboard.Piece
      */
     public Piece getPieceAtCoords(final int xCoord, final int yCoord) {
         if (boardArray[xCoord][yCoord] == 0) {
@@ -450,16 +443,13 @@ public class Chessboard {
     }
 
     /**
-     * This method accepts a Chessboard.Move object and consults a list
-     * of all possible moves for the piece at the starting coordinates
-     * listed in (Move.fromXCoord, Move.fromYCoord) to determine if a
-     * move with the ending coordinates (Move.toXCoord, Move.toYCoord) is
-     * among them. It returns true if so, false otherwise. It is used by
-     * BoardView.mouseClickedTestForMoveErrors().
+     * Returns true if the Chessboard.Move argument represents a valid move for
+     * the piece involved, false if the move is illegal.
      *
      * @param moveObj The Chessboard.Move object to test for validity.
      * @return        A boolean, true if the move is a legal one for the piece at that
      *                location, false otherwise.
+     * @see Chessboard.Move
      */
     public boolean isMovePossible(final Chessboard.Move moveObj) {
         int[][] movesArray = new int[32][7];
@@ -551,8 +541,8 @@ public class Chessboard {
     }
 
     /**
-     * This method executes a Chessboard.Move object that describes a castling move
-     * on the object's internal chessboard model.
+     * Executes a Chessboard.Move object that describes a castling move on the
+     * object's internal chessboard model.
      *
      * @param moveObj The Chessboard.Move object describing the move to be made.
      * @see Chessboard.Move
@@ -715,8 +705,8 @@ public class Chessboard {
     }
 
     /**
-     * This method executes a Chessboard.Move object and moves the given piece
-     * (or pieces, if it's castling) on the object's internal chessboard model.
+     * Executes a Chessboard.Move object and moves the given piece or pieces on
+     * the object's internal chessboard model.
      *
      * @param moveObj The Chessboard.Move object describing the movement of a
      *                piece that movePiece will execute.
@@ -739,8 +729,8 @@ public class Chessboard {
     }
 
     /**
-     * This method derives an int[][2] array of the coordinates for every square
-     * on the board that is occupied by a piece of either color.
+     * Returns a int[][2] array of the coordinates for every square on the
+     * board that is occupied by a piece of either color.
      *
      * @return An array of 2-element arrays as long as the number of pieces on
      *         the board.

@@ -11,11 +11,11 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 /**
- * This class subclasses JFrame, implementing a dialog box that pops up
- * on instantiation and says, "Welcome to the game. Do you wish to play
- * White, or Black?" The choice is implemented with two buttons, each of
- * which conveys the chosen color back to the calling JChessGame object with
- * JChessGame.setColorPlaying() and closes the dialog box.
+ * Implements a dialog box that pops up on instantiation and says, "Welcome to
+ * the game. Do you wish to play White, or Black?" The choice is implemented
+ * with two buttons, each of which conveys the chosen color back to the calling
+ * JChessGame object with JChessGame.setColorPlaying() and closes the dialog
+ * box.
  *
  * @see JChessGame
  * @see JChessGame#setColorPlaying
@@ -23,18 +23,18 @@ import javax.swing.WindowConstants;
 public class PopupColorChoice extends JFrame {
 
     /**
-     * The JChessGame object that instanced this dialog box; stored so its
+     * The JChessGame object that instanced this dialog box. Stored so its
      * mutator JChessGame.setColorPlaying() can be used to convey the choice the
      * player makes.
      */
     private final JChessGame callingChessGame;
 
     /**
-     * This constructor instances and displays a popup dialog box that reads,
-     * "Welcome to the game. Do you wish to play White, or Black?". It features
-     * two buttons, [Play White] and [Play Black]. When a button is clicked,
-     * that color is set with the JChessGame object that spawned this dialog box
-     * using a mutator, and this dialog box closes.
+     * Instances and displays a popup dialog box that reads, "Welcome to the
+     * game. Do you wish to play White, or Black?". It features two buttons,
+     * [Play White] and [Play Black]. When a button is clicked, that color is
+     * set with the JChessGame object that spawned this dialog box using a
+     * mutator, and this dialog box closes.
      *
      * @param callingChessGameObj The JChessGame object that spawned this dialog
      *                            box, included so the button objects can set

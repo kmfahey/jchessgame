@@ -57,7 +57,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     /** The coordinates of the pawn to promote, if that's happening. */
     private int[] pawnToPromoteCoords = null;
 
-    /** A state variable used to track whether the pawn promotion dialog box has returned its outcome. */
+    /** Used to track whether the pawn promotion dialog box has returned its outcome. */
     private boolean pawnHasntBeenPromotedYet = false;
 
     /** Manages the board's internal state. */
@@ -70,39 +70,37 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         chessboard using Graphics.fillRect() */
     private final CoordinatesManager coordinatesManager;
 
-    /** A textarea to the right of BoardViww that logs moves and recent player errors. */
+    /** Textarea, logs moves and recent player errors. */
     private final MovesLog movesLog;
 
-    /** A timer that triggers actionPerformed to run after mouseClicked is done
-        so the AI's move logic executes in a separate method. */
+    /** Timer, triggers actionPerformed to run after mouseClicked is done. */
     private Timer opposingMoveDelayTimer;
 
     /** Hosts the minimax algorithm. */
     private final MinimaxRunner minimaxRunner;
 
-    /** A random number generator used in a few places where a coin toss is
-        needed. */
+    /** Used in a few places where a coin toss is needed. */
     private final Random RNG = new Random();
 
-    /** A turn count that's maintained by the move logic of both sides.  */
+    /** A turn count.  */
     private int turnCount;
 
-    /** A boolean used to track whether white has moved so far this turn. */
+    /** Used to track whether white has moved so far this turn. */
     private boolean blackHasMoved;
 
-    /** A boolean used to track whether white has moved so far this turn. */
+    /** Used to track whether white has moved so far this turn. */
     private boolean whiteHasMoved;
 
-    /** The colors the AI is playing. */
+    /** The color the AI is playing. */
     private final int colorOfAI;
 
-    /** The colors the player is playing. */
+    /** The color the player is playing. */
     private final int colorOfPlayer;
 
     /**
-     * This constructor instances a BoardView object. It accepts quite a few
-     * arguments since it needs almost every object that was instanced in the
-     * JChessGame constructor that called it, so it can run the game.
+     * Instances a BoardView object. It accepts quite a few arguments since
+     * it needs almost every object that was instanced in the JChessGame
+     * constructor that called it, so it can run the game.
      *
      * @param chessGame     A JChessGame object.
      * @param coordMgr      A CoordinatesManager object.
@@ -146,11 +144,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * This method is called by JChessGame during a reinitialization after a
-     * previous game has been cleared, if the player chose to play Black. It
-     * sets the timer that triggers the actionPerformed() method which contains
-     * the AI's move generation and execution logic.
+     * Starts the Timer object that sends events to actionPerformed.
      *
+     * @see actionPerformed
      * @see JChessGame
      */
     public void aiMovesFirst() {
@@ -158,16 +154,15 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * This method is called by PopupPawnPromotion after a choice is made and
-     * the "I've Chosen" button is clicked. It executes the pawn promotion and
-     * sets a state variable so actionPerformed() (which is waiting on this
-     * step) can run with the AI's move.
+     * Executes the a promotion and sets a state variable so actionPerformed can
+     * run with the AI's move.
      *
      * @param xCoord   The x-coordinate of the pawn that's being promoted.
      * @param yCoord   The y-coordinate of the pawn that's being promoted.
      * @param newPiece The int value of the piece that the pawn is being
      *                 promoted to.
      * @see PopupPawnPromotion
+     * @see actionPerformed
      */
     public void promotePawn(final int xCoord, final int yCoord, final int newPiece) {
         chessboard.promotePawn(xCoord, yCoord, newPiece);
@@ -175,11 +170,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * This method is called by PopupGameOver() to clear the board of the
-     * just-finished game. PopupColorChoice is called after that to repopulate
-     * the board, but the board is on-screen during that choice (unlike when
-     * PopupColorChoice runs at the initialization of the program) so the board
-     * needs to be empty.
+     * Clears the board.
      *
      * @see PopupGameOver
      */
@@ -196,15 +187,14 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * This method redraws the board, using Graphics.fillRect() to create a
-     * chessboard in the BoardView area, and (if not working from a blank
-     * Chessboard object) using Graphics.drawImage() to place the piece icons in
-     * the appropriate squares.
+     * This method redraws the board, creating a chessboard in the BoardView
+     * area of drawn rectangles, and (usually) drawing each chesspiece icon in
+     * its square.
      *
      * @param graphics The Graphics object that gives the method access to
      *                 graphical methods.
      * @see java.awt.Graphics
-     **/
+     */
     @Override
     protected void paintComponent(final Graphics graphics) {
         int piecesDrawn = 0;
@@ -291,10 +281,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         }
     }
 
-    /* This method translates between the pixel coordinates in a MouseEvent
-       object and the square coordinates needed to find a piece on the board.
-       If the coordinates don't point to a valid square, null is returned.
-       Otherwise, an int[2] array of the coordinates is returned. */
+    /* Translates between the pixel coordinates in a MouseEvent object and
+       the square coordinates needed to find a piece on the board. If the
+       coordinates don't point to a valid square, null is returned. Otherwise,
+       an int[2] array of the coordinates is returned. */
     private int[] mouseClickedEventToCoords(final MouseEvent event) {
         int eventXCoord = event.getX();
         int eventYCoord = event.getY();
@@ -344,9 +334,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         return new int[] {xCoord, yCoord};
     }
 
-    /* This method takes the clicked square coordinates-- if it's the 1st click,
-       it's saved to state and null is returned. If it's the 2nd click, a
-       Chessboard.Move is instanced and returned. */
+    /* Takes the clicked square coordinates-- if it's the 1st click, it's saved
+       to state and null is returned. If it's the 2nd click, a Chessboard.Move
+       is instanced and returned. */
     private Chessboard.Move mouseClickedCoordsToMoveObj(final int[] clickSquareCoord) {
         Chessboard.Move moveObj;
 
@@ -398,11 +388,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         }
     }
 
-    /* This method applies four different tests to the moveobj to identify move
-       errors: if the 2nd click was on a friendly piece (provided the 1st click
-       wasn't on the king and the 2nd of a rook, which signals castling), if the
-       king is in check and the move doesn't fix that, if the move would put the
-       king in check, or if the move is not a valid move for the piece selected.
+    /* Applies four different tests to the moveobj to identify move errors: if
+       the 2nd click was on a friendly piece (provided the 1st click wasn't on
+       the king and the 2nd of a rook, which signals castling), if the king is
+       in check and the move doesn't fix that, if the move would put the king in
+       check, or if the move is not a valid move for the piece selected.
 
        If an error is found, it's communicated to the moveslog textarea, which
        displays the error message, and the method returns false. otherwise true
@@ -526,12 +516,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * This method is called when the player clicks anywhere on BoardView's
-     * chessboard display. It and its delegate methods handle all the logic
-     * needed to process moving a chesspiece on the board. A player needs to
-     * click first on the piece to move and then on the square to move it to.
-     * This method keeps state between calls so, over the course of two clicks,
-     * it can execute one piece move.
+     * Called when the player clicks anywhere on BoardView's chessboard display;
+     * executes the player move logic. It and its delegate methods handle all
+     * the logic needed to process moving a chesspiece on the board. A player
+     * needs to click first on the piece to move and then on the square to move
+     * it to. This method keeps state between calls so, over the course of two
+     * clicks, it can execute one piece move.
      *
      * @param event The MouseEvent object that contains info about the click
      *              that spawned this method call.
@@ -606,11 +596,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         opposingMoveDelayTimer.start();
     }
 
-    /* This method is used by utility methods implementing mouseClicked()'s
-       player move logic to clear the instance variables that carry move data
-       between executions of mouseClicked. Two clicks are required to complete a
-       move; if these are cleared, the last click is cleared and mouseClicked()
-       resets to expecting the first click. */
+    /* Used by utility methods implementing mouseClicked()'s player move logic
+       to clear the instance variables that carry move data between executions
+       of mouseClicked. Two clicks are required to complete a move; if these are
+       cleared, the last click is cleared and mouseClicked() resets to expecting
+       the first click. */
     private void resetClickEventVars() {
         clickEventClickedPiece = null;
         clickEventMovingFrom = new int[] {-1, -1};
@@ -619,10 +609,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * This method is triggered by a timer set at the end of mouseClicked()
-     * so that the AI's move logic is separate from the player's move logic.
-     * It consults the minimax algorithm implementation in MinimaxRunner to
-     * generate a move for the AI, and executes it.
+     * Triggered by a timer set at the end of mouseClicked() to execute the
+     * AI's move logic. Used primarily to separate the player's move logic
+     * into a separate method. In the event of a pawn promotion, is also
+     * useful to repeatedly check if the pawn promotion has come back from
+     * PopupPawnPromotion.
      *
      * @param event The event object sent by the timer.
      */
@@ -723,9 +714,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * An implementation of MouseListener.mouseEntered, required because I
-     * implement that interface. I ignore the event, so 'assert true' is used as
-     * a filler line.
+     * A do-nothing method for MouseListener.mouseEntered, required by the
+     * interface. The event is ignored.
      *
      * @param event The event to be processed.
      * @see java.awt.event.MouseListener
@@ -735,9 +725,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * An implementation of MouseListener.mouseExited, required because I
-     * implement that interface. I ignore the event, so 'assert true' is used as
-     * a filler line.
+     * A do-nothing method for MouseListener.mouseExited, required by the
+     * interface. The event is ignored.
      *
      * @param event The event to be processed.
      * @see java.awt.event.MouseListener
@@ -747,9 +736,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * An implementation of MouseListener.mousePressed, required because I
-     * implement that interface. I ignore the event, so 'assert true' is used as
-     * a filler line.
+     * A do-nothing method for MouseListener.mousePressed, required by the
+     * interface. The event is ignored.
      *
      * @param event The event to be processed.
      * @see java.awt.event.MouseListener
@@ -759,9 +747,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * An implementation of MouseListener.mouseReleased, required because I
-     * implement that interface. I ignore the event, so 'assert true' is used as
-     * a filler line.
+     * A do-nothing method for MouseListener.mouseReleased, required by the
+     * interface. The event is ignored.
      *
      * @param event The event to be processed.
      * @see java.awt.event.MouseListener

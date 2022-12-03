@@ -16,7 +16,7 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 /**
- * This class subclasses JFrame, implementing a dialog box that informs the
+ * Implements a dialog box that informs the
  * player that their pawn is being promoted and giving them a choice, via radio
  * buttons, of what piece to promote it to. Once that choice is made and the
  * [I've Chosen] button is clicked, the choice is conveyed back to the BoardView
@@ -30,32 +30,30 @@ import javax.swing.WindowConstants;
  */
 public class PopupPawnPromotion extends JFrame {
 
-    /** The BoardView object that spawned this dialog box. */
+    /** Spawned this dialog box. */
     private final BoardView callingBoardView;
 
-    /** The ButtonGroup that contains the radio buttons and enforces their
-        exclusivity. */
+    /** Contains the radio buttons and enforces their exclusivity. */
     private final ButtonGroup buttonGroup;
 
-    /** The x coordinate on the chessboard, in squares, of the pawn that's being
+    /** X coordinate on the chessboard, in squares, of the pawn that's being
         promoted. */
     private final int pawnXCoord;
 
-    /** The x coordinate on the chessboard, in squares, of the pawn that's being
+    /** Y coordinate on the chessboard, in squares, of the pawn that's being
         promoted. */
     private final int pawnYCoord;
 
-    /** The integer representation of the piece the pawn is being promoted to
-        (not including color). */
+    /** Integer representation of the piece the pawn is being promoted to (not
+        including color). */
     private int newPiece;
 
-    /** A random number generator used to piece between LEFT and RIGHT in the
-        case of a knight. */
+    /** Used to choose between LEFT and RIGHT in the case of a knight. */
     private final Random RNG = new Random();
 
     /**
-     * This constructor initializes the PopupPawnPromotion object and displays the
-     * dialog box it comprises.
+     * Initializes the PopupPawnPromotion object and displays the dialog box it
+     * comprises.
      *
      * @param callingBoardViewObj The BoardView object that the calling
      *                            JChessGame object is using.

@@ -3,13 +3,13 @@ package com.kmfahey.jchessgame;
 import java.util.HashMap;
 
 /**
- * This class implements the state needed to run the minimax algorithm with
- * alpha/beta pruning, the frontend method to the algorithm algorithmTopLevel(),
- * and its multiple delegate methods used to handle individual aspects of the
- * execution. Its constructor accepts a Chessboard object, and that object's
- * boardArray is what the algorithm uses to calculate its moves.
+ * Implements the minimax algorithm with alpha/beta pruning. The frontend method
+ * to the algorithm is algorithmTopLevel(), Its constructor accepts a Chessboard
+ * object, and that object's boardArray is what the algorithm uses to calculate
+ * its moves.
  *
  * @see MinimaxRunner#algorithmTopLevel
+ * @see algorithmTopLevel
  */
 public class MinimaxRunner {
 
@@ -53,17 +53,16 @@ public class MinimaxRunner {
     private final int colorOfPlayer;
     private final int colorOnTop;
 
-    /** This int stores the default depth value used by the algorithm. */
+    /** The default depth value used by the algorithm. */
     private final int algorithmStartingDepth;
 
-    /** Stores the Chessboard object whose boardArray the algorithm calculates
-        its moves on. */
+    /** Object whose boardArray instance variable the algorithm calculates its
+        moves on. */
     private final Chessboard chessboard;
 
     /**
-     * This constructor initializes the MinimaxRunner object, which hosts the
-     * minimax algorithm implemented with a frontend at the algorithmTopLevel()
-     * method.
+     * Initializes the MinimaxRunner object, which hosts the minimax algorithm
+     * implemented with a frontend at the algorithmTopLevel() method.
      *
      * @param chessboardObj The Chessboard object modelling the game that the
      *                      minimax algorithm is needed to generate moves for.
@@ -81,8 +80,8 @@ public class MinimaxRunner {
     }
 
     /**
-     * This method and its delegate methods implement the minimax algorithm with
-     * the alpha/beta optimization. The default recursion depth is 4 calls.
+     * Implements the minimax algorithm with the alpha/beta optimization. The
+     * default recursion depth is 4 calls.
      *
      * @param turnCount The number of the turn it is, counting from 0.
      * @return          A Chessboard.Move object describing the move that the

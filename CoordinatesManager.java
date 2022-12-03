@@ -5,9 +5,9 @@ import java.awt.Dimension;
 import java.awt.Insets;
 
 /**
- * This class computes and makes available (as Dimension and Insets objects)
- * all the measurements needed by BoardView for it to draw a chessboard in
- * its JComponent region using Graphics.fillRect() calls. Its computed values
+ * Computes and makes available (as Dimension and Insets objects) all the
+ * measurements needed by BoardView for it to draw a chessboard in its
+ * JComponent region using Graphics.fillRect() calls. Its computed values
  * for the dimensions of an individual square on the board are also used by
  * ImagesManager to scale the chesspiece icon Image objects it loads from
  * ./images/. It furnishes these values via accessors.
@@ -20,19 +20,19 @@ public class CoordinatesManager {
        chesspiece icons stored in the ./images/ directory; each one is 234px x
        234px. */
 
-    /** The measurement of the chessboard proportionate to the unscaled piece icons. */
+    /** Measurement of the chessboard proportionate to the unscaled piece icons. */
     public static final float TOTAL_BOARD_MEASUREMENT_100PCT = 2002F;
 
-    /** The measurement of the outer black border proportionate to the unscaled piece icons. */
+    /** Measurement of the outer black border proportionate to the unscaled piece icons. */
     public static final float OUTER_BLACK_BORDER_WIDTH_100PCT = 12F;
 
-    /** The measurement of the outer beige margin proportionate to the unscaled piece icons. */
+    /** Measurement of the outer beige margin proportionate to the unscaled piece icons. */
     public static final float BEIGE_MARGIN_WIDTH_100PCT = 47F;
 
-    /** The measurement of the inner black border proportionate to the unscaled piece icons. */
+    /** Measurement of the inner black border proportionate to the unscaled piece icons. */
     public static final float INNER_BLACK_BORDER_WIDTH_100PCT = 6F;
 
-    /** The measurement of a chessboard square proportionate to the unscaled piece icons. */
+    /** Measurement of a chessboard square proportionate to the unscaled piece icons. */
     public static final float SQUARE_MEASUREMENT_100PCT = 234F;
 
     /** The locations, in squarefield coordinates, of the squares that should be
@@ -49,38 +49,37 @@ public class CoordinatesManager {
         new int[] {7, 1}, new int[] {7, 3}, new int[] {7, 5}, new int[] {7, 7}
     };
 
-    /** The dimensions of the entire chessboard, scaled by the scaleProportion. */
+    /** Dimensions of the entire chessboard, scaled by the scaleProportion. */
     private final Dimension totalBoardDimensions;
 
-    /** The insets of the board's outer beige margin, scaled by the scaleProportion. */
+    /** Insets of the board's outer beige margin, scaled by the scaleProportion. */
     private final Insets beigeMarginInsets;
 
-    /** The dimensions of the board's outer beige margin, scaled by the scaleProportion. */
+    /** Dimensions of the board's outer beige margin, scaled by the scaleProportion. */
     private final Dimension beigeMarginDimensions;
 
-    /** The insets of the board's inner black border, scaled by the scaleProportion. */
+    /** Insets of the board's inner black border, scaled by the scaleProportion. */
     private final Insets innerBlackBorderInsets;
 
-    /** The dimensions of the board's inner black border, scaled by the scaleProportion. */
+    /** Dimensions of the board's inner black border, scaled by the scaleProportion. */
     private final Dimension innerBlackBorderDimensions;
 
-    /** The insets of the board's squarefield, scaled by the scaleProportion. */
+    /** Insets of the board's squarefield, scaled by the scaleProportion. */
     private final Insets boardSquareFieldInsets;
 
-    /** The dimensions of the board's squarefield, scaled by the scaleProportion. */
+    /** Dimensions of the board's squarefield, scaled by the scaleProportion. */
     private final Dimension boardSquareFieldDimensions;
 
-    /** The dimensions of a single square on the board, scaled by the scaleProportion. */
+    /** Dimensions of a single square on the board, scaled by the scaleProportion. */
     private final Dimension squareDimensions;
 
-    /** The coordinates of the upper left corner of the squarefield. */
+    /** Coordinates of the upper left corner of the squarefield. */
     private final Point upperLeftCornerOfSquaresRegion;
 
     /**
-     * This constructor initializes the CoordinatesManager object, completing
-     * all the calculations and instancing all the Dimension and Insets objects
-     * needed by BoardView to draw the chessboard and place chesspiece icons on
-     * it.
+     * Initializes the CoordinatesManager object, completing all the
+     * calculations and instancing all the Dimension and Insets objects needed
+     * by BoardView to draw the chessboard and place chesspiece icons on it.
      *
      * @param scaleProportion A value greater than 0.0 and (on all but the
      *                        largest monitors) less than 1.0.
@@ -226,8 +225,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * totalBoardDimensions.
+     * Accessor for the totalBoardDimensions instance variable.
      *
      * @return A Dimension object, the value of totalBoardDimensions.
      */
@@ -236,8 +234,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * beigeMarginInsets.
+     * Accessor for the beigeMarginInsets instance variable.
      *
      * @return An Insets object, the value of beigeMarginInsets.
      */
@@ -246,8 +243,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * beigeMarginDimensions.
+     * Accessor for the beigeMarginDimensions instance variable.
      *
      * @return A Dimension object, the value of beigeMarginDimensions.
      */
@@ -256,8 +252,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * innerBlackBorderInsets.
+     * Accessor for the innerBlackBorderInsets instance variable.
      *
      * @return An Insets object, the value of innerBlackBorderInsets.
      */
@@ -266,8 +261,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * innerBlackBorderDimensions.
+     * Accessor for the innerBlackBorderDimensions instance variable.
      *
      * @return A Dimension object, the value of innerBlackBorderDimensions.
      */
@@ -276,8 +270,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * boardSquareFieldInsets.
+     * Accessor for the boardSquareFieldInsets instance variable.
      *
      * @return An Insets object, the value of boardSquareFieldInsets.
      */
@@ -286,8 +279,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * boardSquareFieldDimensions.
+     * Accessor for the boardSquareFieldDimensions instance variable.
      *
      * @return A Dimension object, the value of boardSquareFieldDimensions.
      */
@@ -296,8 +288,7 @@ public class CoordinatesManager {
     }
 
     /**
-     * This accessor method returns the value of the instance variable
-     * squareDimensions.
+     * Accessor for the squareDimensions instance variable.
      *
      * @return A Dimension object, the value of squareDimensions.
      */
@@ -306,9 +297,8 @@ public class CoordinatesManager {
     }
 
     /**
-     * This method is used to compute the x and y coordinates, in pixels, of the
-     * upper left corner of a chessboard square, given x and y coordinates in
-     * squares.
+     * Compute the x and y coordinates, in pixels, of the upper left corner of a
+     * chessboard square, from the x and y coordinates of it in squares.
      *
      * @param xCoord The x coordinate, in squares, of the chessboard square to
      *               plot.

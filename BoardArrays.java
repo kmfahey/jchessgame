@@ -11,12 +11,12 @@ import java.util.Random;
 import java.util.StringJoiner;
 
 /**
- * This static class contains a collection of utility methods for manipulating
- * 2d int arrays that represent chessboards, plus a few other methods. The 8x8
- * boardArray that's used as the internal chessboard representation by the
- * Chessboard class is manipulated explicitly by most methods in this class.
- * Chessboard's logic relies on these utility methods to manipulate and test
- * its boardArray, as does MinimaxRunner and BoardView, so the methods were
+ * Contains a collection of utility methods for manipulating 2d int arrays that
+ * represent chessboards, plus a few other methods. The 8x8 boardArray that's
+ * used as the internal chessboard representation by the Chessboard class is
+ * manipulated explicitly by most methods in this class. Chessboard's logic
+ * relies on these utility methods to manipulate and test its boardArray, as
+ * does MinimaxRunner and BoardView, so the methods were
  * refactored into a standalone utility static class.
  */
 public final class BoardArrays {
@@ -58,7 +58,7 @@ public final class BoardArrays {
     /** Flag for left-facing knights. */
     public static final int LEFT =      0b0000000001; 
 
-    /** This set of valid piece int values is used to verify that integers are valid piece ints.
+    /** Used to verify that an integer is a valid piece ints.
         @see loadBoardArrayFromFile */
     public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<>() {{
         this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
@@ -67,14 +67,16 @@ public final class BoardArrays {
         this.add(WHITE | KNIGHT | RIGHT); this.add(WHITE | KNIGHT | LEFT); this.add(WHITE | PAWN);
     }};
 
-    /** This string is used to translate between algebraic notation and numeric coordinates. @see coordsToAlgNotn */
+    /** Used to translate between algebraic notation and numeric coordinates.
+        @see coordsToAlgNotn */
     public static final String ALG_NOTN_ALPHA = "abcdefgh"; 
 
-    /** This string is used to translate between algebraic notation and numeric coordinates. @see coordsToAlgNotn */
+    /** Used to translate between algebraic notation and numeric coordinates.
+        @see coordsToAlgNotn */
     public static final String ALG_NOTN_NUM = "87654321"; 
 
-    /** This mapping associates piece integer values (absent any color flag)
-        with the abbreviations of those pieces used in algebraic notation.
+    /** Associates piece integer values (absent any color flag) with the
+        abbreviations of those pieces used in algebraic notation.
         @see Chessboard.Move#toString
         */
     public static final HashMap<Integer, String> PIECES_ABBRS = new HashMap<>() {{
@@ -83,7 +85,7 @@ public final class BoardArrays {
         this.put(QUEEN, "Q"); this.put(KING, "K");
     }};
 
-    /** This array contains the pieces that a pawn can be promoted to. */
+    /** Contains the pieces that a pawn can be promoted to. */
     public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
 
     /** A Random object, used for a few cases where a coin toss is needed.
@@ -93,8 +95,8 @@ public final class BoardArrays {
     private BoardArrays() { }
 
     /**
-     * This method converts an integer representing a piece into a textual
-     * representation of the piece. It is primarily used as a debugging tool.
+     * Converts an integer representing a piece into a textual representation of
+     * the piece.
      *
      * @param pieceInt The integer representing a piece to interpret.
      * @return         A string value that describes the piece in plain English.
@@ -138,9 +140,8 @@ public final class BoardArrays {
     }
 
     /**
-     * This method accepts coordinates of a square on a notional chessboard, and
-     * returns the 2-character algebraic notation String that refers to the same
-     * square.
+     * Translates coordinates of a square on a chessboard, into the 2-character
+     * algebraic notation String that refers to the same square.
      *
      * @param xCoord The x coordinate of the square.
      * @param yCoord The y coordinate of the square.
@@ -154,9 +155,7 @@ public final class BoardArrays {
     }
 
     /**
-     * This method iterates over the given board array until the king of the
-     * specified color is found. It returns the coordinates the king was found
-     * at.
+     * Finds the king of the specified color in its boardArray argument.
      *
      * @param boardArray An int[8][8] array that is the chessboard
      *                   representation used explicitly by methods in this
@@ -182,8 +181,8 @@ public final class BoardArrays {
     }
 
     /**
-     * This method selects the first n arrays in the given array-of-arrays, and
-     * shuffles them using the Fisher-Yates in-place shuffling algorithm.
+     * Selects the first n arrays in the given array-of-arrays, and shuffles
+     * them using the Fisher-Yates in-place shuffling algorithm.
      *
      * @param movesArray The moves array to shuffle a subsequence of.
      * @param usedLength The length of the subsequence of the moves array to
@@ -201,14 +200,13 @@ public final class BoardArrays {
     }
 
     /**
-     * This method tests whether the king of the specified color is in
-     * checkmate. It does this by executing a method that populates an array
-     * with all possible moves, and testing if its return value of the index
-     * of the first empty array is still 0 (and therefore the list of possible
-     * moves is of length 0). The methods used to generate moves are constrained
-     * that they may not leave their side's king in check after the move is
-     * completed. If no move satisfies those constraints, the king is in
-     * checkmate.
+     * Tests whether the king of the specified color is in checkmate. It does
+     * this by executing a method that populates an array with all possible
+     * moves, and testing if its return value of the index of the first empty
+     * array is still 0 (and therefore the list of possible moves is of length
+     * 0). The methods used to generate moves are constrained that they may not
+     * leave their side's king in check after the move is completed. If no move
+     * satisfies those constraints, the king is in checkmate.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -230,10 +228,10 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for every piece on the
-     * supplied board array of the specified color. It returns the index of the
-     * first empty array in movesArray after it has filled one or more arrays
-     * with moves.
+     * Generates possible moves for every piece in the boardArray argument of
+     * the specified color. It saves them to its movesArray argument. It returns
+     * the index of the first empty array in movesArray after it has filled zero
+     * or more arrays with moves.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -273,10 +271,10 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for the piece at the
-     * specified location on the boardArray passed as the first argument. It
+     * Generates possible moves for the piece at the specified location its
+     * boardArray first argument, and saves them to its movesArray argument. It
      * returns the index of the first empty array in movesArray after it has
-     * filled one or more arrays with moves.
+     * filled zero or more arrays with moves.
      *
      * @param boardArray     An int[8][8] array that is the chessboard
      *                       representation used explicitly by methods in this
@@ -335,10 +333,9 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for the pawn, and save
-     * them to the movesArray it's given as an argument. It returns the index
-     * of the first empty array in movesArray after it has filled one or more
-     * arrays with moves.
+     * Generates possible moves for the pawn, and saves them to its movesArray
+     * argument. It returns the index of the first empty array in movesArray
+     * after it has filled zero or more arrays with moves.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -479,10 +476,9 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for the rook, and save
-     * them to the movesArray it's given as an argument. It returns the index
-     * of the first empty array in movesArray after it has filled one or more
-     * arrays with moves.
+     * Generate possible moves for the rook, and saves them to its movesArray
+     * argument. It returns the index of the first empty array in movesArray
+     * after it has filled zero or more arrays with moves.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -629,10 +625,9 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for the bishop, and save
-     * them to the movesArray it's given as an argument. It returns the index
-     * of the first empty array in movesArray after it has filled one or more
-     * arrays with moves.
+     * Generates possible moves for the bishop, and saves them to its movesArray
+     * argument. It returns the index of the first empty array in movesArray
+     * after it has filled zero or more arrays with moves.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -774,10 +769,9 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for the knight, and save
-     * them to the movesArray it's given as an argument. It returns the index
-     * of the first empty array in movesArray after it has filled one or more
-     * arrays with moves.
+     * Generates possible moves for the knight, and saves them to its movesArray
+     * argument. It returns the index of the first empty array in movesArray
+     * after it has filled zero or more arrays with moves.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -864,10 +858,9 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for the queen, and save
-     * them to the movesArray it's given as an argument. It returns the index
-     * of the first empty array in movesArray after it has filled one or more
-     * arrays with moves.
+     * Generates possible moves for the queen, and saves them to its movesArray
+     * argument. It returns the index of the first empty array in movesArray
+     * after it has filled zero or more arrays with moves.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -1099,12 +1092,12 @@ public final class BoardArrays {
     }
 
     /**
-     * This method is used to generate possible moves for the king, and save
-     * them to the movesArray it's given as an argument. It returns the index
-     * of the first empty array in movesArray after it has filled one or more
-     * arrays with moves. It checks each possible move for if it would put the
-     * king in check. Of note, if it doesn't find any possible moves for the
-     * king, then de facto the king is in checkmate.
+     * Generates possible moves for the king, and save them to the movesArray
+     * it's given as an argument. It returns the index of the first empty array
+     * in movesArray after it has filled zero or more arrays with moves. It
+     * checks each possible move for if it would put the king in check. Of note,
+     * if it doesn't find any possible moves for the king, then de facto the
+     * king is in checkmate.
      *
      * @param boardArray      An int[8][8] array that is the chessboard
      *                        representation used explicitly by methods in this
@@ -1303,7 +1296,7 @@ public final class BoardArrays {
     }
 
     /**
-     * This method tests whether the king of the specified color is in check.
+     * Tests whether the king of the specified color is in check.
      *
      * @param boardArray     The int[8][8] array that represents the chessboard.
      * @param colorsTurnItIs The color of the king to be tested for if it's in
@@ -1320,9 +1313,8 @@ public final class BoardArrays {
     }
 
     /**
-     * This method tests whether the king of the specified color would be in
-     * check if a friendly piece in the specified square moved to the specified
-     * square.
+     * Tests whether the king of the specified color would be in check if a
+     * friendly piece in the specified square moved to the specified square.
      *
      * @param boardArray     The int[8][8] array that represents the chessboard.
      * @param fromXIdx       The x coordinate of the square a friendly piece is
@@ -1353,8 +1345,8 @@ public final class BoardArrays {
     }
 
     /**
-     * This method tests whether the king of the specified color would be in
-     * check if it were located in the specified square.
+     * Tests whether the king of the specified color would be in check if it
+     * were located in the specified square.
      *
      * @param boardArray     The int[8][8] array that represents the chessboard.
      * @param colorsTurnItIs The color of the king to be tested for if it's in
@@ -1372,9 +1364,9 @@ public final class BoardArrays {
     }
 
     /**
-     * This method tests whether the king of the specified color would be in
-     * check if it were located in the specified square and a friendly piece at
-     * the specified square moved to the specified square.
+     * Tests whether the king of the specified color would be in check if
+     * it were located in the specified square and a friendly piece at the
+     * specified square moved to the specified square.
      *
      * @param boardArray     The int[8][8] array that represents the chessboard.
      * @param kingXIdx       The x coordinate of the square the king is to be
@@ -1658,10 +1650,9 @@ public final class BoardArrays {
     }
 
     /**
-     * A debugging method that prints the contents of a boardArray in a
-     * pretty-printed format. Used in some try/catch blocks to print the
-     * boardArray that was involved in the exception being thrown, for
-     * reproducibility purposes.
+     * Prints the contents of a boardArray in a pretty-printed format. Used in
+     * some try/catch blocks to print the boardArray that was involved in the
+     * exception being thrown, for reproducibility purposes.
      *
      * @param boardArray An int[8][8] array that is the chessboard
      *                   representation used explicitly by methods in this
@@ -1681,12 +1672,13 @@ public final class BoardArrays {
     }
 
     /**
-     * This debugging method takes a fileName pointing to a CSV file, imports and
-     * parses it, returning an int[][] that can be used as the first argument
-     * to a Chessboard constructor or with Chessboard.setBoardArray(). The CSV
-     * file must have no header, exactly 8 rows, exactly 8 columns, and contain
-     * only integers. Every integer must be either a 0 or a valid piece-integer
-     * value; see the piece constants defined at the top of BoardArrays.
+     * Takes a fileName pointing to a CSV file, imports and parses it, returning
+     * an int[][] that can be used as the first argument to a Chessboard
+     * constructor, with Chessboard.setBoardArray(), or with the utility methods
+     * in BoardArrays. The CSV file must have no header, exactly 8 rows, exactly
+     * 8 columns, and contain only integers. Every integer must be either a 0 or
+     * a valid piece-integer value; see the piece constants defined at the top
+     * of BoardArrays.
      *
      * @param fileName The filename of the CSV file to import.
      * @return         An int[8][8] array representing a chessboard, suitable
@@ -1700,6 +1692,7 @@ public final class BoardArrays {
      * @throws IOException If there's an error reading from the file, or it's
      *                     missing.
      * @see Chessboard
+     * @see BoardArrays
      */
     public static int[][] loadBoardArrayFromFile(final String fileName)
                                                  throws BoardArrayFileParsingException, IOException {
