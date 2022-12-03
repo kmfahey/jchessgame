@@ -24,9 +24,9 @@ import javax.swing.WindowConstants;
  * redraw the board with the new piece displayed.
  *
  * @see BoardView#blankBoard
- * @see ChessGame#chooseColor
+ * @see JChessGame#chooseColor
  * @see PopupColorChoice
- * @see ChessGame#actionPerformed
+ * @see JChessGame#actionPerformed
  */
 public class PopupPawnPromotion extends JFrame {
 
@@ -42,7 +42,7 @@ public class PopupPawnPromotion extends JFrame {
      * dialog box it comprises.
      *
      * @param callingBoardViewObj The BoardView object that the calling
-     *                            ChessGame object is using.
+     *                            JChessGame object is using.
      * @param xCoordVal           The x coordinate of the pawn on the chess
      *                            board.
      * @param yCoordVal           The y coordinate of the pawn on the chess
@@ -173,7 +173,7 @@ public class PopupPawnPromotion extends JFrame {
      * and communicated to the BoardView object that spawned this popup
      * using BoardView.promotePawn() and BoardView.repaint(). Then it uses
      * this.dispose() to close the dialog box.
-     * 
+     *
      * @see BoardView#promotePawn
      * @see BoardView#repaint
      */
@@ -187,14 +187,18 @@ public class PopupPawnPromotion extends JFrame {
                 return;
             }
             switch (selectedButtonMod.getActionCommand()) {
-                case "Rook" -> newPiece = BoardArrays.ROOK;
-                case "Knight" -> newPiece = BoardArrays.KNIGHT
-                                            | (randomNumberGenerator.nextInt(2) == 1
-                                                ? BoardArrays.LEFT : BoardArrays.RIGHT);
-                case "Bishop" -> newPiece = BoardArrays.BISHOP;
-                case "Queen" -> newPiece = BoardArrays.QUEEN;
-                default -> {
-                }
+                case "Rook":
+                    newPiece = BoardArrays.ROOK; break;
+                case "Knight":
+                    newPiece = BoardArrays.KNIGHT | (randomNumberGenerator.nextInt(2) == 1
+                                                    ? BoardArrays.LEFT : BoardArrays.RIGHT);
+                    break;
+                case "Bishop":
+                    newPiece = BoardArrays.BISHOP; break;
+                case "Queen":
+                    newPiece = BoardArrays.QUEEN; break;
+                default:
+                    break;
             }
             if (newPiece != 0) {
                 callingBoardView.promotePawn(pawnXCoord, pawnYCoord, newPiece);

@@ -46,7 +46,7 @@ public class Chessboard {
      * array of coordinates for squares the piece should be placed at by
      * layOutPieces() when setting up the board for a user playing White.
      */
-    private static final HashMap<Integer, Integer[][]> piecesStartingLocsWhiteBelow = new HashMap<>() {{
+    private static final HashMap<Integer, Integer[][]> PIECES_STARTING_LOCS_WHITE_BELOW = new HashMap<>() {{
         put(BLACK | KING,           new Integer[][] {new Integer[] {3, 0}});
         put(BLACK | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
         put(BLACK | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
@@ -74,7 +74,7 @@ public class Chessboard {
      * array of coordinates for squares the piece should be placed at by
      * layOutPieces() when setting up the board for a user playing Black.
      */
-    private static final HashMap<Integer, Integer[][]> piecesStartingLocsBlackBelow = new HashMap<>() {{
+    private static final HashMap<Integer, Integer[][]> PIECES_STARTING_LOCS_BLACK_BELOW = new HashMap<>() {{
         put(WHITE | KING,           new Integer[][] {new Integer[] {3, 0}});
         put(WHITE | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
         put(WHITE | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
@@ -153,10 +153,7 @@ public class Chessboard {
     /**
      * This record comprises a class that represents a Piece on the board.
      *
-     * @param pieceInt   The piece's integer representation on the board,
-     *                   comprised of &lt;WHITE or BLACK&gt; | &lt;PAWN, ROOK,
-     *                   BISHOP, KING, QUEEN&lt; or &lt;KNIGHT | LEFT&gt; or
-     *                   &lt;KNIGHT | RIGHT&gt;.
+     * @param pieceInt   The piece's integer representation on the board.
      * @param pieceImage An Image object of the icon for the piece sourced from
      *                   ImagesManager.
      * @param xCoord     The int of the piece's x coordinate on the board.
@@ -198,6 +195,9 @@ public class Chessboard {
         /**
          * This method renders the Move object into a string that describes the
          * move in algebraic notation.
+         *
+         * @return A String representing the object's move in algebraic
+         *         notation.
          */
         public String toString() {
             if (isCastlingKingside) {
@@ -303,9 +303,9 @@ public class Chessboard {
            that the color the user is playing gets arrayed at the bottom of the
            board. */
         if (colorPlaying == WHITE) {
-            piecesStartingCoords = piecesStartingLocsWhiteBelow;
+            piecesStartingCoords = PIECES_STARTING_LOCS_WHITE_BELOW;
         } else {
-            piecesStartingCoords = piecesStartingLocsBlackBelow;
+            piecesStartingCoords = PIECES_STARTING_LOCS_BLACK_BELOW;
         }
 
         /* All cells in the board array are set to zero as a starting point. */

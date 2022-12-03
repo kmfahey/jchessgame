@@ -14,34 +14,34 @@ import javax.swing.WindowConstants;
  * This class subclasses JFrame, implementing a dialog box that pops up
  * on instantiation and says, "Welcome to the game. Do you wish to play
  * White, or Black?" The choice is implemented with two buttons, each of
- * which conveys the chosen color back to the calling ChessGame object with
- * ChessGame.setColorPlaying() and closes the dialog box.
+ * which conveys the chosen color back to the calling JChessGame object with
+ * JChessGame.setColorPlaying() and closes the dialog box.
  *
- * @see ChessGame
- * @see ChessGame#setColorPlaying
+ * @see JChessGame
+ * @see JChessGame#setColorPlaying
  */
 public class PopupColorChoice extends JFrame {
 
     /**
-     * The ChessGame object that instanced this dialog box; stored so its
-     * mutator ChessGame.setColorPlaying() can be used to convey the choice the
+     * The JChessGame object that instanced this dialog box; stored so its
+     * mutator JChessGame.setColorPlaying() can be used to convey the choice the
      * player makes.
      */
-    private final ChessGame callingChessGame;
+    private final JChessGame callingChessGame;
 
     /**
      * This constructor instances and displays a popup dialog box that reads,
      * "Welcome to the game. Do you wish to play White, or Black?". It features
      * two buttons, [Play White] and [Play Black]. When a button is clicked,
-     * that color is set with the ChessGame object that spawned this dialog box
+     * that color is set with the JChessGame object that spawned this dialog box
      * using a mutator, and this dialog box closes.
      *
-     * @param callingChessGameObj The ChessGame object that spawned this dialog
+     * @param callingChessGameObj The JChessGame object that spawned this dialog
      *                            box, included so the button objects can set
      *                            the color to play on it with a mutator.
-     * @see ChessGame#setColorPlaying
+     * @see JChessGame#setColorPlaying
      */
-    public PopupColorChoice(final ChessGame callingChessGameObj) {
+    public PopupColorChoice(final JChessGame callingChessGameObj) {
         super("Color Choice");
 
         callingChessGame = callingChessGameObj;
@@ -122,7 +122,7 @@ public class PopupColorChoice extends JFrame {
     /*
      * This method builds a custom JButton representing the choice to play
      * White, with a private ActionListener class that sends the color choice to
-     * the ChessGame that spawned this popup using ChessGame.setColorPlaying()
+     * the JChessGame that spawned this popup using JChessGame.setColorPlaying()
      * and closing this window with JFrame.dispose().
      */
     private JButton buildPlayWhiteButton() {
@@ -138,7 +138,7 @@ public class PopupColorChoice extends JFrame {
     /*
      * This method builds a custom JButton representing the choice to play
      * Black, with a private ActionListener class that sends the color choice to
-     * the ChessGame that spawned this popup using ChessGame.setColorPlaying()
+     * the JChessGame that spawned this popup using JChessGame.setColorPlaying()
      * and closing this window with JFrame.dispose().
      */
     private JButton buildPlayBlackButton() {

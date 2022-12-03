@@ -59,6 +59,9 @@ public class MovesLog extends JTextArea {
         /**
          * This method renders the error and the Chessboard.Move object it
          * references in plain english.
+         *
+         * @return A String representing the object's move in algebraic notation
+         *         format.
          */
         public String toString() {
             String pieceStr = BoardArrays.pieceIntToString(moveObj.movingPiece().pieceInt());
@@ -66,13 +69,18 @@ public class MovesLog extends JTextArea {
             String toLocStr = BoardArrays.coordsToAlgNotn(moveObj.toXCoord(), moveObj.toYCoord());
             String retval = "Moving " + pieceStr + " from " + fromLocStr + " to " + toLocStr + ": ";
             switch (issueFlag) {
-                case WOULD_BE_IN_CHECK -> retval += "that move would place your king in check.";
-                case IS_IN_CHECK -> retval += "your king is in check and move doesn't resolve that.";
-                case NOT_A_VALID_MOVE -> retval += "that's not a valid move for that piece.";
-                case IS_A_FRIENDLY_PIECE -> retval += "can't capture a friendly piece.";
-                case CASTLING_NOT_POSSIBLE -> retval += "castling is impossible.";
-                default -> {
-                }
+                case WOULD_BE_IN_CHECK:
+                    retval += "that move would place your king in check."; break;
+                case IS_IN_CHECK:
+                    retval += "your king is in check and move doesn't resolve that."; break;
+                case NOT_A_VALID_MOVE:
+                    retval += "that's not a valid move for that piece."; break;
+                case IS_A_FRIENDLY_PIECE:
+                    retval += "can't capture a friendly piece."; break;
+                case CASTLING_NOT_POSSIBLE:
+                    retval += "castling is impossible."; break;
+                default:
+                    break;
             }
             return retval;
         }

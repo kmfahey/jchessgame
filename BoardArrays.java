@@ -28,22 +28,22 @@ public final class BoardArrays {
        Knight icons in the icon set this package uses, a knight's piece int will
        also be Or'd with either LEFT or RIGHT. */
 
-    public static final int LEFT =      0b0000000001;
-    public static final int RIGHT =     0b0000000010;
-
-    public static final int PAWN =      0b0000000100;
-    public static final int ROOK =      0b0000001000;
-    public static final int KNIGHT =    0b0000010000;
-    public static final int BISHOP =    0b0000100000;
-    public static final int QUEEN =     0b0001000000;
-    public static final int KING =      0b0010000000;
-
-    public static final int WHITE =     0b0100000000;
     public static final int BLACK =     0b1000000000;
+    public static final int WHITE =     0b0100000000;
+
+    public static final int KING =      0b0010000000;
+    public static final int QUEEN =     0b0001000000;
+    public static final int BISHOP =    0b0000100000;
+    public static final int KNIGHT =    0b0000010000;
+    public static final int ROOK =      0b0000001000;
+    public static final int PAWN =      0b0000000100;
+
+    public static final int RIGHT =     0b0000000010;
+    public static final int LEFT =      0b0000000001;
 
     /**
      * This set of valid piece int values is used by the debugging method
-     * fileNameToBoardArray() to verify that field values in the board CSV its
+     * loadBoardArrayFromFile() to verify that field values in the board CSV its
      * parsing are valid piece ints.
      */
     public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<>() {{
@@ -72,7 +72,9 @@ public final class BoardArrays {
     public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
 
     /* A Random object, used for a few cases where a coin toss is needed. */
-    private static final Random randomNumberGenerator = new Random();
+    private static final Random RNG = new Random();
+
+    private BoardArrays() { }
 
     /**
      * This method converts an integer representing a piece into a textual
@@ -101,14 +103,20 @@ public final class BoardArrays {
             privPieceInt ^= RIGHT;
         }
         switch (privPieceInt) {
-            case PAWN -> role = "pawn";
-            case ROOK -> role = "rook";
-            case KNIGHT -> role = "knight";
-            case BISHOP -> role = "bishop";
-            case QUEEN -> role = "queen";
-            case KING -> role = "king";
-            default -> {
-            }
+            case PAWN:
+                role = "pawn"; break;
+            case ROOK:
+                role = "rook"; break;
+            case KNIGHT:
+                role = "knight"; break;
+            case BISHOP:
+                role = "bishop"; break;
+            case QUEEN:
+                role = "queen"; break;
+            case KING:
+                role = "king"; break;
+            default:
+                break;
         }
         return color + " " + chirality + role;
     }
@@ -168,7 +176,7 @@ public final class BoardArrays {
      */
     public static void shuffleMovesArray(final int[][] movesArray, final int usedLength) {
         for (int startingIndex = usedLength - 1; startingIndex > 0; startingIndex--) {
-            int randomIndex = randomNumberGenerator.nextInt(startingIndex + 1);
+            int randomIndex = RNG.nextInt(startingIndex + 1);
             // Simple swap
             int[] swapValue = movesArray[randomIndex];
             movesArray[randomIndex] = movesArray[startingIndex];
@@ -408,7 +416,7 @@ public final class BoardArrays {
                        LEFT and RIGHT is made and that value is Or'd onto
                        newPieceInt. */
                     if (newPieceBase == KNIGHT) {
-                        newPieceInt = newPieceInt | (randomNumberGenerator.nextInt(2) == 1 ? LEFT : RIGHT);
+                        newPieceInt = newPieceInt | (RNG.nextInt(2) == 1 ? LEFT : RIGHT);
                     }
                     /* The pawn promotion move is saved to movesArray, using the
                        7th array element to indicate the piece promoted to. */
@@ -1611,9 +1619,9 @@ public final class BoardArrays {
 
     /**
      * A debugging method that prints the contents of a boardArray in a
-     * pretty-printed format (reproduces the Java code needed to declare the
-     * array). Used in some try/catch blocks to print the boardArray that was
-     * involved in the exception being thrown, for reproducibility purposes.
+     * pretty-printed format. Used in some try/catch blocks to print the
+     * boardArray that was involved in the exception being thrown, for
+     * reproducibility purposes.
      *
      * @param boardArray An int[8][8] array that is the chessboard
      *                   representation used explicitly by methods in this
@@ -1634,7 +1642,7 @@ public final class BoardArrays {
 
     /**
      * This debugging method takes a fileName pointing to a CSV file, imports and
-     * parses it, returning a int[][] that can be used as the first argument
+     * parses it, returning an int[][] that can be used as the first argument
      * to a Chessboard constructor or with Chessboard.setBoardArray(). The CSV
      * file must have no header, exactly 8 rows, exactly 8 columns, and contain
      * only integers. Every integer must be either a 0 or a valid piece-integer
@@ -1645,10 +1653,10 @@ public final class BoardArrays {
      *                 for use by a Chessboard object.
      * @see Chessboard
      */
-    public static int[][] fileNameToBoardArray(final String fileName)
-                                                throws NullPointerException,
-                                                       BoardArrayFileParsingException,
-                                                       IOException {
+    public static int[][] loadBoardArrayFromFile(final String fileName)
+                                                 throws NullPointerException,
+                                                        BoardArrayFileParsingException,
+                                                        IOException {
         File boardFile;
         String fileContents;
         String[] fileLines;

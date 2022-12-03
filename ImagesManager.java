@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 
 /**
  * This class provides access to an images store of chesspiece icon Image
@@ -82,6 +81,8 @@ public class ImagesManager {
      *
      * @param pieceInt The integer representation of the piece to retrieve the
      *                 corresponding chesspiece icon.
+     * @return         An Image object containing the chesspiece icon
+     *                 corresponding to the argument.
      */
     public Image getImageByPieceInt(final int pieceInt) {
         return piecesImagesScaled.get(pieceInt);

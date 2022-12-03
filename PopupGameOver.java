@@ -1,7 +1,5 @@
 package com.kmfahey.jchessgame;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -14,17 +12,17 @@ import javax.swing.WindowConstants;
 
 /**
  * This class subclasses JFrame, implementing a dialog box that informs the
- * player who won the chess game that just completed; ChessGame spawns it
+ * player who won the chess game that just completed; JChessGame spawns it
  * as soon as checkmate is detected for either side. It prompts the user to
  * indicate Okay, or Play Again. If Play Again is chosen, BoardView.blankBoard()
- * is called to clear the board, and ChessGame.chooseColor() is called to spawn
- * the PopupColorChoice dialog box, and prime ChessGame.actionPerformed() to be
- * called to re-intialize the ChessGame object.
+ * is called to clear the board, and JChessGame.chooseColor() is called to spawn
+ * the PopupColorChoice dialog box, and prime JChessGame.actionPerformed() to be
+ * called to re-intialize the JChessGame object.
  *
  * @see BoardView#blankBoard
- * @see ChessGame#chooseColor
+ * @see JChessGame#chooseColor
  * @see PopupColorChoice
- * @see ChessGame#actionPerformed
+ * @see JChessGame#actionPerformed
  */
 public class PopupGameOver extends JFrame {
 
@@ -34,15 +32,15 @@ public class PopupGameOver extends JFrame {
     public static final int AI_LOST = 1;
 
     /**
-     * The ChessGame object that instanced this dialog box; stored so its method
-     * ChessGame.chooseColor() can be called, spawning the PopupColorChoice
-     * dialog box and priming ChessGame.actionPerformed() to be run once it
+     * The JChessGame object that instanced this dialog box; stored so its method
+     * JChessGame.chooseColor() can be called, spawning the PopupColorChoice
+     * dialog box and priming JChessGame.actionPerformed() to be run once it
      * closes.
      */
-    private final ChessGame chessgame;
+    private final JChessGame chessgame;
 
     /**
-     * The BoardView object that the ChessGame object that instanced this dialog
+     * The BoardView object that the JChessGame object that instanced this dialog
      * box is using; stored so BoardView.blankBoard() can be called in the event
      * the player wants to play again.
      */
@@ -52,13 +50,13 @@ public class PopupGameOver extends JFrame {
      * This constructor initializes the PopupGameOver object and displays the
      * dialog box it comprises.
      *
-     * @param chessGameObj The ChessGame object that spawned this dialog box.
-     * @param boardViewObj The BoardView object that the calling ChessGame
+     * @param chessGameObj The JChessGame object that spawned this dialog box.
+     * @param boardViewObj The BoardView object that the calling JChessGame
      *                     object is using.
      * @param losingSide   An integer flag, one of PopupGameOver.AI_LOST or
      *                     PopupGameOver.PLAYER_LOST.
      */
-    public PopupGameOver(final ChessGame chessGameObj, final BoardView boardViewObj, final int losingSide) {
+    public PopupGameOver(final JChessGame chessGameObj, final BoardView boardViewObj, final int losingSide) {
         super("Game Over");
 
         JLabel pawnPromExplLabel;
@@ -163,14 +161,14 @@ public class PopupGameOver extends JFrame {
      * This method builds a custom JButton representing the choice to play
      * another game, with a private ActionListener class that triggers that
      * process by calling BoardView.blankBoard() to clear the BoardView
-     * object's chessboard, calling ChessGame.chooseColor() to spawn the
+     * object's chessboard, calling JChessGame.chooseColor() to spawn the
      * PopupColorChoice object and initiate the process which will run
-     * ChessGame.actionPerformed(), and this.dispose() to close this dialog box.
-     * 
+     * JChessGame.actionPerformed(), and this.dispose() to close this dialog box.
+     *
      * @see BoardView#blankBoard
-     * @see ChessGame#chooseColor
+     * @see JChessGame#chooseColor
      * @see PopupColorChoice
-     * @see ChessGame#actionPerformed
+     * @see JChessGame#actionPerformed
      */
     private JButton buildPlayAgainButton() {
         PopupGameOver enclosingDbox = this;

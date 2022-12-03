@@ -46,7 +46,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private boolean pawnHasntBeenPromotedYet = false;
 
     private final Chessboard chessboard;
-    private final ChessGame chessGameFrame;
+    private final JChessGame chessGameFrame;
     private final CoordinatesManager coordinatesManager;
     private final MovesLog movesLog;
 
@@ -74,9 +74,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     /**
      * This constructor instances a BoardView object. It accepts quite a few
      * arguments since it needs almost every object that was instanced in the
-     * ChessGame constructor that called it, so it can run the game.
+     * JChessGame constructor that called it, so it can run the game.
      *
-     * @param chessGame     A ChessGame object.
+     * @param chessGame     A JChessGame object.
      * @param coordMgr      A CoordinatesManager object.
      * @param chessboardObj A Chessboard object.
      * @param movesLogObj   A MovesLog object, the textarea to the right of the
@@ -84,14 +84,14 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * @param colorPlaying  An integer representing the color the player is
      *                      playing-- either BoardArrays.WHITE or
      *                      BoardArrays.BLACK.
-     * @see ChessGame
+     * @see JChessGame
      * @see Dimension
      * @see ImagesManager
      * @see CoordinatesManager
      * @see Chessboard
      * @see MovesLog
      */
-    public BoardView(final ChessGame chessGame, final CoordinatesManager coordMgr, final Chessboard chessboardObj,
+    public BoardView(final JChessGame chessGame, final CoordinatesManager coordMgr, final Chessboard chessboardObj,
                      final MovesLog movesLogObj, final int colorPlaying) {
 
         chessGameFrame = chessGame;
@@ -118,12 +118,12 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     }
 
     /**
-     * This method is called by ChessGame during a reinitialization after a
+     * This method is called by JChessGame during a reinitialization after a
      * previous game has been cleared, if the player chose to play Black. It
      * sets the timer that triggers the actionPerformed() method which contains
      * the AI's move generation and execution logic.
      *
-     * @see ChessGame
+     * @see JChessGame
      */
     public void aiMovesFirst() {
         opposingMoveDelayTimer.start();
@@ -167,7 +167,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         repaint();
     }
 
-    /* This method redraws the board, using Graphics.fillRect() to create a
+    /**
+     * This method redraws the board, using Graphics.fillRect() to create a
      * chessboard in the BoardView area, and (if not working from a blank
      * Chessboard object) using Graphics.drawImage() to place the piece icons in
      * the appropriate squares.
@@ -503,6 +504,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
      * click first on the piece to move and then on the square to move it to.
      * This method keeps state between calls so, over the course of two clicks,
      * it can execute one piece move.
+     *
+     * @param event The MouseEvent object that contains info about the click
+     *              that spawned this method call.
+     * @see java.awt.event.MouseEvent
      */
     public void mouseClicked(final MouseEvent event) {
         int[] clickSquareCoord;

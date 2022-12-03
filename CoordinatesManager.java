@@ -124,8 +124,12 @@ public class CoordinatesManager {
             case -2 -> {
                 leftInnerBlackBorderWidth -= 1; leftBeigeMarginWidth -= 1;
             }
-            case -1 -> leftInnerBlackBorderWidth -= 1;
-            case 1 -> leftOuterBlackBorderWidth += 1;
+            case -1 -> {
+                leftInnerBlackBorderWidth -= 1;
+            }
+            case 1 -> {
+                leftOuterBlackBorderWidth += 1;
+            }
             case 2 -> {
                 leftBeigeMarginWidth += 1; leftOuterBlackBorderWidth += 1;
             }
@@ -285,6 +289,9 @@ public class CoordinatesManager {
      *               plot.
      * @param yCoord The y coordinate, in squares, of the chessboard square to
      *               plot.
+     * @return       A Point object that comprises the x and y coordinates, in
+     *               pixels, of the square on the chessboard corresponding to
+     *               the arguments.
      */
     public Point getSquareUpperLeftCorner(final int xCoord, final int yCoord) {
         int upperLeftHorizPixel = upperLeftCornerOfSquaresRegion.x

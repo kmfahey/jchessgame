@@ -75,7 +75,9 @@ public class MinimaxRunner {
      * This method and its delegate methods implement the minimax algorithm with
      * the alpha/beta optimization. The default recursion depth is 4 calls.
      *
-     * @param turnCount The number of the turn it is, indexed at 0.
+     * @param turnCount The number of the turn it is, counting from 0.
+     * @return          A Chessboard.Move object describing the move that the
+     *                  algorithm has selected.
      */
     public Chessboard.Move algorithmTopLevel(final int turnCount
                                             ) throws CastlingNotPossibleException, IllegalArgumentException {
@@ -575,8 +577,6 @@ public class MinimaxRunner {
         double isolatedPawnsCount = 0;
         int dblpIdx = 0;
         int pawnsCount = 0;
-        int X_IDX = 0;
-        int Y_IDX = 1;
         int maxPawnIndex;
 
         /* These loops traverse the int[8][8] boardArray detecting pawns of this
@@ -604,19 +604,19 @@ public class MinimaxRunner {
             case 2 -> {
                 /* If there's two left, they're both isolated if their X indexes
                    differ by more than 1. */
-                if (tallyPawnsCoords[1][X_IDX] - tallyPawnsCoords[0][X_IDX] > 1) {
+                if (tallyPawnsCoords[1][0] - tallyPawnsCoords[0][0] > 1) {
                     isolatedPawnsCount += 2;
                 }
             }
             default -> {
                 for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
-                    int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
+                    int thisPawnXIdx = tallyPawnsCoords[pawnIndex][0];
 
                     /* If a pawn is the leftmost on the board, it's isolated
                        if the difference between its X index and its right
                        neighbor's X index is more than 1. */
                     if (pawnIndex == 0) {
-                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
+                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][0];
                         if (nextPawnXIdx - thisPawnXIdx > 1) {
                             isolatedPawnsCount++;
                         }
@@ -624,7 +624,7 @@ public class MinimaxRunner {
                        if its left neighbor's X index exceeds its X index by
                        more than 1. */
                     } else if (pawnIndex == maxPawnIndex) {
-                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
+                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][0];
                         if (prevPawnXIdx - thisPawnXIdx > 1) {
                             isolatedPawnsCount++;
                         }
@@ -633,8 +633,8 @@ public class MinimaxRunner {
                        between the next pawn's x index and its x index, are both
                        more than 1. */
                     } else { // 0 < pawnIndex && pawnIndex < maxPawnIndex
-                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
-                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][X_IDX];
+                        int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][0];
+                        int nextPawnXIdx = tallyPawnsCoords[pawnIndex + 1][0];
                         if (nextPawnXIdx - thisPawnXIdx > 1 && thisPawnXIdx - prevPawnXIdx > 1) {
                             isolatedPawnsCount++;
                         }
@@ -647,11 +647,11 @@ public class MinimaxRunner {
            that are doubled in doubledPawnsCoords, so it can avoid
            double-counting any. */
         for (int pawnIndex = 0; pawnIndex < pawnsCount; pawnIndex++) {
-            int thisPawnXIdx = tallyPawnsCoords[pawnIndex][X_IDX];
-            int thisPawnYIdx = tallyPawnsCoords[pawnIndex][Y_IDX];
+            int thisPawnXIdx = tallyPawnsCoords[pawnIndex][0];
+            int thisPawnYIdx = tallyPawnsCoords[pawnIndex][1];
             if (pawnIndex > 0) {
-                int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][X_IDX];
-                int prevPawnYIdx = tallyPawnsCoords[pawnIndex - 1][Y_IDX];
+                int prevPawnXIdx = tallyPawnsCoords[pawnIndex - 1][0];
+                int prevPawnYIdx = tallyPawnsCoords[pawnIndex - 1][1];
 
                 /* The y values in this loop's calculations run two different
                    ways depending on whether colorInQuestion is playing from
@@ -673,20 +673,20 @@ public class MinimaxRunner {
                        equality with the first doubled pawn. If they match, only
                        the second doubled pawn is counted and stored. Otherwise,
                        both are counted and stored. */
-                    if (dblpIdx > 1 && doubledPawnsCoords[dblpIdx - 1][X_IDX] == prevPawnXIdx
-                                    && doubledPawnsCoords[dblpIdx - 1][Y_IDX] == prevPawnYIdx) {
-                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
+                    if (dblpIdx > 1 && doubledPawnsCoords[dblpIdx - 1][0] == prevPawnXIdx
+                                    && doubledPawnsCoords[dblpIdx - 1][1] == prevPawnYIdx) {
+                        doubledPawnsCoords[dblpIdx][0] = thisPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][1] = thisPawnYIdx;
                         dblpIdx++;
                         doubledPawnsCount++;
                     } else {
-                        doubledPawnsCoords[dblpIdx][X_IDX] = prevPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][Y_IDX] = prevPawnYIdx;
+                        doubledPawnsCoords[dblpIdx][0] = prevPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][1] = prevPawnYIdx;
                         dblpIdx++;
                         doubledPawnsCount++;
 
-                        doubledPawnsCoords[dblpIdx][X_IDX] = thisPawnXIdx;
-                        doubledPawnsCoords[dblpIdx][Y_IDX] = thisPawnYIdx;
+                        doubledPawnsCoords[dblpIdx][0] = thisPawnXIdx;
+                        doubledPawnsCoords[dblpIdx][1] = thisPawnYIdx;
                         dblpIdx++;
                         doubledPawnsCount++;
                     }
