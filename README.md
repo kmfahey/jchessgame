@@ -29,6 +29,7 @@ CreativeCommons.org: [Chess pieces vector](https://freesvg.org/chess-pieces-vect
 #### Algorithm Credit
 
 The board evaluation algorithm implemented in
-Chessboard.evaluateBoard() is adapted from a formula
-[found on chessprogramming.org](https://www.chessprogramming.org/Evaluation). It was
-originally derived in 1949 by Claude Shannon.
+Chessboard.evaluateBoard() is adapted from a formula [found on
+chessprogramming.org](https://www.chessprogramming.org/Evaluation). It was
+originally derived in 1949 by Claude Shannon, a mathematician, in his seminal
+paper _Programming a Computer for playing Chess_.
