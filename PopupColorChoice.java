@@ -28,8 +28,8 @@ public class PopupColorChoice extends JFrame {
 
     /**
      * The ChessGame object that instanced this dialog box; stored so its
-     * mutator setColorPlaying can be used to convey the choice the player
-     * makes.
+     * mutator ChessGame.setColorPlaying() can be used to convey the choice the
+     * player makes.
      */
     private ChessGame callingChessGame;
 
