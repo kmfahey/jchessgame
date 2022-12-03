@@ -5,8 +5,6 @@ import java.awt.event.ActionListener;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.Random;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -23,10 +21,10 @@ import javax.swing.WindowConstants;
  * the PopupColorChoice dialog box, and prime ChessGame.actionPerformed() to be
  * called to re-intialize the ChessGame object.
  *
- * @see BoardView.blankBoard
- * @see ChessGame.chooseColor
+ * @see BoardView#blankBoard
+ * @see ChessGame#chooseColor
  * @see PopupColorChoice
- * @see ChessGame.actionPerformed
+ * @see ChessGame#actionPerformed
  */
 public class PopupGameOver extends JFrame {
 
@@ -41,14 +39,14 @@ public class PopupGameOver extends JFrame {
      * dialog box and priming ChessGame.actionPerformed() to be run once it
      * closes.
      */
-    private ChessGame chessgame;
+    private final ChessGame chessgame;
 
     /**
      * The BoardView object that the ChessGame object that instanced this dialog
      * box is using; stored so BoardView.blankBoard() can be called in the event
      * the player wants to play again.
      */
-    private BoardView boardview;
+    private final BoardView boardview;
 
     /**
      * This constructor initializes the PopupGameOver object and displays the
@@ -157,12 +155,7 @@ public class PopupGameOver extends JFrame {
     private JButton buildOkayButton() {
         PopupGameOver enclosingDbox = this;
         JButton button = new JButton("Okay");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent event) {
-                enclosingDbox.dispose();
-            }
-        });
+        button.addActionListener(event -> enclosingDbox.dispose());
         return button;
     }
 
@@ -174,21 +167,18 @@ public class PopupGameOver extends JFrame {
      * PopupColorChoice object and initiate the process which will run
      * ChessGame.actionPerformed(), and this.dispose() to close this dialog box.
      * 
-     * @see BoardView.blankBoard
-     * @see ChessGame.chooseColor
+     * @see BoardView#blankBoard
+     * @see ChessGame#chooseColor
      * @see PopupColorChoice
-     * @see ChessGame.actionPerformed
+     * @see ChessGame#actionPerformed
      */
     private JButton buildPlayAgainButton() {
         PopupGameOver enclosingDbox = this;
         JButton button = new JButton("Play Again");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent event) {
-                boardview.blankBoard();
-                chessgame.chooseColor();
-                enclosingDbox.dispose();
-            }
+        button.addActionListener(event -> {
+            boardview.blankBoard();
+            chessgame.chooseColor();
+            enclosingDbox.dispose();
         });
         return button;
     }

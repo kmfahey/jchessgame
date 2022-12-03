@@ -12,9 +12,6 @@ import javax.swing.JTextArea;
  * in this class's textarea, so the player gets feedback on why their clicks
  * didn't do anything. When a successful move is committed to this class's
  * object, all errors are wiped from the display.
- *
- * @see BoardView.mouseClickedTestForMoveErrors
- * @see BoardView.mouseClickedMovePieceAndCleanup
  */
 public class MovesLog extends JTextArea {
 
@@ -22,11 +19,11 @@ public class MovesLog extends JTextArea {
      * This ArrayList stores the Chessboard.Move objects recorded by the object.
      * redraw() prints the toString() value of each of them in sequence to the
      * textarea, followed by the toString() of any MoveError objects in errorsList.
-     * 
-     * @see MovesLog.redraw
-     * @see MovesLog.errorsList
+     *
+     * @see MovesLog#redraw
+     * @see MovesLog#errorsList
      */
-    private ArrayList<Chessboard.Move> movesList;
+    private final ArrayList<Chessboard.Move> movesList;
 
     /**
      * This ArrayList stores the MoveError objects accumulated by the object.
@@ -35,17 +32,17 @@ public class MovesLog extends JTextArea {
      * movesList, it prints the toString() of any MoveError objects in this
      * list.
 
-     * @see MovesLog.redraw
-     * @see MovesLog.movesList
+     * @see MovesLog#redraw
+     * @see MovesLog#movesList
      */
-    private ArrayList<MoveError> errorsList;
+    private final ArrayList<MoveError> errorsList;
 
     /**
      * This record implements a class that represents an error made in the
      * course of picking a move to play in the chessgame this program runs.
      *
      * @param moveObj   The Move object that was formed in error.
-     * @param issueFlag An integer flag representing the type of error made, one 
+     * @param issueFlag An integer flag representing the type of error made, one
      *                  of MovesLog.MoveError.WOULD_BE_IN_CHECK,
      *                  MovesLog.MoveError.IS_IN_CHECK,
      *                  MovesLog.MoveError.NOT_A_VALID_MOVE,
@@ -69,18 +66,13 @@ public class MovesLog extends JTextArea {
             String toLocStr = BoardArrays.coordsToAlgNotn(moveObj.toXCoord(), moveObj.toYCoord());
             String retval = "Moving " + pieceStr + " from " + fromLocStr + " to " + toLocStr + ": ";
             switch (issueFlag) {
-                case WOULD_BE_IN_CHECK:
-                    retval += "that move would place your king in check."; break;
-                case IS_IN_CHECK:
-                    retval += "your king is in check and move doesn't resolve that."; break;
-                case NOT_A_VALID_MOVE:
-                    retval += "that's not a valid move for that piece."; break;
-                case IS_A_FRIENDLY_PIECE:
-                    retval += "can't capture a friendly piece."; break;
-                case CASTLING_NOT_POSSIBLE:
-                    retval += "castling is impossible."; break;
-                default:
-                    break;
+                case WOULD_BE_IN_CHECK -> retval += "that move would place your king in check.";
+                case IS_IN_CHECK -> retval += "your king is in check and move doesn't resolve that.";
+                case NOT_A_VALID_MOVE -> retval += "that's not a valid move for that piece.";
+                case IS_A_FRIENDLY_PIECE -> retval += "can't capture a friendly piece.";
+                case CASTLING_NOT_POSSIBLE -> retval += "castling is impossible.";
+                default -> {
+                }
             }
             return retval;
         }
@@ -98,7 +90,7 @@ public class MovesLog extends JTextArea {
         setWrapStyleWord(true);
     }
 
-    /** 
+    /**
      * This method causes the text of the logged moves plus the logged errors to
      * be recreated, and the current contents of the textarea is replaced by the
      * new text.
@@ -111,8 +103,7 @@ public class MovesLog extends JTextArea {
             int moveNumber = index + 1;
             joiner.add(moveNumber + ". " + moveObj.toString());
         }
-        for (int index = 0; index < errorsList.size(); index++) {
-            MoveError errorObj = errorsList.get(index);
+        for (MoveError errorObj : errorsList) {
             joiner.add(errorObj.toString());
         }
         String newText = joiner.toString();
@@ -146,7 +137,7 @@ public class MovesLog extends JTextArea {
      * This method is used to add an error to the log. The Move object that
      * was formed in error is accepted, along with an int flag (taken from the
      * constants in MovesLog.MoveError) indicating what type of error it was.
-     *
+     * <p>
      * NB. Whenever a valid move is added to the log, the object's list of
      * MoveError objects is cleared. Error messages don't accumulate; they're
      * wiped out whenever a valid move is completed.

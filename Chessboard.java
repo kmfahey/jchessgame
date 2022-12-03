@@ -123,13 +123,12 @@ public class Chessboard {
      * This mapping is used to track the correct piece icon Image object to use
      * for each piece (represented by an integer value) in play.
      */
-    private HashMap<Integer, Image> pieceImages;
+    private final HashMap<Integer, Image> pieceImages;
 
     /* Integer color values used to track which colors are set to certain
        relevant roles in the game. */
     private int colorOnTop;
     private int colorPlaying;
-    private int colorOpposing;
 
     /**
      * This int[8][8] array is used to represent the board. It's also a valid argument to
@@ -164,7 +163,7 @@ public class Chessboard {
      * @param yCoord     The int of the piece's x coordinate on the board.
      * @see ImagesManager
      */
-    public record Piece(int pieceInt, Image pieceImage, int xCoord, int yCoord) { };
+    public record Piece(int pieceInt, Image pieceImage, int xCoord, int yCoord) { }
 
     /**
      * This record comprises a class that represents a possible Move on the
@@ -220,7 +219,7 @@ public class Chessboard {
             }
             return retval;
         }
-    };
+    }
 
     /**
      * This constructor instantiates the Chessboard object.
@@ -269,7 +268,7 @@ public class Chessboard {
            with the correct Image 2nd argument. It's not saved to an instance
            variable since it's never used again after this constructor. */
 
-        pieceImages = new HashMap<Integer, Image>();
+        pieceImages = new HashMap<>();
 
         for (int pieceInt : VALID_PIECE_INTS) {
             pieceImages.put(pieceInt, imagesManager.getImageByPieceInt(pieceInt));
@@ -289,7 +288,6 @@ public class Chessboard {
     public void setColors(final int colorPlayingVal, final int colorOnTopVal) {
         colorPlaying = colorPlayingVal;
         colorOnTop = colorOnTopVal;
-        colorOpposing = colorPlaying == WHITE ? BLACK : WHITE;
     }
 
     /**
@@ -357,9 +355,7 @@ public class Chessboard {
         boardArray = new int[8][8];
 
         for (int xIdx = 0; xIdx < 8; xIdx++) {
-            for (int yIdx = 0; yIdx < 8; yIdx++) {
-                boardArray[xIdx][yIdx] = boardArrayVal[xIdx][yIdx];
-            }
+            System.arraycopy(boardArrayVal[xIdx], 0, boardArray[xIdx], 0, 8);
         }
     }
 
@@ -384,17 +380,6 @@ public class Chessboard {
      */
     public int getColorPlaying() {
         return colorPlaying;
-    }
-
-    /**
-     * An accessor method that returns the value of the colorOpposing instance
-     * variable, which indicates the color the AI is playing.
-     *
-     * @return The value of colorOpposing, either BoardArrays.WHITE or
-     *         BoardArrays.BLACK;
-     */
-    public int getColorOpposing() {
-        return colorOpposing;
     }
 
     /**
@@ -458,7 +443,6 @@ public class Chessboard {
      * @param moveObj The Chessboard.Move object to test for validity.
      * @return        A boolean, true if the move is a legal one for the piece at that
      *                location, false otherwise.
-     * @see BoardView.mouseClickedTestForMoveErrors
      */
     public boolean isMovePossible(final Chessboard.Move moveObj) {
         int[][] movesArray = new int[32][7];
@@ -545,9 +529,7 @@ public class Chessboard {
                 }
                 return true;
             }
-            default -> {
-                throw new IllegalArgumentException("could not resolve arguments to isCastlingPossible()");
-            }
+            default -> throw new IllegalArgumentException("could not resolve arguments to isCastlingPossible()");
         }
     }
 
@@ -572,8 +554,8 @@ public class Chessboard {
         int rookPieceInt = boardArray[rookXCoord][rookYCoord];
         String colorOfPieceStr = (colorOfPiece == WHITE ? "White" : "Black");
 
-        int rookNewXCoord = -1;
-        int kingNewXCoord = -1;
+        int rookNewXCoord;
+        int kingNewXCoord;
 
         /* A basic check to confirm this method was called with the right
            pieces. */
@@ -612,7 +594,7 @@ public class Chessboard {
             rookNewXCoord = 5;
             kingNewXCoord = 6;
         } else {
-            /* A can't happen error, but here for completeness. */
+            /* This is a can't happen error, but here for completeness. */
             throw new IllegalStateException("movePieceCastling() called with a Move object that doesn't indicate "
                                             + "castling");
         }
@@ -651,7 +633,6 @@ public class Chessboard {
         int toYCoord = moveObj.toYCoord();
         int pieceInt = moveObj.movingPiece().pieceInt();
         int colorOfPiece = (pieceInt & WHITE) != 0 ? WHITE : BLACK;
-        int capturedPieceInt = boardArray[toXCoord][toYCoord];
         String thisColorStr = (colorOfPiece == WHITE ? "White" : "Black");
 
         /* It's illegal in chess to make a move that leaves one's king in check.
@@ -674,15 +655,14 @@ public class Chessboard {
 
 
         /* If the moveObj has a promotedToPieceInt attribute set, this is a pawn
-           promotion move; so the desintration square is set to the new piece. */
+           promotion move; so the destination square is set to the new piece. */
         if (moveObj.promotedToPieceInt() != 0) {
             boardArray[toXCoord][toYCoord] = moveObj.promotedToPieceInt();
-            boardArray[fromXCoord][fromYCoord] = 0;
         } else {
             /* Otherwise this is a normal move. */
             boardArray[toXCoord][toYCoord] = boardArray[fromXCoord][fromYCoord];
-            boardArray[fromXCoord][fromYCoord] = 0;
         }
+        boardArray[fromXCoord][fromYCoord] = 0;
 
         /* Castling is only possible if the king and the rook involved both
            haven't moved since the start of play. This switch statement detects

@@ -46,18 +46,12 @@ public final class BoardArrays {
      * fileNameToBoardArray() to verify that field values in the board CSV its
      * parsing are valid piece ints.
      */
-    public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<Integer>() {{
+    public static final HashSet<Integer> VALID_PIECE_INTS = new HashSet<>() {{
         this.add(BLACK | KING); this.add(BLACK | QUEEN); this.add(BLACK | ROOK); this.add(BLACK | BISHOP);
         this.add(BLACK | KNIGHT | RIGHT); this.add(BLACK | KNIGHT | LEFT); this.add(BLACK | PAWN);
         this.add(WHITE | KING); this.add(WHITE | QUEEN); this.add(WHITE | ROOK); this.add(WHITE | BISHOP);
         this.add(WHITE | KNIGHT | RIGHT); this.add(WHITE | KNIGHT | LEFT); this.add(WHITE | PAWN);
     }};
-
-    /* These three constants are indexes used by the return value of
-       tallySpecialPawns(). */
-    public static final int DOUBLED = 0;
-    public static final int ISOLATED = 1;
-    public static final int BLOCKED = 2;
 
     /* These strings are used by algNotnToCoords() and coordsToAlgNotn() to
        translate between algebraic notation and numeric coordinates. */
@@ -78,18 +72,18 @@ public final class BoardArrays {
     public static final int[] PAWN_PROMOTION_PIECES = new int[] {ROOK, KNIGHT, BISHOP, QUEEN};
 
     /* A Random object, used for a few cases where a coin toss is needed. */
-    private static Random randomNumberGenerator = new Random();
+    private static final Random randomNumberGenerator = new Random();
 
     /**
      * This method converts an integer representing a piece into a textual
      * representation of the piece. It is primarily used as a debugging tool.
      *
-     * @param pieceInt The integer representing a piece to interpret"
+     * @param pieceInt The integer representing a piece to interpret.
      * @return         A string value that describes the piece in plain English.
      */
     public static String pieceIntToString(final int pieceInt) {
         int privPieceInt = pieceInt;
-        String color = "";
+        String color;
         String role = "";
         String chirality = "";
         if ((privPieceInt & WHITE) != 0) {
@@ -107,54 +101,16 @@ public final class BoardArrays {
             privPieceInt ^= RIGHT;
         }
         switch (privPieceInt) {
-            case PAWN:
-                role = "pawn"; break;
-            case ROOK:
-                role = "rook"; break;
-            case KNIGHT:
-                role = "knight"; break;
-            case BISHOP:
-                role = "bishop"; break;
-            case QUEEN:
-                role = "queen"; break;
-            case KING:
-                role = "king"; break;
-            default:
-                break;
+            case PAWN -> role = "pawn";
+            case ROOK -> role = "rook";
+            case KNIGHT -> role = "knight";
+            case BISHOP -> role = "bishop";
+            case QUEEN -> role = "queen";
+            case KING -> role = "king";
+            default -> {
+            }
         }
         return color + " " + chirality + role;
-    }
-
-    /**
-     * This method accepts the algebraic notation for a square on a notional
-     * chessboard, and returns an int[2] array containing the coordinates for
-     * the same square.
-     * square.
-     *
-     * @param location A 2-character String representing a chessboard square in
-     *                 algebraic notation.
-     * @return         A int[2] array containing the coordinates for the same
-     *                 square.
-     * @see coordsToAlgNotn
-     */
-    public static int[] algNotnToCoords(final String location) {
-        int xCoord = ALG_NOTN_ALPHA.indexOf(location.charAt(0));
-        int yCoord = ALG_NOTN_NUM.indexOf(location.charAt(1));
-        return new int[] {xCoord, yCoord};
-    }
-
-    /**
-     * This method accepts coordinates of a square on a notional chessboard, and
-     * returns the 2-character algebraic notation String that refers to the same
-     * square.
-     *
-     * @param coords A int[2] array containing the coordinates of the square.
-     * @return       The algebraic notation for the same square (a 2-character
-     *               String).
-     * @see algNotnToCoords
-     */
-    public static String coordsToAlgNotn(final int[] coords) {
-        return coordsToAlgNotn(coords[0], coords[1]);
     }
 
     /**
@@ -166,7 +122,6 @@ public final class BoardArrays {
      * @param yCoord The y coordinate of the square.
      * @return       The algebraic notation for the same square (a 2-character
      *               String).
-     * @see algNotnToCoords
      */
     public static String coordsToAlgNotn(final int xCoord, final int yCoord) {
         String alphaComponent = String.valueOf(ALG_NOTN_ALPHA.charAt(xCoord));
@@ -187,8 +142,8 @@ public final class BoardArrays {
      *                   was found at.
      */
     public static int[] findKing(final int[][] boardArray, final int kingColor) {
-        int xIdx = -1;
-        int yIdx = -1;
+        int xIdx;
+        int yIdx;
         for (xIdx = 0; xIdx < 8; xIdx++) {
             for (yIdx = 0; yIdx < 8; yIdx++) {
                 if (boardArray[xIdx][yIdx] == (kingColor | KING)) {
@@ -212,8 +167,6 @@ public final class BoardArrays {
      *                   array-of-arrays.
      */
     public static void shuffleMovesArray(final int[][] movesArray, final int usedLength) {
-        /* This is Fisher–Yates shuffle I'm told. idk I just copied code off
-           stackoverflow as is best practice :) */
         for (int startingIndex = usedLength - 1; startingIndex > 0; startingIndex--) {
             int randomIndex = randomNumberGenerator.nextInt(startingIndex + 1);
             // Simple swap
@@ -240,12 +193,12 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                True if the specified king is in checkmate,
      *                        false otherwise.
-     * @see generatePawnsMoves
-     * @see generateRooksMoves
-     * @see generateBishopsMoves
-     * @see generateKnightsMoves
-     * @see generateQueensMoves
-     * @see generateKingsMoves
+     * @see #generatePawnsMoves
+     * @see #generateRooksMoves
+     * @see #generateBishopsMoves
+     * @see #generateKnightsMoves
+     * @see #generateQueensMoves
+     * @see #generateKingsMoves
      */
     public static boolean isKingInCheckmate(final int[][] boardArray, final int colorsTurnItIs, final int colorOnTop) {
         int[][] movesArray = new int[128][7];
@@ -266,12 +219,12 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
-     * @see generatePawnsMoves
-     * @see generateRooksMoves
-     * @see generateBishopsMoves
-     * @see generateKnightsMoves
-     * @see generateQueensMoves
-     * @see generateKingsMoves
+     * @see #generatePawnsMoves
+     * @see #generateRooksMoves
+     * @see #generateBishopsMoves
+     * @see #generateKnightsMoves
+     * @see #generateQueensMoves
+     * @see #generateKingsMoves
      */
     public static int generatePossibleMoves(final int[][] boardArray, final int[][] movesArray,
                                             final int colorsTurnItIs, final int colorOnTop
@@ -312,47 +265,35 @@ public final class BoardArrays {
      * @param colorOnTop     The color playing from the top of the board.
      * @return               The new value for the index of the first empty
      *                       array in the int[][7] movesArray.
-     * @see generatePawnsMoves
-     * @see generateRooksMoves
-     * @see generateBishopsMoves
-     * @see generateKnightsMoves
-     * @see generateQueensMoves
-     * @see generateKingsMoves
+     * @see #generatePawnsMoves
+     * @see #generateRooksMoves
+     * @see #generateBishopsMoves
+     * @see #generateKnightsMoves
+     * @see #generateQueensMoves
+     * @see #generateKingsMoves
      */
     public static int generatePieceMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdx,
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
                                   ) throws IllegalArgumentException {
         int pieceInt = boardArray[xIdx][yIdx];
-        int retval = 0;
+        int retval = switch (pieceInt ^ colorsTurnItIs) {
+            case PAWN -> generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+            case ROOK -> generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+            case KNIGHT | LEFT, KNIGHT | RIGHT ->
+                    generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+            case BISHOP ->
+                    generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+            case QUEEN -> generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+            case KING -> generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
+            default -> throw new IllegalArgumentException(
+                    "The integer value found in the board array at the specified indexes doesn't parse as a "
+                            + "piece int value.");
+        };
 
         /* The color of the piece is Not'd off of the pieceInt found in
            boardArray at the given indexes, and the value is switched against;
            whatever piece it is, the corresponding generate*sMoves() method is
            called. The return value of that method is returned directly. */
-        switch (pieceInt ^ colorsTurnItIs) {
-            case PAWN:
-                retval = generatePawnsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
-            case ROOK:
-                retval = generateRooksMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
-            case KNIGHT | LEFT: case KNIGHT | RIGHT:
-                retval = generateKnightsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
-            case BISHOP:
-                retval = generateBishopsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
-            case QUEEN:
-                retval = generateQueensMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
-            case KING:
-                retval = generateKingsMoves(boardArray, movesArray, moveIdx, xIdx, yIdx, colorsTurnItIs, colorOnTop);
-                break;
-            default:
-                throw new IllegalArgumentException(
-                              "The integer value found in the board array at the specified indexes doesn't parse as a "
-                              + "piece int value.");
-        }
 
         if (retval > moveIdx && Arrays.equals(movesArray[retval - 1], new int[7])) {
             throw new IllegalStateException("move index has been incremented (moves for piece "
@@ -533,7 +474,7 @@ public final class BoardArrays {
                                   final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
                                   ) throws IllegalArgumentException {
         int otherColor = (colorsTurnItIs == WHITE) ? BLACK : WHITE;
-        int rookPieceInt = boardArray[xIdx][yIdx];
+        int rookPieceInt;
         int moveIdx = moveIdxArg;
 
         rookPieceInt = boardArray[xIdx][yIdx];
@@ -554,8 +495,6 @@ public final class BoardArrays {
             for (int yIdxMod = yIdx + 1;
                  yIdxMod < 8 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod++) {
-
-                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
 
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
@@ -580,8 +519,6 @@ public final class BoardArrays {
             for (int yIdxMod = yIdx - 1;
                  yIdxMod >= 0 && (boardArray[xIdx][yIdxMod] & colorsTurnItIs) == 0;
                  yIdxMod--) {
-
-                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
 
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
@@ -608,8 +545,6 @@ public final class BoardArrays {
                  xIdxMod < 8 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod++) {
 
-                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
-
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdx, colorsTurnItIs, colorOnTop)) {
@@ -633,8 +568,6 @@ public final class BoardArrays {
             for (int xIdxMod = xIdx - 1;
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod--) {
-
-                int pieceIntLessColor = rookPieceInt ^ (((rookPieceInt & WHITE) != 0) ? WHITE : BLACK);
 
                 /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
@@ -1052,7 +985,6 @@ public final class BoardArrays {
                  xIdxMod >= 0 && (boardArray[xIdxMod][yIdx] & colorsTurnItIs) == 0;
                  xIdxMod--) {
                 /* If the move would put this side's king in check (or fail to
-                /* If the move would put this side's king in check (or fail to
                    get it out of check), it's discarded. */
                 if (wouldKingBeInCheck(boardArray, xIdx, yIdx, xIdxMod, yIdx, colorsTurnItIs, colorOnTop)) {
                     continue;
@@ -1147,7 +1079,7 @@ public final class BoardArrays {
      * @param colorOnTop      The color playing from the top of the board.
      * @return                The new value for the index of the first empty
      *                        array in the int[][7] movesArray.
-     * @see isKingInCheck
+     * @see #isKingInCheck
      */
     public static int generateKingsMoves(final int[][] boardArray, final int[][] movesArray, final int moveIdxArg,
                                          final int xIdx, final int yIdx, final int colorsTurnItIs, final int colorOnTop
@@ -1296,12 +1228,12 @@ public final class BoardArrays {
      *                           from where its color started, then this is the
      *                           piece it promotes into.
      * @return                   Void.
-     * @see generatePawnsMoves
-     * @see generateRooksMoves
-     * @see generateBishopsMoves
-     * @see generateKnightsMoves
-     * @see generateQueensMoves
-     * @see generateKingsMoves
+     * @see #generatePawnsMoves
+     * @see #generateRooksMoves
+     * @see #generateBishopsMoves
+     * @see #generateKnightsMoves
+     * @see #generateQueensMoves
+     * @see #generateKingsMoves
      */
     private static int setMoveToMovesArray(final int[][] movesArray, final int moveIdx, final int pieceInt,
                                            final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
@@ -1323,7 +1255,7 @@ public final class BoardArrays {
     }
 
     /**
-     * This method tests whether the the king of the specified color is in check.
+     * This method tests whether the king of the specified color is in check.
      *
      * @param boardArray     The int[8][8] array that represents the chessboard.
      * @param colorsTurnItIs The color of the king to be tested for if it's in
@@ -1333,6 +1265,7 @@ public final class BoardArrays {
      */
     public static boolean isKingInCheck(final int[][] boardArray, final int colorsTurnItIs, final int colorOnTop) {
         int[] kingCoords = findKing(boardArray, colorsTurnItIs);
+        assert kingCoords != null;
         int kingXIdx = kingCoords[0];
         int kingYIdx = kingCoords[1];
         return wouldKingBeInCheck(boardArray, kingXIdx, kingYIdx, -1, -1, -1, -1, colorsTurnItIs, colorOnTop);
@@ -1364,6 +1297,7 @@ public final class BoardArrays {
                                              final int toXIdx, final int toYIdx, final int colorsTurnItIs,
                                              final int colorOnTop) {
         int[] kingCoords = findKing(boardArray, colorsTurnItIs);
+        assert kingCoords != null;
         int kingXIdx = kingCoords[0];
         int kingYIdx = kingCoords[1];
         return wouldKingBeInCheck(boardArray, kingXIdx, kingYIdx, fromXIdx, fromYIdx, toXIdx, toYIdx,
@@ -1371,7 +1305,7 @@ public final class BoardArrays {
     }
 
     /**
-     * This method tests whether the the king of the specified color would be in
+     * This method tests whether the king of the specified color would be in
      * check if it were located in the specified square.
      *
      * @param boardArray     The int[8][8] array that represents the chessboard.
@@ -1418,8 +1352,6 @@ public final class BoardArrays {
                                              final int fromXIdx, final int fromYIdx, final int toXIdx, final int toYIdx,
                                              final int colorsTurnItIs, final int colorOnTop) {
         int otherColor = colorsTurnItIs == WHITE ? BLACK : WHITE;
-        int xIdx = kingXIdx;
-        int yIdx = kingYIdx;
         boolean kingMoved;
 
         /* If the arguments indicate the king moved, then that's noted so the
@@ -1439,9 +1371,9 @@ public final class BoardArrays {
             int yIdxMod;
 
             if (colorOnTop == colorsTurnItIs) {
-                yIdxMod = yIdx + 1;
+                yIdxMod = kingYIdx + 1;
             } else {
-                yIdxMod = yIdx - 1;
+                yIdxMod = kingYIdx - 1;
             }
 
             /* Checking the two forward diagonals to see if either contains an
@@ -1449,7 +1381,7 @@ public final class BoardArrays {
 
             /* If yIdxMod falls within bounds that mean it's on the board, */
             if (0 <= yIdxMod && yIdxMod <= 7) {
-                for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod += 2) {
+                for (int xIdxMod = kingXIdx - 1; xIdxMod <= kingXIdx + 1; xIdxMod += 2) {
                     /* If xIdxMod falls off either side of the board, or the
                        square is where the piece is moving to (and may contain a
                        to-be-captured pawn which should be ignored), continue. */
@@ -1471,13 +1403,13 @@ public final class BoardArrays {
            generateKingsMoves() uses this method to check whether a move is
            valid, and to move legally it must not move into a square threatened
            by the other king, so this test is run. */
-        for (int xIdxMod = xIdx - 1; xIdxMod <= xIdx + 1; xIdxMod++) {
-            for (int yIdxMod = yIdx - 1; yIdxMod <= yIdx + 1; yIdxMod++) {
+        for (int xIdxMod = kingXIdx - 1; xIdxMod <= kingXIdx + 1; xIdxMod++) {
+            for (int yIdxMod = kingYIdx - 1; yIdxMod <= kingYIdx + 1; yIdxMod++) {
                 if (xIdxMod < 0 || xIdxMod > 7 || yIdxMod < 0 || yIdxMod > 7
-                    || xIdxMod == xIdx && yIdxMod == yIdx
+                    || xIdxMod == kingXIdx && yIdxMod == kingYIdx
                     || xIdxMod == toXIdx && yIdxMod == toYIdx) {
                     continue;
-                } else if (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
+                } else if    (boardArray[xIdxMod][yIdxMod] == (otherColor | KING)) {
                     return true;
                 }
             }
@@ -1485,8 +1417,8 @@ public final class BoardArrays {
 
         // Knights
 
-        for (int xIdxDelta = -2; xIdxDelta <= +2; xIdxDelta++) {
-            for (int yIdxDelta = -2; yIdxDelta <= +2; yIdxDelta++) {
+        for (int xIdxDelta = -2; xIdxDelta <= 2; xIdxDelta++) {
+            for (int yIdxDelta = -2; yIdxDelta <= 2; yIdxDelta++) {
                 /* Skipping this iteration if either delta is 0, or if
                    |xIdxDelta| == |yIdxDelta|. In the remaining 8 iterations,
                    one is ±1 and the other is ±2. When added to (xIdx, yIdx),
@@ -1497,8 +1429,8 @@ public final class BoardArrays {
                     continue;
                 }
 
-                int xIdxMod = xIdx + xIdxDelta;
-                int yIdxMod = yIdx + yIdxDelta;
+                int xIdxMod = kingXIdx + xIdxDelta;
+                int yIdxMod = kingYIdx + yIdxDelta;
 
                 /* If either adjusted coordinate falls outside [0, 7], or if the
                    coordinates are where the piece is moving to (which may be a
@@ -1520,11 +1452,11 @@ public final class BoardArrays {
 
         // Bishops, Rooks, and Queens
         // Checking eastward on this rank for a queen or a rook
-        for (int xIdxMod = xIdx + 1; xIdxMod <= 7; xIdxMod++) {
-            int pieceInt = boardArray[xIdxMod][yIdx];
+        for (int xIdxMod = kingXIdx + 1; xIdxMod <= 7; xIdxMod++) {
+            int pieceInt = boardArray[xIdxMod][kingYIdx];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && kingYIdx == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a horizontal, then
                the king is in check, return true. */
@@ -1533,17 +1465,17 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && kingYIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the southeast diagonal for a queen or a bishop
-        for (int xIdxMod = xIdx + 1, yIdxMod = yIdx + 1; xIdxMod <= 7 && yIdxMod <= 7; xIdxMod++, yIdxMod++) {
+        for (int xIdxMod = kingXIdx + 1, yIdxMod = kingYIdx + 1; xIdxMod <= 7 && yIdxMod <= 7; xIdxMod++, yIdxMod++) {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
@@ -1558,11 +1490,11 @@ public final class BoardArrays {
         }
 
         // Checking southward on this file for a queen or a rook
-        for (int yIdxMod = yIdx + 1; yIdxMod <= 7; yIdxMod++) {
-            int pieceInt = boardArray[xIdx][yIdxMod];
+        for (int yIdxMod = kingYIdx + 1; yIdxMod <= 7; yIdxMod++) {
+            int pieceInt = boardArray[kingXIdx][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || kingXIdx == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a vertical, then the
                king is in check, return true. */
@@ -1571,17 +1503,17 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdx == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0 || kingXIdx == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
 
         // Checking the southwest diagonal for a queen or a bishop
-        for (int xIdxMod = xIdx - 1, yIdxMod = yIdx + 1; xIdxMod >= 0 && yIdxMod <= 7; xIdxMod--, yIdxMod++) {
+        for (int xIdxMod = kingXIdx - 1, yIdxMod = kingYIdx + 1; xIdxMod >= 0 && yIdxMod <= 7; xIdxMod--, yIdxMod++) {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
@@ -1596,11 +1528,11 @@ public final class BoardArrays {
         }
 
         // Checking westward on this rank for a queen or a rook
-        for (int xIdxMod = xIdx - 1; xIdxMod >= 0; xIdxMod--) {
-            int pieceInt = boardArray[xIdxMod][yIdx];
+        for (int xIdxMod = kingXIdx - 1; xIdxMod >= 0; xIdxMod--) {
+            int pieceInt = boardArray[xIdxMod][kingYIdx];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && kingYIdx == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a horizontal, then
                the king is in check, return true. */
@@ -1609,17 +1541,17 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdx == toYIdx) {
+            } else if (pieceInt != 0 || xIdxMod == toXIdx && kingYIdx == toYIdx) {
                 break;
             }
         }
 
         // Checking the northwest diagonal for a queen or a bishop
-        for (int xIdxMod = xIdx - 1, yIdxMod = yIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
+        for (int xIdxMod = kingXIdx - 1, yIdxMod = kingYIdx - 1; xIdxMod >= 0 && yIdxMod >= 0; xIdxMod--, yIdxMod--) {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
@@ -1634,11 +1566,11 @@ public final class BoardArrays {
         }
 
         // Checking northward on this file for a queen or a rook
-        for (int yIdxMod = yIdx - 1; yIdxMod >= 0; yIdxMod--) {
-            int pieceInt = boardArray[xIdx][yIdxMod];
+        for (int yIdxMod = kingYIdx - 1; yIdxMod >= 0; yIdxMod--) {
+            int pieceInt = boardArray[kingXIdx][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || kingXIdx == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a vertical, then the
                king is in check, return true. */
@@ -1647,17 +1579,17 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdx == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0 || kingXIdx == toXIdx && yIdxMod == toYIdx) {
                 break;
             }
         }
 
         // Checking the northeast diagonal for a queen or a bishop
-        for (int xIdxMod = xIdx + 1, yIdxMod = yIdx - 1; xIdxMod <= 7 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
+        for (int xIdxMod = kingXIdx + 1, yIdxMod = kingYIdx - 1; xIdxMod <= 7 && yIdxMod >= 0; xIdxMod++, yIdxMod--) {
             int pieceInt = boardArray[xIdxMod][yIdxMod];
             /* If the square is occupied by the moving piece, or the king moved
                and this square is where it used to be, then continue. */
-            if (kingMoved && pieceInt == (colorsTurnItIs | KING)) {
+            if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
@@ -1686,7 +1618,7 @@ public final class BoardArrays {
      * @param boardArray An int[8][8] array that is the chessboard
      *                   representation used explicitly by methods in this
      *                   static class, and internally by the Chessboard object.
-     * @see com.kmfahey.jchessgame.Chessboard
+     * @see Chessboard
      */
     public static void printBoard(final int[][] boardArray) {
         StringJoiner outerJoiner = new StringJoiner("\n");
@@ -1697,7 +1629,7 @@ public final class BoardArrays {
             }
             outerJoiner.add(innerJoiner.toString());
         }
-        System.out.println(outerJoiner.toString());
+        System.out.println(outerJoiner);
     }
 
     /**
@@ -1711,7 +1643,7 @@ public final class BoardArrays {
      * @param fileName The filename of the CSV file to import.
      * @return         An int[8][8] array representing a chessboard, suitable
      *                 for use by a Chessboard object.
-     * @see com.kmfahey.jchessboard.Chessboard
+     * @see Chessboard
      */
     public static int[][] fileNameToBoardArray(final String fileName)
                                                 throws NullPointerException,
@@ -1755,7 +1687,7 @@ public final class BoardArrays {
                 int pieceInt;
 
                 try {
-                    pieceInt = Integer.valueOf(lineIntStr[yIdx]);
+                    pieceInt = Integer.parseInt(lineIntStr[yIdx]);
                 } catch (NumberFormatException exception) {
                     throw new BoardArrayFileParsingException(
                                   "Board file " + fileName + ", line " + (xIdx + 1) + ", item " + (yIdx + 1)

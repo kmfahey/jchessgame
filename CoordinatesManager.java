@@ -39,34 +39,17 @@ public class CoordinatesManager {
         new int[] {7, 1}, new int[] {7, 3}, new int[] {7, 5}, new int[] {7, 7}
     };
 
-    /* The local measurements that are derived from the primary measurements
-       by scaling them, assigning separate values for their left and right
-       measures, and (if necessary) applying a +/- 1px adjustment to bring the
-       measurements back into true. */
-    private int totalBoardMeasurement;
-    private int rightOuterBlackBorderWidth;
-    private int leftOuterBlackBorderWidth;
-    private int rightBeigeMarginWidth;
-    private int leftBeigeMarginWidth;
-    private int rightInnerBlackBorderWidth;
-    private int leftInnerBlackBorderWidth;
-    private int squareMeasurement;
-
     /* The Dimension and Inset objects that are computed from the local
        measurements, above. */
-    private Dimension totalBoardDimensions;
-    private Insets beigeMarginInsets;
-    private Dimension beigeMarginDimensions;
-    private Insets innerBlackBorderInsets;
-    private Dimension innerBlackBorderDimensions;
-    private Insets boardSquareFieldInsets;
-    private Dimension boardSquareFieldDimensions;
-    private Dimension squareDimensions;
-    private Point upperLeftCornerOfSquaresRegion;
-
-    /* The proportion between TOTAL_BOARD_MEASUREMENT_100PCT and the actual side
-       measurement the BoardView object was instanced to. */
-    private double scalingProportion;
+    private final Dimension totalBoardDimensions;
+    private final Insets beigeMarginInsets;
+    private final Dimension beigeMarginDimensions;
+    private final Insets innerBlackBorderInsets;
+    private final Dimension innerBlackBorderDimensions;
+    private final Insets boardSquareFieldInsets;
+    private final Dimension boardSquareFieldDimensions;
+    private final Dimension squareDimensions;
+    private final Point upperLeftCornerOfSquaresRegion;
 
     /**
      * This constructor initializes the CoordinatesManager object, completing
@@ -92,19 +75,24 @@ public class CoordinatesManager {
            values of the board dimensions that will fit in the board's actual
            size. */
 
-        scalingProportion = scaleProportion;
+        /* The proportion between TOTAL_BOARD_MEASUREMENT_100PCT and the actual side
+           measurement the BoardView object was instanced to. */
 
         /* The scaled values of all the primary measurement values are computed.
            Left and right values are computed separately because it may be
            necessary to adjust them separately by +/- 1px. */
-        totalBoardMeasurement = (int) Math.round(TOTAL_BOARD_MEASUREMENT_100PCT * scalingProportion);
-        rightOuterBlackBorderWidth = (int) Math.round(OUTER_BLACK_BORDER_WIDTH_100PCT * scalingProportion);
-        leftOuterBlackBorderWidth = (int) Math.round(OUTER_BLACK_BORDER_WIDTH_100PCT * scalingProportion);
-        rightBeigeMarginWidth = (int) Math.round(BEIGE_MARGIN_WIDTH_100PCT * scalingProportion);
-        leftBeigeMarginWidth = (int) Math.round(BEIGE_MARGIN_WIDTH_100PCT * scalingProportion);
-        rightInnerBlackBorderWidth = (int) Math.round(INNER_BLACK_BORDER_WIDTH_100PCT * scalingProportion);
-        leftInnerBlackBorderWidth = (int) Math.round(INNER_BLACK_BORDER_WIDTH_100PCT * scalingProportion);
-        squareMeasurement = (int) Math.round(SQUARE_MEASUREMENT_100PCT * scalingProportion);
+        /* The local measurements that are derived from the primary measurements
+           by scaling them, assigning separate values for their left and right
+           measures, and (if necessary) applying a +/- 1px adjustment to bring the
+           measurements back into true. */
+        int totalBoardMeasurement = (int) Math.round(TOTAL_BOARD_MEASUREMENT_100PCT * (double) scaleProportion);
+        int rightOuterBlackBorderWidth = (int) Math.round(OUTER_BLACK_BORDER_WIDTH_100PCT * (double) scaleProportion);
+        int leftOuterBlackBorderWidth = (int) Math.round(OUTER_BLACK_BORDER_WIDTH_100PCT * (double) scaleProportion);
+        int rightBeigeMarginWidth = (int) Math.round(BEIGE_MARGIN_WIDTH_100PCT * (double) scaleProportion);
+        int leftBeigeMarginWidth = (int) Math.round(BEIGE_MARGIN_WIDTH_100PCT * (double) scaleProportion);
+        int rightInnerBlackBorderWidth = (int) Math.round(INNER_BLACK_BORDER_WIDTH_100PCT * (double) scaleProportion);
+        int leftInnerBlackBorderWidth = (int) Math.round(INNER_BLACK_BORDER_WIDTH_100PCT * (double) scaleProportion);
+        int squareMeasurement = (int) Math.round(SQUARE_MEASUREMENT_100PCT * (double) scaleProportion);
 
         /* Due to rounding issues, the total value of the 8 squares plus the
            left and right values of all 3 margins can sum up to a number that's
@@ -119,50 +107,45 @@ public class CoordinatesManager {
                          - rightInnerBlackBorderWidth - leftInnerBlackBorderWidth;
 
         switch (slopFactor) {
-            case -6:
+            case -6 -> {
                 rightInnerBlackBorderWidth -= 1; leftInnerBlackBorderWidth -= 1; rightBeigeMarginWidth -= 1;
                 leftBeigeMarginWidth -= 1; rightOuterBlackBorderWidth -= 1; leftOuterBlackBorderWidth -= 1;
-                break;
-            case -5:
+            }
+            case -5 -> {
                 rightInnerBlackBorderWidth -= 1; leftInnerBlackBorderWidth -= 1; rightBeigeMarginWidth -= 1;
-                leftBeigeMarginWidth -= 1; leftOuterBlackBorderWidth -= 1;
-                break;
-            case -4:
+                leftBeigeMarginWidth -= 1; leftOuterBlackBorderWidth -= 1; }
+            case -4 -> {
                 rightInnerBlackBorderWidth -= 1; leftInnerBlackBorderWidth -= 1; leftBeigeMarginWidth -= 1;
                 leftOuterBlackBorderWidth -= 1;
-                break;
-            case -3:
+            }
+            case -3 -> {
                 leftInnerBlackBorderWidth -= 1; leftBeigeMarginWidth -= 1; leftOuterBlackBorderWidth -= 1;
-                break;
-            case -2:
+            }
+            case -2 -> {
                 leftInnerBlackBorderWidth -= 1; leftBeigeMarginWidth -= 1;
-                break;
-            case -1:
-                leftInnerBlackBorderWidth -= 1;
-                break;
-            case 1:
-                leftOuterBlackBorderWidth += 1;
-                break;
-            case 2:
+            }
+            case -1 -> leftInnerBlackBorderWidth -= 1;
+            case 1 -> leftOuterBlackBorderWidth += 1;
+            case 2 -> {
                 leftBeigeMarginWidth += 1; leftOuterBlackBorderWidth += 1;
-                break;
-            case 3:
+            }
+            case 3 -> {
                 leftInnerBlackBorderWidth += 1; leftBeigeMarginWidth += 1; leftOuterBlackBorderWidth += 1;
-                break;
-            case 4:
+            }
+            case 4 -> {
                 leftInnerBlackBorderWidth += 1; leftBeigeMarginWidth += 1; rightOuterBlackBorderWidth += 1;
                 leftOuterBlackBorderWidth += 1;
-                break;
-            case 5:
+            }
+            case 5 -> {
                 leftInnerBlackBorderWidth += 1; rightBeigeMarginWidth += 1; leftBeigeMarginWidth += 1;
                 rightOuterBlackBorderWidth += 1; leftOuterBlackBorderWidth += 1;
-                break;
-            case 6:
+            }
+            case 6 -> {
                 rightInnerBlackBorderWidth += 1; leftInnerBlackBorderWidth += 1; rightBeigeMarginWidth += 1;
                 leftBeigeMarginWidth += 1; rightOuterBlackBorderWidth += 1; leftOuterBlackBorderWidth += 1;
-                break;
-            default:
-                break;
+            }
+            default -> {
+            }
         }
 
         /* Now that all the primary measurements have been scaled, and if
@@ -177,7 +160,7 @@ public class CoordinatesManager {
         /* The insets for the inner beige square that's drawn over it, providing
            the wider beige outer margin to the board. */
         beigeMarginInsets = new Insets(rightOuterBlackBorderWidth, rightOuterBlackBorderWidth,
-                                       leftOuterBlackBorderWidth, leftOuterBlackBorderWidth);
+                leftOuterBlackBorderWidth, leftOuterBlackBorderWidth);
 
         /* The dimensions of the beige rectangle the makes up the wider beige
            outer margin of the board. */
@@ -209,7 +192,7 @@ public class CoordinatesManager {
         squareDimensions = new Dimension(squareMeasurement, squareMeasurement);
 
         /* This Point saves the location of the upper left corner of the
-           squarefield so it's easily accessible. */
+           squarefield,  so it's easily accessible. */
         upperLeftCornerOfSquaresRegion = new Point(boardSquareFieldInsets.left, boardSquareFieldInsets.top);
     }
 
@@ -227,7 +210,7 @@ public class CoordinatesManager {
      * This accessor method returns the value of the instance variable
      * beigeMarginInsets.
      *
-     * @return A Insets object, the value of beigeMarginInsets.
+     * @return An Insets object, the value of beigeMarginInsets.
      */
     public Insets getBeigeMarginInsets() {
         return beigeMarginInsets;
@@ -247,7 +230,7 @@ public class CoordinatesManager {
      * This accessor method returns the value of the instance variable
      * innerBlackBorderInsets.
      *
-     * @return A Insets object, the value of innerBlackBorderInsets.
+     * @return An Insets object, the value of innerBlackBorderInsets.
      */
     public Insets getInnerBlackBorderInsets() {
         return innerBlackBorderInsets;
@@ -267,7 +250,7 @@ public class CoordinatesManager {
      * This accessor method returns the value of the instance variable
      * boardSquareFieldInsets.
      *
-     * @return A Insets object, the value of boardSquareFieldInsets.
+     * @return An Insets object, the value of boardSquareFieldInsets.
      */
     public Insets getBoardSquareFieldInsets() {
         return boardSquareFieldInsets;
@@ -291,18 +274,6 @@ public class CoordinatesManager {
      */
     public Dimension getSquareDimensions() {
         return squareDimensions;
-    }
-
-    /**
-     * This method is used to compute the x and y coordinates, in pixels, of the
-     * upper left corner of a chessboard square, given x and y coordinates in
-     * squares.
-     *
-     * @param squareCoords An int[2] array of the x and y coordinates, in
-     *                     squares, of the chessboard square to plot.
-     */
-    public Point getSquareUpperLeftCorner(final int[] squareCoords) {
-        return getSquareUpperLeftCorner(squareCoords[0], squareCoords[1]);
     }
 
     /**

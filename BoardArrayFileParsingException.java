@@ -4,7 +4,7 @@ package com.kmfahey.jchessgame;
  * Thrown while parsing a CSV file describing a chessboard that was passed as a
  * commandline argument.
  *
- * @see ChessGame.actionPerformed
+ * @see ChessGame#actionPerformed
  */
 public class BoardArrayFileParsingException extends Exception {
 

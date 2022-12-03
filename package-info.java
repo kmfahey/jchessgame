@@ -12,4 +12,4 @@
  * @author Kerne M. Fahey
  * @version 1.0
  */
-package com.kmfahey.jgameoflife;
+package com.kmfahey.jchessgame;

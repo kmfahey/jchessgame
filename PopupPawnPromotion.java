@@ -1,7 +1,5 @@
 package com.kmfahey.jchessgame;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -25,19 +23,19 @@ import javax.swing.WindowConstants;
  * object using BoardView.promotePawn(); then BoardView.repaint() is called to
  * redraw the board with the new piece displayed.
  *
- * @see BoardView.blankBoard
- * @see ChessGame.chooseColor
+ * @see BoardView#blankBoard
+ * @see ChessGame#chooseColor
  * @see PopupColorChoice
- * @see ChessGame.actionPerformed
+ * @see ChessGame#actionPerformed
  */
 public class PopupPawnPromotion extends JFrame {
 
-    private BoardView callingBoardView;
-    private ButtonGroup buttonGroup;
-    private int pawnXCoord;
-    private int pawnYCoord;
+    private final BoardView callingBoardView;
+    private final ButtonGroup buttonGroup;
+    private final int pawnXCoord;
+    private final int pawnYCoord;
     private int newPiece;
-    private Random randomNumberGenerator = new Random();
+    private final Random randomNumberGenerator = new Random();
 
     /**
      * This constructor initializes the PopupPawnPromotion object and displays the
@@ -169,46 +167,39 @@ public class PopupPawnPromotion extends JFrame {
 
     /*
      * This method builds a custom JButton that is clicked after a radio
-     * Thbutton is selected. (If no radio button has been selected, the button
-     * Thdoes nothing.) e correct integer piece value is derived (choosing
-     * Thrandomly between KNIGHT | LEFT or KNIGHT | RIGHT if knight was chosen),
-     * Thand communicated to the BoardView object that spawned this popup
-     * Thusing BoardView.promotePawn() and BoardView.repaint(). Then it uses
-     * Ththis.dispose() to close the dialog box.
+     * button is selected. (If no radio button has been selected, the button
+     * does nothing.) e correct integer piece value is derived (choosing
+     * randomly between KNIGHT | LEFT or KNIGHT | RIGHT if knight was chosen),
+     * and communicated to the BoardView object that spawned this popup
+     * using BoardView.promotePawn() and BoardView.repaint(). Then it uses
+     * this.dispose() to close the dialog box.
      * 
-     * @see BoardView.promotePawn()
-     * @see BoardView.repaint()
+     * @see BoardView#promotePawn
+     * @see BoardView#repaint
      */
     private JButton buildIveChosenButton() {
         PopupPawnPromotion enclosingDbox = this;
         JButton button = new JButton("I've Chosen");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent event) {
-                newPiece = 0;
-                ButtonModel selectedButtonMod = buttonGroup.getSelection();
-                if (Objects.isNull(selectedButtonMod)) {
-                    return;
+        button.addActionListener(event -> {
+            newPiece = 0;
+            ButtonModel selectedButtonMod = buttonGroup.getSelection();
+            if (Objects.isNull(selectedButtonMod)) {
+                return;
+            }
+            switch (selectedButtonMod.getActionCommand()) {
+                case "Rook" -> newPiece = BoardArrays.ROOK;
+                case "Knight" -> newPiece = BoardArrays.KNIGHT
+                                            | (randomNumberGenerator.nextInt(2) == 1
+                                                ? BoardArrays.LEFT : BoardArrays.RIGHT);
+                case "Bishop" -> newPiece = BoardArrays.BISHOP;
+                case "Queen" -> newPiece = BoardArrays.QUEEN;
+                default -> {
                 }
-                switch (selectedButtonMod.getActionCommand()) {
-                    case "Rook":
-                        newPiece = BoardArrays.ROOK; break;
-                    case "Knight":                       /* Since there's two Knight models, LEFT and RIGHT, this */
-                        newPiece = BoardArrays.KNIGHT    /* expression chooses at random between them.            */
-                                   | (randomNumberGenerator.nextInt(2) == 1 ? BoardArrays.LEFT : BoardArrays.RIGHT);
-                        break;
-                    case "Bishop":
-                        newPiece = BoardArrays.BISHOP; break;
-                    case "Queen":
-                        newPiece = BoardArrays.QUEEN; break;
-                    default:
-                        break;
-                }
-                if (newPiece != 0) {
-                    callingBoardView.promotePawn(pawnXCoord, pawnYCoord, newPiece);
-                    callingBoardView.repaint();
-                    enclosingDbox.dispose();
-                }
+            }
+            if (newPiece != 0) {
+                callingBoardView.promotePawn(pawnXCoord, pawnYCoord, newPiece);
+                callingBoardView.repaint();
+                enclosingDbox.dispose();
             }
         });
         return button;

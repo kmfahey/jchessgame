@@ -9,11 +9,11 @@ import java.util.HashMap;
  * execution. Its constructor accepts a Chessboard object, and that object's
  * boardArray is what the algorithm uses to calculate its moves.
  *
- * @see MinimaxRunner.algorithmTopLevel
+ * @see MinimaxRunner#algorithmTopLevel
  */
 public class MinimaxRunner {
 
-    /* This statements copy the piece int constants from BoardArrays to this
+    /* These statements copy the piece int constants from BoardArrays to this
        class for convenience. */
     public static final int WHITE = BoardArrays.WHITE;
     public static final int BLACK = BoardArrays.BLACK;
@@ -36,22 +36,22 @@ public class MinimaxRunner {
     public static final int BLOCKED = 2;
 
     /** This mapping is used to memoize results of evaluateBoard(). */
-    private HashMap<String, Double> evaluateBoardMemoizeMap;
+    private final HashMap<String, Double> evaluateBoardMemoizeMap;
 
     /* These three ints store relevant colors that decide how the algorithm
        picks sides and processes moves. */
-    private int colorOfAI;
-    private int colorOfPlayer;
-    private int colorOnTop;
+    private final int colorOfAI;
+    private final int colorOfPlayer;
+    private final int colorOnTop;
 
     /** This int stores the default depth value used by the algorithm. */
-    private int algorithmStartingDepth;
+    private final int algorithmStartingDepth;
 
     /** Stores the Chessboard object whose boardArray the algorithm calculates
         its moves on. */
-    private Chessboard chessboard;
+    private final Chessboard chessboard;
 
-    /** 
+    /**
      * This constructor initializes the MinimaxRunner object, which hosts the
      * minimax algorithm implemented with a frontend at the algorithmTopLevel()
      * method.
@@ -68,20 +68,20 @@ public class MinimaxRunner {
         colorOfPlayer = colorOfAI == WHITE ? BLACK : WHITE;
         colorOnTop = chessboard.getColorOnTop();
         algorithmStartingDepth = 4;
-        evaluateBoardMemoizeMap = new HashMap<String, Double>();
+        evaluateBoardMemoizeMap = new HashMap<>();
     }
 
     /**
      * This method and its delegate methods implement the minimax algorithm with
      * the alpha/beta optimization. The default recursion depth is 4 calls.
-     * 
+     *
      * @param turnCount The number of the turn it is, indexed at 0.
      */
     public Chessboard.Move algorithmTopLevel(final int turnCount
                                             ) throws CastlingNotPossibleException, IllegalArgumentException {
         Chessboard.Move bestMoveObj;
         int[][] movesArray = new int[128][7];
-        int[][] boardArray = new int[8][8];
+        int[][] boardArray;
         int[] bestMoveArray = null;
         boolean isCastlingKingside;
         boolean isCastlingQueenside;
@@ -139,7 +139,7 @@ public class MinimaxRunner {
             }
         }
 
-        /* If the AI has no useable moves, that means it needs to concede. A null
+        /* If the AI has no usable moves, that means it needs to concede. A null
            Move object is returned as a signal value. */
         if (useableMovesCount == 0) {
             return new Chessboard.Move(null, 0, 0, 0, 0, 0, false, false, 0);
@@ -147,6 +147,7 @@ public class MinimaxRunner {
 
         /* The values of the bestMoveArray are broken out into named variables,
            for clarity. */
+        assert bestMoveArray != null;
         movedPieceInt = bestMoveArray[0];
         fromXIdx = bestMoveArray[1];
         fromYIdx = bestMoveArray[2];
@@ -188,7 +189,7 @@ public class MinimaxRunner {
      * @param depth          The depth counter, which is decremented with each
      *                       successive recursive call. When it reaches zero,
      *                       this method returns the result of applying the
-     *                       evaluateBoard() method to boardArraty instead of
+     *                       evaluateBoard() method to boardArray instead of
      *                       its normal logic.
      * @param colorsTurnItIs An integer, indicating which side of the game this
      *                       level of the algorithm is calculating for. Either
@@ -233,7 +234,7 @@ public class MinimaxRunner {
             thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx],
                                               (colorsTurnItIs == WHITE ? BLACK : WHITE), depth - 1, alpha, beta);
             /* If the score returned is the best possible score, further calls
-               are skipped and it's returned directly. */
+               are skipped, and it's returned directly. */
             if (maximize ? thisScore == Double.POSITIVE_INFINITY : thisScore == Double.NEGATIVE_INFINITY) {
                 return thisScore;
             }
@@ -244,7 +245,7 @@ public class MinimaxRunner {
             } else if (!maximize && thisScore < beta) {
                 beta = thisScore;
             }
-            /* If this score bests alpha or beta, further calls are skipped and
+            /* If this score bests alpha or beta, further calls are skipped, and
                it's returned directly. */
             if (maximize ? thisScore >= beta : thisScore <= alpha) {
                 return thisScore;
@@ -289,8 +290,8 @@ public class MinimaxRunner {
         int toXIdx = moveArray[3];
         int toYIdx = moveArray[4];
         int capturedPieceInt = moveArray[5];
-        int savedPieceNo1 = 0;
-        int savedPieceNo2 = 0;
+        int savedPieceNo1;
+        int savedPieceNo2;
         boolean isCastlingKingside = false;
         boolean isCastlingQueenside = false;
         double retval;
@@ -301,7 +302,7 @@ public class MinimaxRunner {
            That means I need to execute this moveArray's move on the board,
            execute the recursive call, and then undo the move so the board can
            be reused. savedPiece holds whatever was at the square the piece
-           was moved to so it can be restored. */
+           was moved to, so it can be restored. */
 
         if ((movedPieceInt & KING) != 0 && (capturedPieceInt & ROOK) != 0
             && (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
@@ -373,7 +374,7 @@ public class MinimaxRunner {
             boardArray[fromXIdx][fromYIdx] = 0;
 
             /* The actual call to algorithmLowerLevel(). */
-            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
+            retval = algorithmLowerLevel(boardArray, maximize, depth, colorsTurnItIs, alpha, beta);
 
             /* The move is reversed and the board is returned to the state it
                was in when this method was called. */
@@ -397,7 +398,7 @@ public class MinimaxRunner {
             boardArray[fromXIdx][fromYIdx] = 0;
 
             /* The actual call to algorithmLowerLevel(). */
-            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
+            retval = algorithmLowerLevel(boardArray, maximize, depth, colorsTurnItIs, alpha, beta);
 
             /* The move is reversed and the board is returned to the state it
                was in when this method was called. */
@@ -422,19 +423,19 @@ public class MinimaxRunner {
     private double evaluateBoard(final int[][] boardArray, final int colorsTurnItIs
                                 ) throws IllegalArgumentException {
         /* This statement derives from the boardArray a string value that is
-           guaranteed to be unique for that board configuraion, so that this
+           guaranteed to be unique for that board configuration, so that this
            method's memoization HashMap evaluateBoardMemoizeMap can store
            the board's score with that key. The format() statement creates a
-           200-character hexedecimal string that comprises each element of
+           200-character hexadecimal string that comprises each element of
            boardArray, in order, in hex.
 
            Doing it as one big call to String.format avoids the overhead of
            having to instance a StringJoiner object, and use 2 for loops with 64
            calls to StringJoiner.add() to populate it. It's ugly but definitely
            faster.  */
-        String boardStr = String.format("%03x%03x%03x%03x%03x%03x%03x%03x %03x%03x%03x%03x%03x%03x%03x%03x %03x%03x%03x"
-            + "%03x%03x%03x%03x%03x %03x%03x%03x%03x%03x%03x%03x%03x %03x%03x%03x%03x%03x%03x%03x%03x %03x%03x%03x%03x"
-            + "%03x%03x%03x%03x %03x%03x%03x%03x%03x%03x%03x%03x %03x%03x%03x%03x%03x%03x%03x%03x",
+        String boardStr = String.format("%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x"
+            + "%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x"
+            + "%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x",
             boardArray[0][0], boardArray[0][1], boardArray[0][2], boardArray[0][3], boardArray[0][4], boardArray[0][5],
             boardArray[0][6], boardArray[0][7], boardArray[1][0], boardArray[1][1], boardArray[1][2], boardArray[1][3],
             boardArray[1][4], boardArray[1][5], boardArray[1][6], boardArray[1][7], boardArray[2][0], boardArray[2][1],
@@ -474,7 +475,7 @@ public class MinimaxRunner {
         int blackKingNotInCheckBonus = BoardArrays.isKingInCheck(boardArray, BLACK, colorOnTop) ? 0 : 1;
 
         /* Switch statement's case values must be constants at compile time, so
-           the piece integer values are used and they're all stored to an array
+           the piece integer values are used, and they're all stored to an array
            by key indexes, where they can be recovered from later. */
         for (int[] boardRow : boardArray) {
             for (int pieceInt : boardRow) {
@@ -483,15 +484,15 @@ public class MinimaxRunner {
                     case WHITE | QUEEN:          piecesCounts[whiteIndex][queenIndex]++; break;
                     case WHITE | ROOK:           piecesCounts[whiteIndex][rookIndex]++; break;
                     case WHITE | BISHOP:         piecesCounts[whiteIndex][bishopIndex]++; break;
-                    case WHITE | KNIGHT | RIGHT: piecesCounts[whiteIndex][knightIndex]++; break;
-                    case WHITE | KNIGHT | LEFT:  piecesCounts[whiteIndex][knightIndex]++; break;
+                    case WHITE | KNIGHT | RIGHT: case WHITE | KNIGHT | LEFT:
+                                                 piecesCounts[whiteIndex][knightIndex]++; break;
                     case WHITE | PAWN:           piecesCounts[whiteIndex][pawnIndex]++; break;
                     case BLACK | KING:           piecesCounts[blackIndex][kingIndex] = blackKingNotInCheckBonus;
                     case BLACK | QUEEN:          piecesCounts[blackIndex][queenIndex]++; break;
                     case BLACK | ROOK:           piecesCounts[blackIndex][rookIndex]++; break;
                     case BLACK | BISHOP:         piecesCounts[blackIndex][bishopIndex]++; break;
-                    case BLACK | KNIGHT | RIGHT: piecesCounts[blackIndex][knightIndex]++; break;
-                    case BLACK | KNIGHT | LEFT:  piecesCounts[blackIndex][knightIndex]++; break;
+                    case BLACK | KNIGHT | RIGHT: case BLACK | KNIGHT | LEFT:
+                                                 piecesCounts[blackIndex][knightIndex]++; break;
                     case BLACK | PAWN:           piecesCounts[blackIndex][pawnIndex]++; break;
                     default: break;
                 }
@@ -547,10 +548,10 @@ public class MinimaxRunner {
                             + mobilityScore);
         evaluateBoardMemoizeMap.put(boardStr, totalScore);
         return totalScore;
-    };
+    }
 
     /*
-     * This is a utility method that handles some of the logic needed by
+     * This is a utility method that handles some logic needed by
      * evaluateBoard(). It reviews the positions of all the friendly pawns on the
      * board, noting pawns which are blocked (a piece of either side that isn't
      * a friendly pawn occupies the square ahead of them), doubled (two pawns in
@@ -563,7 +564,7 @@ public class MinimaxRunner {
      *                        lowest y values).
      * @return                A double[3] array of doubledPawnsCount,
      *                        blockedPawnsCount, and isolatedPawnsCount.
-     * @see evaluateBoard()
+     * @see #evaluateBoard
      */
     private double[] tallySpecialPawns(final int[][] boardArray, final int colorInQuestion) {
         int[][] tallyPawnsCoords = new int[8][2];
@@ -598,10 +599,8 @@ public class MinimaxRunner {
         /* Normally an isolated pawn is one where its neighboring pawns are each
            more than one file away from them. */
         switch (pawnsCount) {
-            case 1 -> {
-                /* But if there's only 1 pawn left it is by default isolated. */
-                isolatedPawnsCount++;
-            }
+            /* But if there's only 1 pawn left it is by default isolated. */
+            case 1 -> isolatedPawnsCount++;
             case 2 -> {
                 /* If there's two left, they're both isolated if their X indexes
                    differ by more than 1. */
@@ -724,7 +723,7 @@ public class MinimaxRunner {
      *                       moves for (either BoardArrays.WHITE or
      *                       BoardArrays.BLACK).
      * @return               A double, the total number of moves possible.
-     * @see evaluateBoard
+     * @see #evaluateBoard
      */
     private double totalColorMobility(final int[][] boardArray, final int colorsTurnItIs
                                 ) throws IllegalArgumentException {

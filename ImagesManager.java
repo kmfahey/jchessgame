@@ -22,11 +22,10 @@ import java.io.FileNotFoundException;
  */
 public class ImagesManager {
 
-    private HashMap<Integer, Image> piecesImagesScaled;
-    private Dimension squareDimensions;
+    private final HashMap<Integer, Image> piecesImagesScaled;
 
     /**
-     * This constructor intializes the ImagesManager object, loading the
+     * This constructor initializes the ImagesManager object, loading the
      * chesspiece icon files from the specified directory (by default,
      * ./images/), scaling them, and associating each one with the matching
      * piece integer in a mapping so an accessor can return chesspiece images on
@@ -40,9 +39,8 @@ public class ImagesManager {
      *                       BoardView.
      */
     public ImagesManager(final String imageDirectory, final Dimension squareDims)
-                            throws IOException, FileNotFoundException {
-        squareDimensions = squareDims;
-        piecesImagesScaled = new HashMap<Integer, Image>();
+                            throws IOException {
+        piecesImagesScaled = new HashMap<>();
 
         /* This loop iterates over the .png files found in the directory
            indicates by the imageDirectory argument (by default, ./images/), */
@@ -67,8 +65,8 @@ public class ImagesManager {
                 int pieceInt = Chessboard.PIECE_STRS_TO_INTS.get(pieceStr);
 
                 /* scales the image to the size indicated by the squareDims argument, */
-                Image scaledImage = imageData.getScaledInstance((int) squareDimensions.getWidth(),
-                                                                (int) squareDimensions.getHeight(),
+                Image scaledImage = imageData.getScaledInstance((int) squareDims.getWidth(),
+                                                                (int) squareDims.getHeight(),
                                                                 BufferedImage.SCALE_SMOOTH);
 
                 /* and saves each one to the piecesImagesScaled instance variable. */

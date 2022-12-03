@@ -14,8 +14,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
 import java.io.IOException;
-import java.io.FileNotFoundException;
-
 
 /**
  * This class is the frontend of the program, a JFrame subclass that presents
@@ -25,7 +23,7 @@ import java.io.FileNotFoundException;
  * icon and clicking on the square to move it to. It also features a scrolling
  * log that displays the moves in algebraic notation, and lists error messages
  * if an illegal move was attempted.
-
+ * <p>
  * The opposing AI is implemented using the minimax algorithm with the
  * alpha/beta pruning optimization. The user has the option to play either color
  * (with White always going first), and once a game is over the board can be
@@ -50,24 +48,24 @@ public class ChessGame extends JFrame implements ActionListener {
      * dimensions and insets used by BoardView to build the board out of
      * carefully-measured beige and black rectangles drawn in the board region.
      */
-    private CoordinatesManager coordinatesManager;
+    private final CoordinatesManager coordinatesManager;
 
     /**
      * GridBagLayout manages the disposition of GUI elements in the window.
      */
-    private GridBagLayout gameLayout;
+    private final GridBagLayout gameLayout;
 
     /**
      * JPanel is the panel that other GUI elements are attached to while building
      * the GUI.
      */
-    private JPanel gamePanel;
+    private final JPanel gamePanel;
 
     /**
      * ImagesManager manages the game's images directory and provides chess
      * piece icon Image objects that can be drawn to the board.
      */
-    private ImagesManager imagesManager;
+    private final ImagesManager imagesManager;
 
     /**
      * MovesLog is a JTextArea subclass that is placed alongside the chessboard
@@ -96,41 +94,40 @@ public class ChessGame extends JFrame implements ActionListener {
      */
     private Timer colorChoicePopupDelayTimer;
 
-    private Dimension boardDims;
-    private Dimension boardSectionDims;
-    private Dimension movesLogSectionDims;
+    private final Dimension boardSectionDims;
+    private final Dimension movesLogSectionDims;
 
     private int colorOnTop;
     private int colorPlaying = -1;
-    private final int timerDelayMlsec = 500;
+    private final static int TIMER_DELAY_MLSEC = 500;
 
     /**
      * This constructor begins initializing the ChessGame object, before
      * triggering PopupColorChoice to prompt the user to pick a color to play,
-     * setting up a Timer, and exitting. The Timer calls this.actionPerformed()
-     * repeatedly until the color is set and it can execute, completing
+     * setting up a Timer, and exiting. The Timer calls this.actionPerformed()
+     * repeatedly until the color is set, and it can execute, completing
      * ChessGame's initialization.
      */
-    public ChessGame() throws IOException, FileNotFoundException {
+    public ChessGame() throws IOException {
         this(null);
     }
 
     /**
      * This constructor begins initializing the ChessGame object, before
      * triggering PopupColorChoice to prompt the user to pick a color to play,
-     * setting up a Timer, and exitting. The Timer calls this.actionPerformed()
-     * repeatedly until the color is set and it can execute, completing
+     * setting up a Timer, and exiting. The Timer calls this.actionPerformed()
+     * repeatedly until the color is set, and it can execute, completing
      * ChessGame's initialization.
      *
-     * @param fileName The filename of a board.csv file that specifies a
-     *                 chessboard, which is loaded and used to set up the board
-     *                 before play. The board must be a CSV file, with no
-     *                 header, exactly 8 rows, exactly 8 columns, containing
-     *                 only integers, and having each integer be a valid piece
-     *                 integer value. (See the top of BoardArrays.java for
-     *                 details.)
+     * @param fileNameStr The filename of a board.csv file that specifies a
+     *                    chessboard, which is loaded and used to set up the board
+     *                    before play. The board must be a CSV file, with no
+     *                    header, exactly 8 rows, exactly 8 columns, containing
+     *                    only integers, and having each integer be a valid piece
+     *                    integer value. (See the top of BoardArrays.java for
+     *                    details.)
      */
-    public ChessGame(final String fileNameStr) throws IOException, FileNotFoundException {
+    public ChessGame(final String fileNameStr) throws IOException {
         super("Chess Game");
 
         Dimension windowDims;
@@ -138,12 +135,14 @@ public class ChessGame extends JFrame implements ActionListener {
 
         popupColorChoice = null;
 
-        /* If this class, when executed as the frontend of the program, was
-           passed a filename argument, this constructor was called with that
-           String as an argument, so its value is set to fileName. The value
-           won't be needed until the 2nd half of the constructor logic in
-           actionPerformed(), so loading it into an instance variable is
-           necessary for the value to still be available then. */
+        /*
+         * If this class, when executed as the frontend of the program, was
+         * passed a filename argument, this constructor was called with that
+         * String as an argument, so its value is set to fileName. The value
+         * won't be needed until the 2nd half of the constructor logic in
+         * actionPerformed(), so loading it into an instance variable is
+         * necessary for the value to still be available then.
+         */
         if (Objects.nonNull(fileNameStr)) {
             fileName = fileNameStr;
         }
@@ -151,41 +150,49 @@ public class ChessGame extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        /* The dimensions of the board and the moves log are derived from the
-           size of the screen, so they scale with the screen resolution. The
-           height of the board (including insets) is 80% the height of the
-           screen, and it has an equal width. The move log is the same height,
-           and has a width equal to 20% of the height of the screen. Because the
-           board and the moves log are side-by-side, the final window will have
-           a width equal to the screen height. */
+        /*
+         * The dimensions of the board and the moves log are derived from the
+         * size of the screen, so they scale with the screen resolution. The
+         * height of the board (including insets) is 80% the height of the
+         * screen, and it has an equal width. The move log is the same height,
+         * and has a width equal to 20% of the height of the screen. Because the
+         * board and the moves log are side-by-side, the final window will have
+         * a width equal to the screen height.
+         */
         Dimension screenDims = Toolkit.getDefaultToolkit().getScreenSize();
-        boardSectionDims = new Dimension((int) Math.floor(0.8D * (double) screenDims.getHeight()),
-                                         (int) Math.floor(0.8D * (double) screenDims.getHeight()));
-        movesLogSectionDims = new Dimension((int) Math.floor(0.2D * (double) screenDims.getHeight()),
-                                            (int) Math.floor(0.8D * (double) screenDims.getHeight()));
+        boardSectionDims = new Dimension((int) Math.floor(0.8D * screenDims.getHeight()),
+                (int) Math.floor(0.8D * screenDims.getHeight()));
+        movesLogSectionDims = new Dimension((int) Math.floor(0.2D * screenDims.getHeight()),
+                (int) Math.floor(0.8D * screenDims.getHeight()));
         windowDims = new Dimension((int) boardSectionDims.getWidth() + (int) movesLogSectionDims.getWidth(),
-                                   (int) boardSectionDims.getHeight());
+                (int) boardSectionDims.getHeight());
 
         gameLayout = new GridBagLayout();
         gamePanel = new JPanel(gameLayout);
         setContentPane(gamePanel);
         setSize(windowDims);
 
-        /* A Dimension object is instanced with the size of the board, which is
-           the size of its allotted space on the board minus the insets that
-           will be set on it later (20px on all 4 sides. */
-        boardDims = new Dimension((int) boardSectionDims.getWidth() - 40, (int) boardSectionDims.getHeight() - 40);
+        /*
+         * A Dimension object is instanced with the size of the board, which is
+         * the size of its allotted space on the board minus the insets that
+         * will be set on it later (20px on all 4 sides).
+         */
+        Dimension boardDims = new Dimension((int) boardSectionDims.getWidth() - 40, (int) boardSectionDims.getHeight() - 40);
 
-        /* The CoordinatesManager is instanced with a scaling proportion, which
-           it uses to scale the icons it's loaded from their original resolution
-           to the size of the squares on BoardView's chessboard display. */
+        /*
+         * The CoordinatesManager is instanced with a scaling proportion, which
+         * it uses to scale the icons it's loaded from their original resolution
+         * to the size of the squares on BoardView's chessboard display.
+         */
         scalingProportion = (float) boardDims.getWidth()
-                                    / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
+                / CoordinatesManager.TOTAL_BOARD_MEASUREMENT_100PCT;
         coordinatesManager = new CoordinatesManager(scalingProportion);
 
-        /* The ImagesManager object is instanced. Chessboard uses this to
-           retrieve piece icons that BoardView will use to display the board's
-           pieces with Graphics.drawImage(). */
+        /*
+         * The ImagesManager object is instanced. Chessboard uses this to
+         * retrieve piece icons that BoardView will use to display the board's
+         * pieces with Graphics.drawImage().
+         */
         imagesManager = new ImagesManager("./images/", coordinatesManager.getSquareDimensions());
 
         chooseColor();
@@ -200,7 +207,7 @@ public class ChessGame extends JFrame implements ActionListener {
      * this.setColorPlaying(), the next call to this.actionPerformed() will not
      * abort, the timer is turned off, and the rest of the constructor logic in
      * actionPerformed() will be executed.
-     *
+     * <p>
      * This method is called at the end of this class's constructor (for the
      * first game), and it's also called from PopupGameOver when the player has
      * chosen to play again to restart the game setup process.
@@ -211,7 +218,7 @@ public class ChessGame extends JFrame implements ActionListener {
         popupColorChoice = new PopupColorChoice(this);
 
         if (Objects.isNull(colorChoicePopupDelayTimer)) {
-            colorChoicePopupDelayTimer = new Timer(timerDelayMlsec, this);
+            colorChoicePopupDelayTimer = new Timer(TIMER_DELAY_MLSEC, this);
             colorChoicePopupDelayTimer.setActionCommand("construct");
             colorChoicePopupDelayTimer.setRepeats(true);
         }
@@ -238,13 +245,13 @@ public class ChessGame extends JFrame implements ActionListener {
      * color; also so that it can be repeated if a subsequent game is held. A
      * Timer is set at the end of the constructor that re-calls this method
      * every 1/2 second.
-     *
+     * <p>
      * This method aborts immediately after being called if colorPlaying hasn't
      * been set. The PopupColorChoice has two buttons, [Play White] and [Play
      * Black]; when one is clicked, the button's logic calls this class's
      * setColorPlaying() method with the value chosen, and closes the dialog
      * box.
-     *
+     * <p>
      * The Timer that calls this method keeps re-executing it, so the next time
      * it's called the initial test if the colorPlaying instance variable has
      * been set succeeds, the timer is stopped, and the remaining constructor
@@ -268,74 +275,94 @@ public class ChessGame extends JFrame implements ActionListener {
         colorChoicePopupDelayTimer.stop();
 
         if (Objects.nonNull(fileName)) {
-            /* If the fileName string is set, then the constructor was passed
-               a filename as an argument. The expected file is a CSV file
-               representing a board, to instantiate the board with rather than
-               starting from the normal starting configuration. */
+            /*
+             * If the fileName string is set, then the constructor was passed
+             * a filename as an argument. The expected file is a CSV file
+             * representing a board, to instantiate the board with rather than
+             * starting from the normal starting configuration.
+             */
             try {
-                /* The utility method BoardArrays.fileNameToBoardArray() loads
-                   the CSV file and interprets it to a boardArray, if it's
-                   validly composed. (It must have no header, exactly 8 rows,
-                   exactly 8 columns for each row, have all its values be ints,
-                   and have the ints either be 0 or be a valid piece integer
-                   representation of int flag constants (see the top of the
-                   BoardArrays class) Or'd together. */
+                /*
+                 * The utility method BoardArrays.fileNameToBoardArray() loads
+                 * the CSV file and interprets it to a boardArray, if it's
+                 * validly composed. It must have no header, exactly 8 rows,
+                 * exactly 8 columns for each row, have all its values be ints,
+                 * and have the ints either be 0 or be a valid piece integer
+                 * representation of int flag constants (see the top of the
+                 * BoardArrays class) Or'd together.
+                 */
                 boardArray = BoardArrays.fileNameToBoardArray(fileName);
             } catch (NullPointerException | BoardArrayFileParsingException | IOException exception) {
-                /* The exception thrown has its name parsed out of the class,
-                   and JOptionPane.showMessageDialog() is used to display a
-                   popup to the user with the error message. The stack trace is
-                   printed to console and the program exits. */
+                /*
+                 * The exception thrown has its name parsed out of the class,
+                 * and JOptionPane.showMessageDialog() is used to display a
+                 * popup to the user with the error message. The stack trace is
+                 * printed to console and the program exits.
+                 */
                 String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
                 JOptionPane.showMessageDialog(this, "Loading a board file caused a " + exceptionClassName + ":\n"
-                                                    + exception.getMessage());
+                        + exception.getMessage());
                 exception.printStackTrace();
                 System.exit(1);
             }
             if (Objects.nonNull(chessboard)) {
-                /* If chessboard is non-null then this is a subsequent game.
-                   The new color values are set, a blank boardArray is set, and
-                   Chessboard.layOutPieces() is used to array the pieces on the
-                   board. */
+                /*
+                 * If chessboard is non-null then this is a subsequent game.
+                 * The new color values are set, a blank boardArray is set, and
+                 * Chessboard.layOutPieces() is used to array the pieces on the
+                 * board.
+                 */
                 chessboard.setColors(colorPlaying, colorOnTop);
                 chessboard.setBoardArray(new int[8][8]);
                 chessboard.layOutPieces();
             } else {
-                /* Otherwise this is a first run, so a new Chessboard object is
-                   instanced, with the imported boardArray as its 1st argument. */
+                /*
+                 * Otherwise this is a first run, so a new Chessboard object is
+                 * instanced, with the imported boardArray as its 1st argument.
+                 */
                 chessboard = new Chessboard(boardArray, imagesManager, colorPlaying, colorOnTop);
             }
         } else {
             if (Objects.nonNull(chessboard)) {
-                /* If chessboard is non-null then this is a subsequent game.
-                   The new color values are set, a blank boardArray is set, and
-                   Chessboard.layOutPieces() is used to array the pieces on the
-                   board. */
+                /*
+                 * If chessboard is non-null then this is a subsequent game.
+                 * The new color values are set, a blank boardArray is set, and
+                 * Chessboard.layOutPieces() is used to array the pieces on the
+                 * board.
+                 */
                 chessboard.setColors(colorPlaying, colorOnTop);
                 chessboard.setBoardArray(new int[8][8]);
                 chessboard.layOutPieces();
             } else {
-                /* Otherwise this is a first run, so a new Chessboard object is
-                   instanced. */
+                /*
+                 * Otherwise this is a first run, so a new Chessboard object is
+                 * instanced.
+                 */
                 chessboard = new Chessboard(imagesManager, colorPlaying, colorOnTop);
             }
         }
 
-        /* Setting the GridBagLayout object's columnWidths and rowHeights. The
-           GUI consists of just two elements: the chessboard on the left side
-           (Chessboard), and a textarea on the right that lists moves made and
-           shows error messages if an invalid move is attempted. */
-        gameLayout.columnWidths = new int[] {(int) boardSectionDims.getWidth(), (int) movesLogSectionDims.getWidth()};
-        gameLayout.rowHeights = new int[] {(int) boardSectionDims.getHeight()};
+        /*
+         * Setting the GridBagLayout object's columnWidths and rowHeights. The
+         * GUI consists of just two elements: the chessboard on the left side
+         * (Chessboard), and a textarea on the right that lists moves made and
+         * shows error messages if an invalid move is attempted.
+         */
+        gameLayout.columnWidths = new int[] { (int) boardSectionDims.getWidth(), (int) movesLogSectionDims.getWidth() };
+        gameLayout.rowHeights = new int[] { (int) boardSectionDims.getHeight() };
 
         if (Objects.nonNull(movesLog)) {
-            /* If the MovesLog object is non-null, then this is a subsequent
-               game, and all it needs is to be cleared. */
+            /*
+             * If the MovesLog object is non-null, then this is a subsequent
+             * game, and all it needs is to be cleared.
+             */
             movesLog.clear();
         } else {
-            /* Otherwise this is a first game, so GridBagConstraints are
-               devised, the MovesLog object is instanced and it's added to the
-               JPanel object with its constraints. */
+            /*
+             * Otherwise this is a first game, so GridBagConstraints are
+             * devised, the MovesLog object is instanced, and it's added to the
+             * JPanel object with its constraints.
+             */
             movesLog = new MovesLog();
             JScrollPane scrollableMovesLog = new JScrollPane(movesLog);
 
@@ -351,18 +378,22 @@ public class ChessGame extends JFrame implements ActionListener {
         }
 
         if (Objects.nonNull(boardView)) {
-            /* If the BoardView object is non-null, then this is a subsequent
-               game. All it needs to know is whether the AI moves first (ie. is
-               playing White) or not. */
+            /*
+             * If the BoardView object is non-null, then this is a subsequent
+             * game. All it needs to know is whether the AI moves first (i.e. is
+             * playing White) or not.
+             */
             if (colorPlaying == BoardArrays.BLACK) {
                 boardView.aiMovesFirst();
             } else {
                 boardView.repaint();
             }
         } else {
-            /* Otherwise this is a first game, so GridBagConstraints are
-               devised, the BoardView object is instanced and it's added to the
-               JPanel object with its constraints. */
+            /*
+             * Otherwise this is a first game, so GridBagConstraints are
+             * devised, the BoardView object is instanced, and it's added to the
+             * JPanel object with its constraints.
+             */
             GridBagConstraints boardConstraints = new GridBagConstraints();
             boardConstraints.fill = GridBagConstraints.BOTH;
             boardConstraints.gridy = 0;
@@ -371,8 +402,7 @@ public class ChessGame extends JFrame implements ActionListener {
             boardConstraints.gridwidth = 1;
             boardConstraints.insets = new Insets(20, 20, 20, 20);
 
-            boardView = new BoardView(this, boardDims, imagesManager, coordinatesManager, chessboard, movesLog,
-                                      colorPlaying);
+            boardView = new BoardView(this, coordinatesManager, chessboard, movesLog, colorPlaying);
             gamePanel.add(boardView, boardConstraints);
             boardView.addMouseListener(boardView);
         }
@@ -392,7 +422,7 @@ public class ChessGame extends JFrame implements ActionListener {
      * @param args Either a 0-length array, or a 1-length array comprised of a
      *             filename of a board.csv file to prime the board with.
      */
-    public static void main(final String[] args) throws IOException, FileNotFoundException {
+    public static void main(final String[] args) throws IOException {
         ChessGame chessgame;
         if (args.length > 0) {
             String fileName = args[0];

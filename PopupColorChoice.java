@@ -1,12 +1,8 @@
 package com.kmfahey.jchessgame;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.Random;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,7 +18,7 @@ import javax.swing.WindowConstants;
  * ChessGame.setColorPlaying() and closes the dialog box.
  *
  * @see ChessGame
- * @see ChessGame.setColorPlaying
+ * @see ChessGame#setColorPlaying
  */
 public class PopupColorChoice extends JFrame {
 
@@ -31,7 +27,7 @@ public class PopupColorChoice extends JFrame {
      * mutator ChessGame.setColorPlaying() can be used to convey the choice the
      * player makes.
      */
-    private ChessGame callingChessGame;
+    private final ChessGame callingChessGame;
 
     /**
      * This constructor instances and displays a popup dialog box that reads,
@@ -43,7 +39,7 @@ public class PopupColorChoice extends JFrame {
      * @param callingChessGameObj The ChessGame object that spawned this dialog
      *                            box, included so the button objects can set
      *                            the color to play on it with a mutator.
-     * @see ChessGame.setColorPlaying
+     * @see ChessGame#setColorPlaying
      */
     public PopupColorChoice(final ChessGame callingChessGameObj) {
         super("Color Choice");
@@ -132,12 +128,9 @@ public class PopupColorChoice extends JFrame {
     private JButton buildPlayWhiteButton() {
         PopupColorChoice enclosingDbox = this;
         JButton button = new JButton("Play White");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent event) {
-                callingChessGame.setColorPlaying(BoardArrays.WHITE);
-                enclosingDbox.dispose();
-            }
+        button.addActionListener(event -> {
+            callingChessGame.setColorPlaying(BoardArrays.WHITE);
+            enclosingDbox.dispose();
         });
         return button;
     }
@@ -151,12 +144,9 @@ public class PopupColorChoice extends JFrame {
     private JButton buildPlayBlackButton() {
         PopupColorChoice enclosingDbox = this;
         JButton button = new JButton("Play Black");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent event) {
-                callingChessGame.setColorPlaying(BoardArrays.BLACK);
-                enclosingDbox.dispose();
-            }
+        button.addActionListener(event -> {
+            callingChessGame.setColorPlaying(BoardArrays.BLACK);
+            enclosingDbox.dispose();
         });
         return button;
     }
