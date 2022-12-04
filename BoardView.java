@@ -1,4 +1,4 @@
-package com.kmfahey.jchessgame;
+package org.magentatobe.jchessgame;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -146,9 +146,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     /**
      * Mutator method for the colorPlaying and colorOnTop instance variables.
      *
-     * @param colorOfPlayer The new integer value representing the color the
-     *                      user is playing. One of either BoardArrays.WHITE
-     *                      or BoardArrays.BLACK.
+     * @param colorPlaying  Int flag, the color the user is playing. One of
+     *                      either BoardArrays.WHITE or BoardArrays.BLACK.
+     * @param colorOnTopVal Int flag, the color that's playing from the top of
+     *                      the board. One of either BoardArrays.WHITE or
+     *                      BoardArrays.BLACK.
      */
     public void setColors(final int colorPlaying, final int colorOnTopVal) {
         colorOfPlayer = colorPlaying;
@@ -504,7 +506,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             resetClickEventVars();
             return false;
         } catch (CastlingNotPossibleException exception) {
-            movesLog.addError(moveObj, exception.getCastlingNotPossibleReason());
+            movesLog.addError(moveObj, exception.getReason());
             resetClickEventVars();
             return false;
         }

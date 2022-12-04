@@ -1,4 +1,4 @@
-package com.kmfahey.jchessgame;
+package org.magentatobe.jchessgame;
 
 import java.util.ArrayList;
 import java.util.StringJoiner;
@@ -39,8 +39,11 @@ public class MovesLog extends JTextArea {
      *                  of MovesLog.MoveError.WOULD_BE_IN_CHECK,
      *                  MovesLog.MoveError.IS_IN_CHECK,
      *                  MovesLog.MoveError.NOT_A_VALID_MOVE,
-     *                  MovesLog.MoveError.IS_A_FRIENDLY_PIECE, or
-     *                  MovesLog.MoveError.CASTLING_NOT_POSSIBLE.
+     *                  MovesLog.MoveError.IS_A_FRIENDLY_PIECE,
+     *                  MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED,
+     *                  MovesLog.MoveError.CASTLING_KING_IN_CHECK,
+     *                  MovesLog.MoveError.CASTLING_PATH_IS_THREATENED, or
+     *                  MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED.
      */
     public record MoveError(Chessboard.Move moveObj, int issueFlag) {
         /** Flag, move would place the king in check. */

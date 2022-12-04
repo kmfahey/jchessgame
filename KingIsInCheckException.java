@@ -1,4 +1,4 @@
-package com.kmfahey.jchessgame;
+package org.magentatobe.jchessgame;
 
 /**
  * Thrown when a move would put the king in check, and that possibility eluded

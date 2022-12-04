@@ -1,4 +1,4 @@
-package com.kmfahey.jchessgame;
+package org.magentatobe.jchessgame;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -468,11 +468,13 @@ public class Chessboard {
         return false;
     }
 
-    /*
-     * This utility method is used by movePieceCastling to check whether the
-     * requirements for castling have been met: the two pieces must both have
-     * not moved since start of play, and the squares between them must be
-     * empty.
+    /**
+     * Checks whether the requirements for castling have been met. The two
+     * pieces must both have not moved since start of play, the squares between
+     * them must be empty, the king must not be in check, and both the king's
+     * destination square and the intervening squares must not be threatened. If
+     * all conditions are met, the method returns 0. Otherwise, it returns an
+     * int failure mode flag.
      *
      * @param colorOfKing An integer referring to the color of the king to
      *                    check, either Chessboard.WHITE or Chessboard.BLACK
@@ -480,6 +482,12 @@ public class Chessboard {
      *                    Chessboard.KING or Chessboard.QUEEN. King indicates
      *                    kingside castling, and queen indicates queenside
      *                    castling.
+     * @return  Int failure mode flag, one of the
+     *          int flags defined in MovesLog.MoveError:
+     *          MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED,
+     *          MovesLog.MoveError.CASTLING_KING_IN_CHECK,
+     *          MovesLog.MoveError.CASTLING_PATH_IS_THREATENED, or
+     *          MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED.
      */
     public int isCastlingPossible(final int colorOfKing, final int kingOrQueen) throws IllegalArgumentException {
         switch (colorOfKing | kingOrQueen) {

@@ -35,13 +35,13 @@ chessprogramming.org](https://www.chessprogramming.org/Evaluation).
 ##### Int-Based Board Array
 
 The algorithm is implemented in
-[MinimaxRunner](./docs/com/kmfahey/jchessgame/MinimaxRunner.html),
+[MinimaxRunner](./docs/org/magentatobe/jchessgame/MinimaxRunner.html),
 using mainly utility methods in the static class
-[BoardArrays](./docs/com/kmfahey/jchessgame/BoardArrays.html). The game relies on
+[BoardArrays](./docs/org/magentatobe/jchessgame/BoardArrays.html). The game relies on
 a chessboard model implemented in a 8x8 array of int arrays. Integers are used
 to represent the chess pieces, in the following manner.
 
-In the [BoardArrays](./docs/com/kmfahey/jchessgame/BoardArrays.html) class, these
+In the [BoardArrays](./docs/org/magentatobe/jchessgame/BoardArrays.html) class, these
 integer flags are defined:
 
     public static final int BLACK =     0b1000000000;
@@ -89,7 +89,7 @@ operating over a naively OO chessboard and pieces took ~63sec to run.
 When the chessboard and pieces modelling & manipulation logic was
 re-implemented using strictly ints, int arrays and booleans in a
 functional style (using board-manipulation static methods in the
-[BoardArrays](./docs/com/kmfahey/jchessgame/BoardArrays.html) static class), a
+[BoardArrays](./docs/org/magentatobe/jchessgame/BoardArrays.html) static class), a
 dramatic improvement in performance was achieved. The algorithm ran in a wholly
 acceptable 0.5sec. An important lesson in optimizing Java algorithms was taken
 from the results.

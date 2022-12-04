@@ -8,7 +8,7 @@
  * There are no doubt many superior chess games out there, but this one is mine.
  *
  * @since 1.0
- * @author Kerne M. Fahey
+ * @author MagentaToBe
  * @version 1.0
  */
-package com.kmfahey.jchessgame;
+package org.magentatobe.jchessgame;

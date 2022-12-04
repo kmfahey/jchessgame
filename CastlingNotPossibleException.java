@@ -1,4 +1,4 @@
-package com.kmfahey.jchessgame;
+package org.magentatobe.jchessgame;
 
 /**
  * Thrown by Chessboard.movePiece() when processing a castling move if it turns
@@ -7,13 +7,26 @@ package com.kmfahey.jchessgame;
  * @see Chessboard#movePiece
  */
 public class CastlingNotPossibleException extends Exception {
-    private int castlingNotPossibleReason = -1;
 
     /**
-     * An accessor for the castlingNotPossibleReason instance variable. 
+     * An integer flag indicating the precise reason castling wasn't possible.
+     * Uses the int flag constants defined in the MovesLog.MoveError record
+     * class.
      */
-    public int getCastlingNotPossibleReason() {
-        return castlingNotPossibleReason;
+    private int reason = -1;
+
+    /**
+     * An accessor for the reason instance variable. Uses the
+     * int flag constants defined in the MovesLog.MoveError record class.
+     *
+     * @return Int flag, one of
+     *         MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED,
+     *         MovesLog.MoveError.CASTLING_KING_IN_CHECK,
+     *         MovesLog.MoveError.CASTLING_PATH_IS_THREATENED, or
+     *         MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED.
+     */
+    public int getReason() {
+        return reason;
     }
 
     /**
@@ -37,11 +50,16 @@ public class CastlingNotPossibleException extends Exception {
      * Constructs a CastlingNotPossibleException with the specified detail
      * message, and the reason code why castling is impossible.
      *
-     * @param message The detail message.
+     * @param message   The detail message.
+     * @param reasonVal Int flag, the reason castling is impossible. One of 
+     *                  MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED,
+     *                  MovesLog.MoveError.CASTLING_KING_IN_CHECK,
+     *                  MovesLog.MoveError.CASTLING_PATH_IS_THREATENED, or
+     *                  MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED.
      */
-    public CastlingNotPossibleException(final String message, final int castlingNotPossibleReasonVal) {
+    public CastlingNotPossibleException(final String message, final int reasonVal) {
         super(message);
-        castlingNotPossibleReason = castlingNotPossibleReasonVal;
+        reason = reasonVal;
     }
 
     /**

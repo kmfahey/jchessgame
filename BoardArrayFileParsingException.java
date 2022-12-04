@@ -1,4 +1,4 @@
-package com.kmfahey.jchessgame;
+package org.magentatobe.jchessgame;
 
 /**
  * Thrown while parsing a CSV file describing a chessboard that was passed as a
