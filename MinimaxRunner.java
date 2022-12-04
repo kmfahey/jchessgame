@@ -49,9 +49,9 @@ public class MinimaxRunner {
 
     /* These three ints store relevant colors that decide how the algorithm
        picks sides and processes moves. */
-    private final int colorOfAI;
-    private final int colorOfPlayer;
-    private final int colorOnTop;
+    private int colorOfAI;
+    private int colorOfPlayer;
+    private int colorOnTop;
 
     /** The default depth value used by the algorithm. */
     private final int algorithmStartingDepth;
@@ -77,6 +77,22 @@ public class MinimaxRunner {
         colorOnTop = chessboard.getColorOnTop();
         algorithmStartingDepth = 4;
         evaluateBoardMemoizeMap = new HashMap<>();
+    }
+
+    /**
+     * Mutator method for the colorPlaying and colorOnTop instance variables.
+     *
+     * @param colorPlayingVal The new integer value representing the color the
+     *                        user is playing. One of either BoardArrays.WHITE
+     *                        or BoardArrays.BLACK.
+     * @param colorOnTopVal   The new integer value representing the color
+     *                        playing from the top of the board. One of either
+     *                        BoardArrays.WHITE or BoardArrays.BLACK.
+     */
+    public void setColors(final int colorPlayingVal, final int colorOnTopVal) {
+        colorOfPlayer = colorPlayingVal;
+        colorOnTop = colorOnTopVal;
+        colorOfAI = (colorOfPlayer == BoardArrays.WHITE) ? BoardArrays.BLACK : BoardArrays.WHITE;
     }
 
     /**
@@ -136,9 +152,13 @@ public class MinimaxRunner {
            highest-scoring move is found and that's the one the algorithm will
            indicate as the AI's move this turn. */
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
-            thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx],
-                                              (colorOfAI == WHITE ? BLACK : WHITE),
-                                              algorithmStartingDepth - 1, alpha, beta);
+            try {
+                thisScore = algorithmCallExecutor(boardArray, true, movesArray[moveIdx],
+                                                  (colorOfAI == WHITE ? BLACK : WHITE),
+                                                  algorithmStartingDepth, alpha, beta);
+            } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
+                thisScore = Double.NEGATIVE_INFINITY;
+            }
             if (thisScore >= bestScore) {
                 bestScore = thisScore;
                 bestMoveArray = movesArray[moveIdx];
@@ -173,7 +193,7 @@ public class MinimaxRunner {
         if ((capturedPieceInt & ROOK) != 0 && (movedPieceInt & KING) != 0
             && (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
 
-            if (toXIdx == 0) {
+            if (toXIdx == 7) {
                 isCastlingKingside = true;
             } else {
                 isCastlingQueenside = true;
@@ -240,8 +260,12 @@ public class MinimaxRunner {
 
         for (int moveIdx = 0; moveIdx < movesArrayUsedLength; moveIdx++) {
             /* The score is returned from the lower level call. */
-            thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx],
-                                              (colorsTurnItIs == WHITE ? BLACK : WHITE), depth - 1, alpha, beta);
+            try {
+                thisScore = algorithmCallExecutor(boardArray, !maximize, movesArray[moveIdx],
+                                                  (colorsTurnItIs == WHITE ? BLACK : WHITE), depth, alpha, beta);
+            } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
+                thisScore = maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+            }
             /* If the score returned is the best possible score, further calls
                are skipped, and it's returned directly. */
             if (maximize ? thisScore == Double.POSITIVE_INFINITY : thisScore == Double.NEGATIVE_INFINITY) {
@@ -292,18 +316,22 @@ public class MinimaxRunner {
      */
     private double algorithmCallExecutor(final int[][] boardArray, final boolean maximize,
                                          final int[] moveArray, final int colorsTurnItIs,
-                                         final int depth, final double alpha, final double beta) {
+                                         final int depth, final double alpha, final double beta
+                                         ) throws IllegalArgumentException, KingIsInCheckException,
+                                                  CastlingNotPossibleException {
+        int colorOpposing = (colorsTurnItIs == WHITE ? BLACK : WHITE);
         int movedPieceInt = moveArray[0];
         int fromXIdx = moveArray[1];
         int fromYIdx = moveArray[2];
         int toXIdx = moveArray[3];
         int toYIdx = moveArray[4];
         int capturedPieceInt = moveArray[5];
-        int savedPieceNo1;
-        int savedPieceNo2;
+        int savedPieceNo1 = 0;
+        int savedPieceNo2 = 0;
         boolean isCastlingKingside = false;
         boolean isCastlingQueenside = false;
         double retval;
+        String thisColorStr = colorsTurnItIs == WHITE ? "black" : "white";
         Chessboard.Move moveObj;
 
         /* The same boardArray is passed down the call stack and reused by
@@ -311,25 +339,22 @@ public class MinimaxRunner {
            That means I need to execute this moveArray's move on the board,
            execute the recursive call, and then undo the move so the board can
            be reused. savedPiece holds whatever was at the square the piece
-           was moved to, so it can be restored. */
+           was moved to so it can be restored. */
 
-        if ((movedPieceInt & KING) != 0 && (capturedPieceInt & ROOK) != 0
+        if ((movedPieceInt & ROOK) != 0 && (capturedPieceInt & KING) != 0
             && (movedPieceInt & WHITE) == (capturedPieceInt & WHITE)) {
-            /* If the moving piece is a King, and the "captured" piece is a
-               rook, and they're both of the same color, then this is actually a
-               castling move. */
             if (toXIdx != 0 && toXIdx !=  7) {
                 throw new IllegalArgumentException("algorithmCallExecutor() called with a moveArray that indicated "
                                                    + "castling but the Rook isn't in position");
             }
-            if (toXIdx == 0) {
+            if (toXIdx == 7) {
                 isCastlingKingside = true;
-                savedPieceNo1 = boardArray[2][toYIdx];
-                savedPieceNo2 = boardArray[1][fromYIdx];
-            } else {
-                isCastlingQueenside = true;
                 savedPieceNo1 = boardArray[5][toYIdx];
                 savedPieceNo2 = boardArray[6][fromYIdx];
+            } else {
+                isCastlingQueenside = true;
+                savedPieceNo1 = boardArray[2][toYIdx];
+                savedPieceNo2 = boardArray[3][fromYIdx];
             }
 
             moveObj = new Chessboard.Move(chessboard.getPieceAtCoords(fromXIdx, fromYIdx),
@@ -341,81 +366,56 @@ public class MinimaxRunner {
                movePiece() is used because castling depends on state information
                (whether the king or rook has moved so far, which makes castling
                impossible) that's tracked internally by the Chessboard object. */
-            try {
-                chessboard.movePiece(moveObj);
-            } catch (CastlingNotPossibleException | KingIsInCheckException exception) {
-                return maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
-            }
+            chessboard.movePiece(moveObj);
 
-            /* The actual call to algorithmLowerLevel(). */
-            retval = algorithmLowerLevel(boardArray, maximize, depth, colorsTurnItIs, alpha, beta);
+            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
-            /* The castling is reversed and the board is returned to the state
-               it was in when this method was called. */
             if (isCastlingKingside) {
-                boardArray[3][toYIdx] = movedPieceInt;
-                boardArray[0][toYIdx] = capturedPieceInt;
-                boardArray[3][toYIdx] = savedPieceNo1;
-                boardArray[2][fromYIdx] = savedPieceNo2;
-            } else {
-                boardArray[7][toYIdx] = movedPieceInt;
-                boardArray[0][toYIdx] = capturedPieceInt;
-                boardArray[5][toYIdx] = savedPieceNo1;
+                movedPieceInt = boardArray[6][toYIdx];
+                capturedPieceInt = boardArray[5][fromYIdx];
+                boardArray[6][toYIdx] = savedPieceNo1;
                 boardArray[6][fromYIdx] = savedPieceNo2;
+            } else {
+                movedPieceInt = boardArray[3][toYIdx];
+                capturedPieceInt = boardArray[2][fromYIdx];
+                boardArray[2][toYIdx] = savedPieceNo1;
+                boardArray[3][fromYIdx] = savedPieceNo2;
             }
         } else if (moveArray[6] != 0) {
             /* The 7th element in a moveArray is only nonzero if the move is a
-               pawn being promoted, so this is a pawn promotion. */
-
-            /* A check for if this move would put the king in check. Those
-               aren't explored any further, and the worst possible value is
-               returned. */
-            if (BoardArrays.wouldKingBeInCheck(boardArray, fromXIdx, fromYIdx, toXIdx, toYIdx,
-                                               colorsTurnItIs, colorOnTop)) {
-                return maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+               pawn being promoted. */
+            if (BoardArrays.wouldKingBeInCheck(boardArray, fromXIdx, fromYIdx, toXIdx, toYIdx, colorsTurnItIs, colorOnTop)) {
+                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
+                                                 + thisColorStr + "'s King is in check and this move doesn't fix that. "
+                                                 + "Move can't be made.");
             }
 
-            /* The move is executed, with the destination square set to the new
-               piece. The original piece is saved. */
             int promotedFromPieceInt = boardArray[fromXIdx][fromYIdx];
             savedPieceNo1 = boardArray[toXIdx][toYIdx];
             boardArray[toXIdx][toYIdx] = moveArray[6];
             boardArray[fromXIdx][fromYIdx] = 0;
 
-            /* The actual call to algorithmLowerLevel(). */
-            retval = algorithmLowerLevel(boardArray, maximize, depth, colorsTurnItIs, alpha, beta);
+            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
-            /* The move is reversed and the board is returned to the state it
-               was in when this method was called. */
             boardArray[fromXIdx][fromYIdx] = promotedFromPieceInt;
             boardArray[toXIdx][toYIdx] = savedPieceNo1;
         } else {
-            /* This is a normal move. */
-
-            /* A check for if this move would put the king in check. Those
-               aren't explored any further, and the worst possible value is
-               returned. */
-            if (BoardArrays.wouldKingBeInCheck(boardArray, fromXIdx, fromYIdx, toXIdx, toYIdx, colorsTurnItIs,
-                                               colorOnTop)) {
-                return maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+            if (BoardArrays.wouldKingBeInCheck(boardArray, fromXIdx, fromYIdx, toXIdx, toYIdx, colorsTurnItIs, colorOnTop)) {
+                throw new KingIsInCheckException("Move would place " + thisColorStr + "'s king in check or "
+                                                 + thisColorStr + "'s King is in check and this move doesn't fix that. "
+                                                 + "Move can't be made.");
             }
 
-            /* The move is executed, and the original piece at the destination
-               square is saved. */
             savedPieceNo1 = boardArray[toXIdx][toYIdx];
             boardArray[toXIdx][toYIdx] = moveArray[0];
             boardArray[fromXIdx][fromYIdx] = 0;
 
-            /* The actual call to algorithmLowerLevel(). */
-            retval = algorithmLowerLevel(boardArray, maximize, depth, colorsTurnItIs, alpha, beta);
+            retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
-            /* The move is reversed and the board is returned to the state it
-               was in when this method was called. */
             boardArray[fromXIdx][fromYIdx] = boardArray[toXIdx][toYIdx];
             boardArray[toXIdx][toYIdx] = savedPieceNo1;
         }
 
-        /* The score returned by algorithmLowerLevel() is passed up. */
         return retval;
     }
 
@@ -524,29 +524,29 @@ public class MinimaxRunner {
            then the following computation will work out to a positive
            increment to the score if abs(otherColorSpecialPawnScore) >
            abs(thisColorSpecialPawnScore). */
-        double specialPawnScore = 0.5F * (thisColorSpecialPawnScore - otherColorSpecialPawnScore);
+        double specialPawnScore = 0.5D * (thisColorSpecialPawnScore - otherColorSpecialPawnScore);
 
         /* Mobility is the total number of moves available to that color. */
-        double thisMobility = totalColorMobility(boardArray, colorsTurnItIs);
-        double otherMobility = totalColorMobility(boardArray, otherColor);
-        double mobilityScore = 0.1F * (thisMobility - otherMobility);
+        double thisColorMobility = totalColorMobility(boardArray, colorsTurnItIs);
+        double otherColorMobility = totalColorMobility(boardArray, otherColor);
+        double mobilityScore = 0.1D * (thisColorMobility - otherColorMobility);
 
         /* The weighting assigned to whether one side's king is in check
            outshines every other value in this calculation by a wide margin. If
            a move would put the player's side's king in check, that move will be
            weighted far above every other possible move. */
-        double kingScore = 200F * (piecesCounts[thisColorIndex][kingIndex]
+        double kingScore = 200D * (piecesCounts[thisColorIndex][kingIndex]
                                    - piecesCounts[otherColorIndex][kingIndex]);
 
         /* These weighted scores are calculated from the difference between the
            number of pieces in play for each color. */
-        double queenScore = 9F * (piecesCounts[thisColorIndex][queenIndex]
+        double queenScore = 9D * (piecesCounts[thisColorIndex][queenIndex]
                                   - piecesCounts[otherColorIndex][queenIndex]);
-        double rookScore = 5F * (piecesCounts[thisColorIndex][rookIndex]
+        double rookScore = 5D * (piecesCounts[thisColorIndex][rookIndex]
                                  - piecesCounts[otherColorIndex][rookIndex]);
-        double bishopScore = 3F * (piecesCounts[thisColorIndex][bishopIndex]
+        double bishopScore = 3D * (piecesCounts[thisColorIndex][bishopIndex]
                                    - piecesCounts[otherColorIndex][bishopIndex]);
-        double knightScore = 3F * (piecesCounts[thisColorIndex][knightIndex]
+        double knightScore = 3D * (piecesCounts[thisColorIndex][knightIndex]
                                    - piecesCounts[otherColorIndex][knightIndex]);
         double generalPawnScore = (piecesCounts[thisColorIndex][pawnIndex]
                                    - piecesCounts[otherColorIndex][pawnIndex]);
@@ -727,8 +727,8 @@ public class MinimaxRunner {
      * @see #evaluateBoard
      */
     private double totalColorMobility(final int[][] boardArray, final int colorsTurnItIs) {
-        int[][] colorMobilitySpareMovesArray = new int[128][7];
-        int moveIdx = 0;
+        int[][] movesArray = new int[128][7];
+        double moveIdx = 0;
 
         /* Iterating across the board, stopping when a friendly
            piece is encountered. For each friendly piece,
@@ -739,8 +739,8 @@ public class MinimaxRunner {
                 if ((boardArray[xIdx][yIdx] & colorsTurnItIs) == 0) {
                     continue;
                 }
-                moveIdx = BoardArrays.generatePieceMoves(boardArray, colorMobilitySpareMovesArray, moveIdx, xIdx, yIdx,
-                                                         colorsTurnItIs, colorOnTop);
+                moveIdx = (double) BoardArrays.generatePieceMoves(boardArray, movesArray, (int) moveIdx,
+                                                                  xIdx, yIdx, colorsTurnItIs, colorOnTop);
             }
         }
 

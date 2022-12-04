@@ -92,10 +92,10 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
     private boolean whiteHasMoved;
 
     /** The color the AI is playing. */
-    private final int colorOfAI;
+    private int colorOfAI;
 
     /** The color the player is playing. */
-    private final int colorOfPlayer;
+    private int colorOfPlayer;
 
     /**
      * Instances a BoardView object. It accepts quite a few arguments since
@@ -141,6 +141,19 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             opposingMoveDelayTimer.setRepeats(true);
             opposingMoveDelayTimer.start();
         }
+    }
+
+    /**
+     * Mutator method for the colorPlaying and colorOnTop instance variables.
+     *
+     * @param colorOfPlayer The new integer value representing the color the
+     *                      user is playing. One of either BoardArrays.WHITE
+     *                      or BoardArrays.BLACK.
+     */
+    public void setColors(final int colorPlaying, final int colorOnTopVal) {
+        colorOfPlayer = colorPlaying;
+        colorOfAI = (colorPlaying == BoardArrays.WHITE) ? BoardArrays.BLACK : BoardArrays.WHITE;
+        minimaxRunner.setColors(colorPlaying, colorOnTopVal);
     }
 
     /**
@@ -372,8 +385,8 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                                                  && (clickEventClickedPiece.pieceInt() & Chessboard.WHITE)
                                                  == (clickEventToCapturePiece.pieceInt() & Chessboard.WHITE);
             boolean moveIsCastling = firstPieceIsKing && secondPieceIsRook && bothPiecesAreSameColor;
-            boolean moveIsCastlingKingside = moveIsCastling && clickEventMovingTo[0] == 0;
-            boolean moveIsCastlingQueenside = moveIsCastling && clickEventMovingTo[0] == 7;
+            boolean moveIsCastlingKingside = moveIsCastling && clickEventMovingTo[0] == 7;
+            boolean moveIsCastlingQueenside = moveIsCastling && clickEventMovingTo[0] == 0;
             /* The booleans moveIsCastlingKingside and moveIsCastlingQueenside
                are used as arguments to the Chessboard.Move constructor. */
 
@@ -388,16 +401,18 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         }
     }
 
-    /* Applies four different tests to the moveobj to identify move errors: if
+    /* Applies five different tests to the moveobj to identify move errors: if
        the 2nd click was on a friendly piece (provided the 1st click wasn't on
-       the king and the 2nd of a rook, which signals castling), if the king is
-       in check and the move doesn't fix that, if the move would put the king in
-       check, or if the move is not a valid move for the piece selected.
+       the king and the 2nd of a rook, which signals castling), if the click
+       signals castling but castling is impossible, if the king is in check and
+       the move doesn't fix that, if the move would put the king in check, or if
+       the move is not a valid move for the piece selected.
 
        If an error is found, it's communicated to the moveslog textarea, which
        displays the error message, and the method returns false. otherwise true
        is returned. */
     private boolean mouseClickedTestForMoveErrors(final Chessboard.Move moveObj) {
+        int[][] boardArray = chessboard.getBoardArray();
         int colorOnTop = chessboard.getColorOnTop();
 
         /* The time that both pieces are the same color, and it's a valid
@@ -416,6 +431,22 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
             resetClickEventVars();
             return false;
+        } else if (moveObj.isCastlingKingside() || moveObj.isCastlingQueenside()) {
+            /* For castling to be legal, both the king and the rook must not
+               have moved so far in the game, the king must not be in check, and
+               both the king's final square and the squares it passes through
+               must not be threatened. ChessboardisCastlingPossible() checks all
+               of these conditions, and returns 0 if castling is possible. */
+            int castlingSidePiece = moveObj.isCastlingKingside() ? Chessboard.KING : Chessboard.QUEEN;
+            int castlingAssessment = chessboard.isCastlingPossible(colorOfPlayer, castlingSidePiece);
+            if (castlingAssessment != 0) {
+                /* For convenience, Chessboard.isCastlingPossible() returns a
+                   MovesLog.MoveError error code when it finds a condition that
+                   prevents castling. */
+                movesLog.addError(moveObj, castlingAssessment);
+                resetClickEventVars();
+                return false;
+            }
         } else if ((clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0
                    && BoardArrays.wouldKingBeInCheck(
                           chessboard.getBoardArray(), clickEventMovingTo[0], clickEventMovingTo[1],
@@ -473,7 +504,7 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             resetClickEventVars();
             return false;
         } catch (CastlingNotPossibleException exception) {
-            movesLog.addError(moveObj, MovesLog.MoveError.CASTLING_NOT_POSSIBLE);
+            movesLog.addError(moveObj, exception.getCastlingNotPossibleReason());
             resetClickEventVars();
             return false;
         }

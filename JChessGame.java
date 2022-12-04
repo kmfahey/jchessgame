@@ -373,6 +373,7 @@ public class JChessGame extends JFrame implements ActionListener {
              * game. All it needs to know is whether the AI moves first (i.e. is
              * playing White) or not.
              */
+            boardView.setColors(colorPlaying, colorOnTop);
             if (colorPlaying == BoardArrays.BLACK) {
                 boardView.aiMovesFirst();
             } else {

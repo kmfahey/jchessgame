@@ -7,6 +7,14 @@ package com.kmfahey.jchessgame;
  * @see Chessboard#movePiece
  */
 public class CastlingNotPossibleException extends Exception {
+    private int castlingNotPossibleReason = -1;
+
+    /**
+     * An accessor for the castlingNotPossibleReason instance variable. 
+     */
+    public int getCastlingNotPossibleReason() {
+        return castlingNotPossibleReason;
+    }
 
     /**
      * Constructs a CastlingNotPossibleException with no detail message.
@@ -16,12 +24,24 @@ public class CastlingNotPossibleException extends Exception {
     }
 
     /**
-     * Constructs a CastlingNotPossibleException with the specified detail message.
+     * Constructs a CastlingNotPossibleException with the specified detail
+     * message.
      *
      * @param message The detail message.
      */
     public CastlingNotPossibleException(final String message) {
         super(message);
+    }
+
+    /**
+     * Constructs a CastlingNotPossibleException with the specified detail
+     * message, and the reason code why castling is impossible.
+     *
+     * @param message The detail message.
+     */
+    public CastlingNotPossibleException(final String message, final int castlingNotPossibleReasonVal) {
+        super(message);
+        castlingNotPossibleReason = castlingNotPossibleReasonVal;
     }
 
     /**

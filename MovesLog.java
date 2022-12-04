@@ -55,8 +55,17 @@ public class MovesLog extends JTextArea {
         /** Flag, the move captures a friendly piece. */
         public static final int IS_A_FRIENDLY_PIECE = 3;   
 
-        /** Flag, that castling is illegal. */
-        public static final int CASTLING_NOT_POSSIBLE = 4; 
+        /** Flag, that castling is illegal because an intervening space is occupied. */
+        public static final int CASTLING_INTERVENING_SPACE_OCCUPIED = 4;
+
+        /** Flag, that castling is illegal because the king is in check. */
+        public static final int CASTLING_KING_IN_CHECK = 5;
+
+        /** Flag, that castling is illegal because a square on the way is threatened. */
+        public static final int CASTLING_PATH_IS_THREATENED = 6;
+
+        /** Flag, that castling is illegal because a square on the way is threatened. */
+        public static final int CASTLING_PIECE_HAS_MOVED = 7;
 
         /**
          * Renders the error and the Chessboard.Move object it references in
@@ -79,8 +88,14 @@ public class MovesLog extends JTextArea {
                     retval += "that's not a valid move for that piece."; break;
                 case IS_A_FRIENDLY_PIECE:
                     retval += "can't capture a friendly piece."; break;
-                case CASTLING_NOT_POSSIBLE:
-                    retval += "castling is impossible."; break;
+                case CASTLING_INTERVENING_SPACE_OCCUPIED:
+                    retval += "castling is impossible because an intervening space is occupied."; break;
+                case CASTLING_KING_IN_CHECK:
+                    retval += "castling is impossible because king is in check."; break;
+                case CASTLING_PATH_IS_THREATENED:
+                    retval += "castling is impossible because a traversed square is threatened."; break;
+                case CASTLING_PIECE_HAS_MOVED:
+                    retval += "castling is impossible because one the pieces has already moved."; break;
                 default:
                     break;
             }

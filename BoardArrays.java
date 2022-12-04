@@ -1184,37 +1184,26 @@ public final class BoardArrays {
         * here but will be tested for by Chessboard.movePiece() if this move is
         * attempted, since the Chessboard class does track those booleans.)
         */
-        if ((yIdx == 0 || yIdx == 7) && xIdx == 3) {
+        if ((yIdx == 0 || yIdx == 7) && xIdx == 4) {
             /* If the king is at its starter position, then it might be able to
-               castle in either direction. The first conditional checks whether
-               kingside castling is possible. It checks if the rook is in
-               position and the intervening squares are empty. */
-            if (boardArray[2][yIdx] == 0 && boardArray[1][yIdx] == 0
-                && (boardArray[0][yIdx] == (colorsTurnItIs | ROOK))) {
-
-                /* If the king wouldn't be in check, then the castling move is
-                   saved to the movesArray. It's signalled by saving a move to
-                   the corner the rook is in and listing the rook as a capture
-                   (although the rook is the same color and can't be captured). */
-                if (!wouldKingBeInCheck(boardArray, 2, yIdx, colorsTurnItIs, colorOnTop)) {
+               castle in either direction. The intervening squares must be
+               empty, the rook must be in position, and both the king's
+               destination square and the intervening squares must not be
+               threatened. */
+            if (boardArray[3][yIdx] == 0 && boardArray[2][yIdx] == 0 && boardArray[1][yIdx] == 0
+                && boardArray[0][yIdx] == (colorsTurnItIs | ROOK)
+                && !wouldKingBeInCheck(boardArray, 3, yIdx, colorsTurnItIs, colorOnTop)
+                && !wouldKingBeInCheck(boardArray, 2, yIdx, colorsTurnItIs, colorOnTop)
+                && !wouldKingBeInCheck(boardArray, 1, yIdx, colorsTurnItIs, colorOnTop)) {
                     moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 0, yIdx,
                                                   boardArray[0][yIdx]);
-                }
             }
-            /* The second conditional checks whether queenside castling
-               is possible. It checks if the rook is in position and the
-               intervening squares are empty. */
-            if (boardArray[4][yIdx] == 0 && boardArray[5][yIdx] == 0 && boardArray[6][yIdx] == 0
-                       && (boardArray[7][yIdx] == (colorsTurnItIs | ROOK))) {
-
-                /* If the king wouldn't be in check, then the castling move is
-                   saved to the movesArray. It's signalled by saving a move to
-                   the corner the rook is in and listing the rook as a capture
-                   (although the rook is the same color and can't be captured). */
-                if (!wouldKingBeInCheck(boardArray, 6, yIdx, colorsTurnItIs, colorOnTop)) {
+            if (boardArray[5][yIdx] == 0 && boardArray[6][yIdx] == 0
+                && boardArray[7][yIdx] == (colorsTurnItIs | ROOK)
+                && !wouldKingBeInCheck(boardArray, 5, yIdx, colorsTurnItIs, colorOnTop)
+                && !wouldKingBeInCheck(boardArray, 6, yIdx, colorsTurnItIs, colorOnTop)) {
                     moveIdx = setMoveToMovesArray(movesArray, moveIdx, pieceInt, xIdx, yIdx, 7, yIdx,
                                                   boardArray[7][yIdx]);
-                }
             }
         }
 
@@ -1499,6 +1488,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && kingYIdx == fromYIdx) {
                 continue;
+            } else if (xIdxMod == toXIdx && kingYIdx == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a horizontal, then
                the king is in check, return true. */
             } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
@@ -1506,7 +1497,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && kingYIdx == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }
@@ -1518,6 +1509,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
+            } else if (xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
             } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
@@ -1525,7 +1518,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }
@@ -1537,6 +1530,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || kingXIdx == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
+            } else if (kingXIdx == toXIdx && yIdxMod == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a vertical, then the
                king is in check, return true. */
             } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
@@ -1544,7 +1539,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || kingXIdx == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }
@@ -1556,6 +1551,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
+            } else if (xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
             } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
@@ -1563,7 +1560,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }
@@ -1575,6 +1572,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && kingYIdx == fromYIdx) {
                 continue;
+            } else if (xIdxMod == toXIdx && kingYIdx == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a horizontal, then
                the king is in check, return true. */
             } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
@@ -1582,7 +1581,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && kingYIdx == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }
@@ -1594,6 +1593,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
+            } else if (xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
             } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
@@ -1601,7 +1602,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }
@@ -1613,6 +1614,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || kingXIdx == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
+            } else if (kingXIdx == toXIdx && yIdxMod == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a vertical, then the
                king is in check, return true. */
             } else if (pieceInt == (otherColor | ROOK) || pieceInt == (otherColor | QUEEN)) {
@@ -1620,7 +1623,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || kingXIdx == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }
@@ -1632,6 +1635,8 @@ public final class BoardArrays {
                and this square is where it used to be, then continue. */
             if (kingMoved && pieceInt == (colorsTurnItIs | KING) || xIdxMod == fromXIdx && yIdxMod == fromYIdx) {
                 continue;
+            } else if (xIdxMod == toXIdx && yIdxMod == toYIdx) {
+                break;
             /* If the square has a piece that can attack on a diagonal, then the
                king is in check, return true. */
             } else if (pieceInt == (otherColor | BISHOP) || pieceInt == (otherColor | QUEEN)) {
@@ -1639,7 +1644,7 @@ public final class BoardArrays {
             /* If the square is occupied by anything else, or if it's where the
                piece is moving to (and should be treated as occupied), then
                break. */
-            } else if (pieceInt != 0 || xIdxMod == toXIdx && yIdxMod == toYIdx) {
+            } else if (pieceInt != 0) {
                 break;
             }
         }

@@ -22,34 +22,34 @@ public class Chessboard {
        also be or'd with either LEFT or RIGHT. */
 
     /** Flag for black pieces. */
-    public static final int BLACK = BoardArrays.BLACK;   
+    public static final int BLACK = BoardArrays.BLACK;
 
     /** Flag for white pieces. */
-    public static final int WHITE = BoardArrays.WHITE;   
+    public static final int WHITE = BoardArrays.WHITE;
 
     /** Flag for kings. */
-    public static final int KING = BoardArrays.KING;     
+    public static final int KING = BoardArrays.KING;
 
     /** Flag for queens. */
-    public static final int QUEEN = BoardArrays.QUEEN;   
+    public static final int QUEEN = BoardArrays.QUEEN;
 
     /** Flag for bishops. */
-    public static final int BISHOP = BoardArrays.BISHOP; 
+    public static final int BISHOP = BoardArrays.BISHOP;
 
     /** Flag for knights. */
-    public static final int KNIGHT = BoardArrays.KNIGHT; 
+    public static final int KNIGHT = BoardArrays.KNIGHT;
 
     /** Flag for rooks. */
-    public static final int ROOK = BoardArrays.ROOK;     
+    public static final int ROOK = BoardArrays.ROOK;
 
     /** Flag for pawns. */
-    public static final int PAWN = BoardArrays.PAWN;     
+    public static final int PAWN = BoardArrays.PAWN;
 
     /** Flag for right-facing knights. */
-    public static final int RIGHT = BoardArrays.RIGHT;   
+    public static final int RIGHT = BoardArrays.RIGHT;
 
     /** Flag for left-facing knights. */
-    public static final int LEFT = BoardArrays.LEFT;     
+    public static final int LEFT = BoardArrays.LEFT;
 
     /**
      * Comprises all the valid piece integer values.
@@ -62,8 +62,8 @@ public class Chessboard {
      * White.
      */
     private static final HashMap<Integer, Integer[][]> PIECES_STARTING_LOCS_WHITE_BELOW = new HashMap<>() {{
-        put(BLACK | KING,           new Integer[][] {new Integer[] {3, 0}});
-        put(BLACK | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
+        put(BLACK | KING,           new Integer[][] {new Integer[] {4, 0}});
+        put(BLACK | QUEEN,          new Integer[][] {new Integer[] {3, 0}});
         put(BLACK | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
         put(BLACK | BISHOP,         new Integer[][] {new Integer[] {2, 0}, new Integer[] {5, 0}});
         put(BLACK | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 0}});
@@ -72,8 +72,8 @@ public class Chessboard {
                                                      new Integer[] {2, 1}, new Integer[] {3, 1},
                                                      new Integer[] {4, 1}, new Integer[] {5, 1},
                                                      new Integer[] {6, 1}, new Integer[] {7, 1}});
-        put(WHITE | KING,           new Integer[][] {new Integer[] {3, 7}});
-        put(WHITE | QUEEN,          new Integer[][] {new Integer[] {4, 7}});
+        put(WHITE | KING,           new Integer[][] {new Integer[] {4, 7}});
+        put(WHITE | QUEEN,          new Integer[][] {new Integer[] {3, 7}});
         put(WHITE | ROOK,           new Integer[][] {new Integer[] {0, 7}, new Integer[] {7, 7}});
         put(WHITE | BISHOP,         new Integer[][] {new Integer[] {2, 7}, new Integer[] {5, 7}});
         put(WHITE | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 7}});
@@ -90,8 +90,8 @@ public class Chessboard {
      * Black.
      */
     private static final HashMap<Integer, Integer[][]> PIECES_STARTING_LOCS_BLACK_BELOW = new HashMap<>() {{
-        put(WHITE | KING,           new Integer[][] {new Integer[] {3, 0}});
-        put(WHITE | QUEEN,          new Integer[][] {new Integer[] {4, 0}});
+        put(WHITE | KING,           new Integer[][] {new Integer[] {4, 0}});
+        put(WHITE | QUEEN,          new Integer[][] {new Integer[] {3, 0}});
         put(WHITE | ROOK,           new Integer[][] {new Integer[] {0, 0}, new Integer[] {7, 0}});
         put(WHITE | BISHOP,         new Integer[][] {new Integer[] {2, 0}, new Integer[] {5, 0}});
         put(WHITE | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 0}});
@@ -100,8 +100,8 @@ public class Chessboard {
                                                      new Integer[] {2, 1}, new Integer[] {3, 1},
                                                      new Integer[] {4, 1}, new Integer[] {5, 1},
                                                      new Integer[] {6, 1}, new Integer[] {7, 1}});
-        put(BLACK | KING,           new Integer[][] {new Integer[] {3, 7}});
-        put(BLACK | QUEEN,          new Integer[][] {new Integer[] {4, 7}});
+        put(BLACK | KING,           new Integer[][] {new Integer[] {4, 7}});
+        put(BLACK | QUEEN,          new Integer[][] {new Integer[] {3, 7}});
         put(BLACK | ROOK,           new Integer[][] {new Integer[] {0, 7}, new Integer[] {7, 7}});
         put(BLACK | BISHOP,         new Integer[][] {new Integer[] {2, 7}, new Integer[] {5, 7}});
         put(BLACK | KNIGHT | RIGHT, new Integer[][] {new Integer[] {6, 7}});
@@ -154,9 +154,9 @@ public class Chessboard {
     private int[][] boardArray;
 
     /* These booleans are used to track if the kings or rooks have moved yet
-       during play. They're used by isCastlingPossible() to verify that a
-       castling move is allowed, since castling isn't allowed if either the rook
-       or the king has moved. */
+       during play. They're used by isCastlingPossible() to discover if a
+       castling move is allowed, since castling isn't allowed if either the
+       rook or the king has moved. */
     private boolean blackKingsRookHasMoved = false;
     private boolean blackQueensRookHasMoved = false;
     private boolean whiteKingsRookHasMoved = false;
@@ -481,46 +481,79 @@ public class Chessboard {
      *                    kingside castling, and queen indicates queenside
      *                    castling.
      */
-    private boolean isCastlingImpossible(final int colorOfKing, final int kingOrQueen) throws IllegalArgumentException {
+    public int isCastlingPossible(final int colorOfKing, final int kingOrQueen) throws IllegalArgumentException {
         switch (colorOfKing | kingOrQueen) {
             case BLACK | KING -> {
                 int yIdx = colorOnTop == BLACK ? 0 : 7;
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (blackKingHasMoved || blackKingsRookHasMoved) {
-                    return true;
+                    return MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
-                } else if (boardArray[1][yIdx] != 0 || boardArray[2][yIdx] != 0) {
-                    return true;
+                } else if (boardArray[5][yIdx] != 0 || boardArray[6][yIdx] != 0) {
+                    return MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED;
+                } else {
+                    for (int xIdx = 4; xIdx <= 6; xIdx++) {
+                        if (BoardArrays.wouldKingBeInCheck(boardArray, xIdx, yIdx,
+                                                           colorPlaying, colorOnTop)) {
+                            if ((boardArray[xIdx][yIdx] & KING) != 0) {
+                                return MovesLog.MoveError.CASTLING_KING_IN_CHECK;
+                            } else {
+                                return MovesLog.MoveError.CASTLING_PATH_IS_THREATENED;
+                            }
+                        }
+                    }
                 }
-                return false;
+                return 0;
             }
             case BLACK | QUEEN -> {
                 int yIdx = colorOnTop == BLACK ? 0 : 7;
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (blackKingHasMoved || blackQueensRookHasMoved) {
-                    return true;
+                    return MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
-                } else if (boardArray[4][yIdx] != 0 || boardArray[5][yIdx] != 0 || boardArray[6][yIdx] != 0) {
-                    return true;
+                } else if (boardArray[3][yIdx] != 0 || boardArray[2][yIdx] != 0 || boardArray[1][yIdx] != 0) {
+                    return MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED;
+                } else {
+                    for (int xIdx = 1; xIdx <= 4; xIdx++) {
+                        if (BoardArrays.wouldKingBeInCheck(boardArray, xIdx, yIdx,
+                                                           colorPlaying, colorOnTop)) {
+                            if ((boardArray[xIdx][yIdx] & KING) != 0) {
+                                return MovesLog.MoveError.CASTLING_KING_IN_CHECK;
+                            } else {
+                                return MovesLog.MoveError.CASTLING_PATH_IS_THREATENED;
+                            }
+                        }
+                    }
                 }
-                return false;
+                return 0;
             }
             case WHITE | KING -> {
                 int yIdx = colorOnTop == WHITE ? 0 : 7;
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (whiteKingHasMoved || whiteKingsRookHasMoved) {
-                    return true;
+                    return MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
-                } else if (boardArray[1][yIdx] != 0 || boardArray[2][yIdx] != 0) {
-                    return true;
+                } else if (boardArray[5][yIdx] != 0 || boardArray[6][yIdx] != 0) {
+                    return MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED;
+                } else {
+                    for (int xIdx = 4; xIdx <= 6; xIdx++) {
+                        if (BoardArrays.wouldKingBeInCheck(boardArray, xIdx, yIdx,
+                                                           colorPlaying, colorOnTop)) {
+                            if ((boardArray[xIdx][yIdx] & KING) != 0) {
+                                return MovesLog.MoveError.CASTLING_KING_IN_CHECK;
+                            } else {
+                                return MovesLog.MoveError.CASTLING_PATH_IS_THREATENED;
+                            }
+                        }
+                    }
                 }
-                return false;
+                return 0;
             }
             /* Testing whether castling queenside is possible for the White king. */
             case WHITE | QUEEN -> {
@@ -528,13 +561,24 @@ public class Chessboard {
                 /* One or both of the pieces have moved, so castling can't be
                    done. */
                 if (whiteKingHasMoved || whiteQueensRookHasMoved) {
-                    return true;
+                    return MovesLog.MoveError.CASTLING_PIECE_HAS_MOVED;
                 /* One or more of the squares between the king and the rook are
                    occupied, so castling is impossible. */
-                } else if (boardArray[4][yIdx] != 0 || boardArray[5][yIdx] != 0 || boardArray[6][7] != 0) {
-                    return true;
+                } else if (boardArray[3][yIdx] != 0 || boardArray[2][yIdx] != 0 || boardArray[1][yIdx] != 0) {
+                    return MovesLog.MoveError.CASTLING_INTERVENING_SPACE_OCCUPIED;
+                } else {
+                    for (int xIdx = 1; xIdx <= 4; xIdx++) {
+                        if (BoardArrays.wouldKingBeInCheck(boardArray, xIdx, yIdx,
+                                                           colorPlaying, colorOnTop)) {
+                            if ((boardArray[xIdx][yIdx] & KING) != 0) {
+                                return MovesLog.MoveError.CASTLING_KING_IN_CHECK;
+                            } else {
+                                return MovesLog.MoveError.CASTLING_PATH_IS_THREATENED;
+                            }
+                        }
+                    }
                 }
-                return false;
+                return 0;
             }
             default -> throw new IllegalArgumentException("could not resolve arguments to isCastlingPossible()");
         }
@@ -571,35 +615,33 @@ public class Chessboard {
         } else if (isCastlingKingside) {
             /* Castling is only possible if the rook and king both haven't
                moved since the start of play. Boolean state variables are used
-               to track these conditions, and isCastlingPossible checks those
-               values to see if castling can be done. */
-            if (isCastlingImpossible(colorOfPiece, KING)) {
-                throw new CastlingNotPossibleException("Castling kingside is not possible for " + colorOfPieceStr);
-            /* A test to see if the move would somehow put the king in check. */
-            } else if (BoardArrays.wouldKingBeInCheck(boardArray, 2, kingYCoord, colorOfPiece, colorOnTop)) {
-                throw new KingIsInCheckException("Castling kingside would place " + colorOfPieceStr + "'s king in "
-                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
-                                                 + "doesn't fix that. Move can't be made.");
-            }
-
-            rookNewXCoord = 2;
-            kingNewXCoord = 1;
-        } else if (isCastlingQueenside) {
-            /* Castling is only possible if the rook and king both haven't
-               moved since the start of play. Boolean state variables are used
-               to track these conditions, and isCastlingPossible checks those
-               values to see if castling can be done. */
-            if (isCastlingImpossible(colorOfPiece, QUEEN)) {
-                throw new CastlingNotPossibleException("Castling queenside is not possible for " + colorOfPieceStr);
-            /* A test to see if the move would somehow put the king in check. */
-            } else if (BoardArrays.wouldKingBeInCheck(boardArray, 6, kingYCoord, colorOfPiece, colorOnTop)) {
-                throw new KingIsInCheckException("Castling queenside would place " + colorOfPieceStr + "'s king in "
-                                                 + "check or " + colorOfPieceStr + "'s king is in check and this move "
-                                                 + "doesn't fix that. Move can't be made.");
+               to track these conditions, and isCastlingPossible() checks
+               those values to see if castling can be done. The king also must
+               not be in check, their destination must not be threatened,
+               and the intervening squares must also not be threatened.
+               isCastlingPossible() checks those conditions as well. */
+            int castlingAssessment = isCastlingPossible(colorOfPiece, KING);
+            if (castlingAssessment != 0) {
+                throw new CastlingNotPossibleException("Castling kingside is not possible for " + colorOfPieceStr, castlingAssessment);
             }
 
             rookNewXCoord = 5;
             kingNewXCoord = 6;
+        } else if (isCastlingQueenside) {
+            /* Castling is only possible if the rook and king both haven't
+               moved since the start of play. Boolean state variables are used
+               to track these conditions, and isCastlingPossible() checks
+               those values to see if castling can be done. The king also must
+               not be in check, their destination must not be threatened,
+               and the intervening squares must also not be threatened.
+               isCastlingPossible() checks those conditions as well. */
+            int castlingAssessment = isCastlingPossible(colorOfPiece, QUEEN);
+            if (castlingAssessment != 0) {
+                throw new CastlingNotPossibleException("Castling queenside is not possible for " + colorOfPieceStr, castlingAssessment);
+            }
+
+            rookNewXCoord = 3;
+            kingNewXCoord = 2;
         } else {
             /* This is a can't happen error, but here for completeness. */
             throw new IllegalStateException("movePieceCastling() called with a Move object that doesn't indicate "
