@@ -470,7 +470,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
             /* The piece isn't a king, and that move would put the king in check
                or the king is in check and that move doesn't resolve that. */
             if (BoardArrays.isKingInCheck(chessboard.getBoardArray(), colorOfPlayer, colorOnTop)) {
-                System.err.println("foo");
                 movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
             } else {
                 movesLog.addError(moveObj, MovesLog.MoveError.WOULD_BE_IN_CHECK);
@@ -498,8 +497,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         /* An attempt to execute the moveObj using Chessboard.movePiece(). If an
            exception is thrown, this method returns false. */
         try {
-            BoardArrays.printBoard(boardArray);
-            System.err.println();
             chessboard.movePiece(moveObj);
         } catch (KingIsInCheckException exception) {
             movesLog.addError(moveObj, MovesLog.MoveError.IS_IN_CHECK);
@@ -712,7 +709,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
         try {
             int[][] boardArray = chessboard.getBoardArray();
             BoardArrays.printBoard(boardArray);
-            System.err.println();
             chessboard.movePiece(moveToMake);
         } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
