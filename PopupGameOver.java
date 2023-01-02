@@ -1,4 +1,4 @@
-package org.magentatobe.jchessgame;
+package org.kmfahey.jchessgame;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

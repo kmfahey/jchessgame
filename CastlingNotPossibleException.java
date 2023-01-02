@@ -1,4 +1,4 @@
-package org.magentatobe.jchessgame;
+package org.kmfahey.jchessgame;
 
 /**
  * Thrown by Chessboard.movePiece() when processing a castling move if it turns

@@ -11,4 +11,4 @@
  * @author MagentaToBe
  * @version 1.0
  */
-package org.magentatobe.jchessgame;
+package org.kmfahey.jchessgame;

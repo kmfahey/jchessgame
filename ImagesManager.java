@@ -1,4 +1,4 @@
-package org.magentatobe.jchessgame;
+package org.kmfahey.jchessgame;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;

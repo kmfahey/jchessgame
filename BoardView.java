@@ -1,4 +1,4 @@
-package org.magentatobe.jchessgame;
+package org.kmfahey.jchessgame;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -708,7 +708,6 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
            isn't executable. Hasn't had an error on an AI move yet. */
         try {
             int[][] boardArray = chessboard.getBoardArray();
-            BoardArrays.printBoard(boardArray);
             chessboard.movePiece(moveToMake);
         } catch (KingIsInCheckException | CastlingNotPossibleException exception) {
             String exceptionClassName = exception.getClass().getName().split("^.*\\.")[1];
