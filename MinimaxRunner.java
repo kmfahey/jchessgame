@@ -319,15 +319,15 @@ public class MinimaxRunner {
                                          final int depth, final double alpha, final double beta
                                          ) throws IllegalArgumentException, KingIsInCheckException,
                                                   CastlingNotPossibleException {
-        int colorOpposing = (colorsTurnItIs == WHITE ? BLACK : WHITE);
+        // opposing color = (colorsTurnItIs == WHITE ? BLACK : WHITE)
         int movedPieceInt = moveArray[0];
         int fromXIdx = moveArray[1];
         int fromYIdx = moveArray[2];
         int toXIdx = moveArray[3];
         int toYIdx = moveArray[4];
         int capturedPieceInt = moveArray[5];
-        int savedPieceNo1 = 0;
-        int savedPieceNo2 = 0;
+        int savedPieceNo1;
+        int savedPieceNo2;
         boolean isCastlingKingside = false;
         boolean isCastlingQueenside = false;
         double retval;
@@ -371,13 +371,13 @@ public class MinimaxRunner {
             retval = algorithmLowerLevel(boardArray, maximize, depth - 1, colorsTurnItIs, alpha, beta);
 
             if (isCastlingKingside) {
-                movedPieceInt = boardArray[6][toYIdx];
-                capturedPieceInt = boardArray[5][fromYIdx];
+                // moved pierce is boardArray[6][toYIdx];
+                // captured piece is boardArray[5][fromYIdx];
                 boardArray[6][toYIdx] = savedPieceNo1;
                 boardArray[6][fromYIdx] = savedPieceNo2;
             } else {
-                movedPieceInt = boardArray[3][toYIdx];
-                capturedPieceInt = boardArray[2][fromYIdx];
+                // moved piece is boardArray[3][toYIdx];
+                // captured piece is boardArray[2][fromYIdx];
                 boardArray[2][toYIdx] = savedPieceNo1;
                 boardArray[3][fromYIdx] = savedPieceNo2;
             }
@@ -441,20 +441,23 @@ public class MinimaxRunner {
            having to instance a StringJoiner object, and use 2 for loops with 64
            calls to StringJoiner.add() to populate it. It's ugly but definitely
            faster.  */
-        String boardStr = String.format("%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x"
-            + "%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x"
-            + "%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x\n%03x%03x%03x%03x%03x%03x%03x%03x",
-            boardArray[0][0], boardArray[0][1], boardArray[0][2], boardArray[0][3], boardArray[0][4], boardArray[0][5],
-            boardArray[0][6], boardArray[0][7], boardArray[1][0], boardArray[1][1], boardArray[1][2], boardArray[1][3],
-            boardArray[1][4], boardArray[1][5], boardArray[1][6], boardArray[1][7], boardArray[2][0], boardArray[2][1],
-            boardArray[2][2], boardArray[2][3], boardArray[2][4], boardArray[2][5], boardArray[2][6], boardArray[2][7],
-            boardArray[3][0], boardArray[3][1], boardArray[3][2], boardArray[3][3], boardArray[3][4], boardArray[3][5],
-            boardArray[3][6], boardArray[3][7], boardArray[4][0], boardArray[4][1], boardArray[4][2], boardArray[4][3],
-            boardArray[4][4], boardArray[4][5], boardArray[4][6], boardArray[4][7], boardArray[5][0], boardArray[5][1],
-            boardArray[5][2], boardArray[5][3], boardArray[5][4], boardArray[5][5], boardArray[5][6], boardArray[5][7],
-            boardArray[6][0], boardArray[6][1], boardArray[6][2], boardArray[6][3], boardArray[6][4], boardArray[6][5],
-            boardArray[6][6], boardArray[6][7], boardArray[7][0], boardArray[7][1], boardArray[7][2], boardArray[7][3],
-            boardArray[7][4], boardArray[7][5], boardArray[7][6], boardArray[7][7]);
+        String boardStr = String.format("""
+                        %03x%03x%03x%03x%03x%03x%03x%03x
+                        %03x%03x%03x%03x%03x%03x%03x%03x
+                        %03x%03x%03x%03x%03x%03x%03x%03x
+                        %03x%03x%03x%03x%03x%03x%03x%03x
+                        %03x%03x%03x%03x%03x%03x%03x%03x
+                        %03x%03x%03x%03x%03x%03x%03x%03x
+                        %03x%03x%03x%03x%03x%03x%03x%03x
+                        %03x%03x%03x%03x%03x%03x%03x%03x""",
+            boardArray[0][0], boardArray[0][1], boardArray[0][2], boardArray[0][3], boardArray[0][4], boardArray[0][5], boardArray[0][6], boardArray[0][7],
+            boardArray[1][0], boardArray[1][1], boardArray[1][2], boardArray[1][3], boardArray[1][4], boardArray[1][5], boardArray[1][6], boardArray[1][7],
+            boardArray[2][0], boardArray[2][1], boardArray[2][2], boardArray[2][3], boardArray[2][4], boardArray[2][5], boardArray[2][6], boardArray[2][7],
+            boardArray[3][0], boardArray[3][1], boardArray[3][2], boardArray[3][3], boardArray[3][4], boardArray[3][5], boardArray[3][6], boardArray[3][7],
+            boardArray[4][0], boardArray[4][1], boardArray[4][2], boardArray[4][3], boardArray[4][4], boardArray[4][5], boardArray[4][6], boardArray[4][7],
+            boardArray[5][0], boardArray[5][1], boardArray[5][2], boardArray[5][3], boardArray[5][4], boardArray[5][5], boardArray[5][6], boardArray[5][7],
+            boardArray[6][0], boardArray[6][1], boardArray[6][2], boardArray[6][3], boardArray[6][4], boardArray[6][5], boardArray[6][6], boardArray[6][7],
+            boardArray[7][0], boardArray[7][1], boardArray[7][2], boardArray[7][3], boardArray[7][4], boardArray[7][5], boardArray[7][6], boardArray[7][7]);
 
         /* The boardStr value is used to memoize the return values of this
            method to evaluateBoardMemoizeMap. */
@@ -513,18 +516,7 @@ public class MinimaxRunner {
         double[] thisColorSpecialPawnsTallies = tallySpecialPawns(boardArray, colorsTurnItIs);
         double[] otherColorSpecialPawnsTallies = tallySpecialPawns(boardArray, otherColor);
 
-        double thisColorSpecialPawnScore = (-thisColorSpecialPawnsTallies[ISOLATED]
-                                            - thisColorSpecialPawnsTallies[BLOCKED]
-                                            - thisColorSpecialPawnsTallies[DOUBLED]);
-        double otherColorSpecialPawnScore = (-otherColorSpecialPawnsTallies[ISOLATED]
-                                             - otherColorSpecialPawnsTallies[BLOCKED]
-                                             - otherColorSpecialPawnsTallies[DOUBLED]);
-
-        /* Since the special pawn score is a penalty-- a negative number--
-           then the following computation will work out to a positive
-           increment to the score if abs(otherColorSpecialPawnScore) >
-           abs(thisColorSpecialPawnScore). */
-        double specialPawnScore = 0.5D * (thisColorSpecialPawnScore - otherColorSpecialPawnScore);
+        double specialPawnScore = getSpecialPawnScore(thisColorSpecialPawnsTallies, otherColorSpecialPawnsTallies);
 
         /* Mobility is the total number of moves available to that color. */
         double thisColorMobility = totalColorMobility(boardArray, colorsTurnItIs);
@@ -556,6 +548,21 @@ public class MinimaxRunner {
                             + mobilityScore);
         evaluateBoardMemoizeMap.put(boardStr, totalScore);
         return totalScore;
+    }
+
+    private static double getSpecialPawnScore(double[] thisColorSpecialPawnsTallies, double[] otherColorSpecialPawnsTallies) {
+        double thisColorSpecialPawnScore = (-thisColorSpecialPawnsTallies[ISOLATED]
+                                            - thisColorSpecialPawnsTallies[BLOCKED]
+                                            - thisColorSpecialPawnsTallies[DOUBLED]);
+        double otherColorSpecialPawnScore = (-otherColorSpecialPawnsTallies[ISOLATED]
+                                             - otherColorSpecialPawnsTallies[BLOCKED]
+                                             - otherColorSpecialPawnsTallies[DOUBLED]);
+
+        /* Since the special pawn score is a penalty-- a negative number--
+           then the following computation will work out to a positive
+           increment to the score if abs(otherColorSpecialPawnScore) >
+           abs(thisColorSpecialPawnScore). */
+        return 0.5D * (thisColorSpecialPawnScore - otherColorSpecialPawnScore);
     }
 
     /*
@@ -693,9 +700,8 @@ public class MinimaxRunner {
                     doubledPawnsCount++;
                 }
 
-                int nextSquareXIdx = thisPawnXIdx;
                 int nextSquareYIdx = thisPawnYIdx + yDiff;
-                int nextSquarePieceInt = boardArray[nextSquareXIdx][nextSquareYIdx];
+                int nextSquarePieceInt = boardArray[thisPawnXIdx][nextSquareYIdx];
                 /* If the square ahead of this square is occupied, and it's
                    not a pawn on this side, then this pawn is blocked and
                    blockedPawnsCount is incremented. */
@@ -739,7 +745,7 @@ public class MinimaxRunner {
                 if ((boardArray[xIdx][yIdx] & colorsTurnItIs) == 0) {
                     continue;
                 }
-                moveIdx = (double) BoardArrays.generatePieceMoves(boardArray, movesArray, (int) moveIdx,
+                moveIdx = BoardArrays.generatePieceMoves(boardArray, movesArray, (int) moveIdx,
                                                                   xIdx, yIdx, colorsTurnItIs, colorOnTop);
             }
         }

@@ -1,14 +1,7 @@
 package org.kmfahey.jchessgame;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Implements a dialog box that pops up on instantiation and says, "Welcome to
@@ -65,7 +58,7 @@ public class PopupColorChoice extends JFrame {
         /* This builds the JLabel that displays the text of the dialog box
            to the user, instances the GridBagConstraints object for it, and
            attaches the JLabel and its constraints to the JPanel dboxPane. */
-        GridBagConstraints colorChoiceLabConstraints = buildConstraints(0, 0, 1, 2);
+        GridBagConstraints colorChoiceLabConstraints = buildConstraints(0, 0, 2);
         colorChoiceLabConstraints.insets = new Insets(10, 20, 10, 20);
         JLabel pawnPromExplLabel = new JLabel(
             "<html><div style=\"text-align: center;\">"
@@ -80,7 +73,7 @@ public class PopupColorChoice extends JFrame {
            object for it, and sets it with its constraints object to the JPanel
            dboxPane. */
         JButton playWhiteButton = buildPlayWhiteButton();
-        GridBagConstraints playWhiteButtonConstraints = buildConstraints(1, 0, 1, 1);
+        GridBagConstraints playWhiteButtonConstraints = buildConstraints(1, 0, 1);
         playWhiteButtonConstraints.insets = new Insets(20, 40, 20, 40);
         dboxPane.add(playWhiteButton, playWhiteButtonConstraints);
 
@@ -88,7 +81,7 @@ public class PopupColorChoice extends JFrame {
            object for it, and sets it with its constraints object to the JPanel
            dboxPane. */
         JButton playBlackButton = buildPlayBlackButton();
-        GridBagConstraints playBlackButtonConstraints = buildConstraints(1, 1, 1, 1);
+        GridBagConstraints playBlackButtonConstraints = buildConstraints(1, 1, 1);
         playBlackButtonConstraints.insets = new Insets(20, 40, 20, 40);
         dboxPane.add(playBlackButton, playBlackButtonConstraints);
 
@@ -109,12 +102,12 @@ public class PopupColorChoice extends JFrame {
      * @param rowspawn The value for GridBagConstraints.gridheight.
      * @param colspawn The value for GridBagConstraints.gridwidth.
      */
-    private GridBagConstraints buildConstraints(final int row, final int col, final int rowspan, final int colspan) {
+    private GridBagConstraints buildConstraints(final int row, final int col, final int colspan) {
         GridBagConstraints elemConstraints = new GridBagConstraints();
         elemConstraints.fill = GridBagConstraints.BOTH;
         elemConstraints.gridy = row;
         elemConstraints.gridx = col;
-        elemConstraints.gridheight = rowspan;
+        elemConstraints.gridheight = 1;
         elemConstraints.gridwidth = colspan;
         return elemConstraints;
     }

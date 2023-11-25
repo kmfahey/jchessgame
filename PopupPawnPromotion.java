@@ -1,19 +1,9 @@
 package org.kmfahey.jchessgame;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import javax.swing.*;
+import java.awt.*;
 import java.util.Objects;
 import java.util.Random;
-import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
 
 /**
  * Implements a dialog box that informs the
@@ -88,7 +78,7 @@ public class PopupPawnPromotion extends JFrame {
         /* Builds the JLabel that communicates the pawn promotion situation to
            the player, instances GridBagConstraints, and attaches it with its
            constraints to the JPanel object dboxPane. */
-        GridBagConstraints pawnPromLabConstraints = buildConstraints(0, 0, 1, 2);
+        GridBagConstraints pawnPromLabConstraints = buildConstraints(0, 0, 2);
         pawnPromLabConstraints.insets = new Insets(10, 20, 10, 20);
         JLabel pawnPromExplLabel = new JLabel(
             "<html><div style=\"text-align: center;\">"
@@ -104,7 +94,7 @@ public class PopupPawnPromotion extends JFrame {
            dboxPane. */
         JRadioButton rBtnRook = new JRadioButton("Rook");
         rBtnRook.setActionCommand("Rook");
-        GridBagConstraints rBtnRookConstraints = buildConstraints(1, 0, 1, 1);
+        GridBagConstraints rBtnRookConstraints = buildConstraints(1, 0, 1);
         rBtnRookConstraints.insets = new Insets(10, 40, 10, 40);
         dboxPane.add(rBtnRook, rBtnRookConstraints);
 
@@ -113,7 +103,7 @@ public class PopupPawnPromotion extends JFrame {
            dboxPane. */
         JRadioButton rBtnKnight = new JRadioButton("Knight");
         rBtnKnight.setActionCommand("Knight");
-        GridBagConstraints rBtnKnightConstraints = buildConstraints(1, 1, 1, 1);
+        GridBagConstraints rBtnKnightConstraints = buildConstraints(1, 1, 1);
         rBtnKnightConstraints.insets = new Insets(10, 40, 10, 40);
         dboxPane.add(rBtnKnight, rBtnKnightConstraints);
 
@@ -122,7 +112,7 @@ public class PopupPawnPromotion extends JFrame {
            dboxPane. */
         JRadioButton rBtnBishop = new JRadioButton("Bishop");
         rBtnBishop.setActionCommand("Bishop");
-        GridBagConstraints rBtnBishopConstraints = buildConstraints(2, 0, 1, 1);
+        GridBagConstraints rBtnBishopConstraints = buildConstraints(2, 0, 1);
         rBtnBishopConstraints.insets = new Insets(10, 40, 10, 40);
         dboxPane.add(rBtnBishop, rBtnBishopConstraints);
 
@@ -131,7 +121,7 @@ public class PopupPawnPromotion extends JFrame {
            dboxPane. */
         JRadioButton rBtnQueen = new JRadioButton("Queen");
         rBtnQueen.setActionCommand("Queen");
-        GridBagConstraints rBtnQueenConstraints = buildConstraints(2, 1, 1, 1);
+        GridBagConstraints rBtnQueenConstraints = buildConstraints(2, 1, 1);
         rBtnQueenConstraints.insets = new Insets(10, 40, 10, 40);
         dboxPane.add(rBtnQueen, rBtnQueenConstraints);
 
@@ -139,7 +129,7 @@ public class PopupPawnPromotion extends JFrame {
            object for it, and sets it with its constraints object to the JPanel
            dboxPane. */
         JButton iveChosenButton = buildIveChosenButton();
-        GridBagConstraints iveChosenButtonConstraints = buildConstraints(3, 1, 1, 1);
+        GridBagConstraints iveChosenButtonConstraints = buildConstraints(3, 1, 1);
         iveChosenButtonConstraints.insets = new Insets(20, 40, 20, 40);
         dboxPane.add(iveChosenButton, iveChosenButtonConstraints);
 
@@ -169,12 +159,12 @@ public class PopupPawnPromotion extends JFrame {
      * @param rowspawn The value for GridBagConstraints.gridheight.
      * @param colspawn The value for GridBagConstraints.gridwidth.
      */
-    private GridBagConstraints buildConstraints(final int row, final int col, final int rowspan, final int colspan) {
+    private GridBagConstraints buildConstraints(final int row, final int col, final int colspan) {
         GridBagConstraints elemConstraints = new GridBagConstraints();
         elemConstraints.fill = GridBagConstraints.BOTH;
         elemConstraints.gridy = row;
         elemConstraints.gridx = col;
-        elemConstraints.gridheight = rowspan;
+        elemConstraints.gridheight = 1;
         elemConstraints.gridwidth = colspan;
         return elemConstraints;
     }

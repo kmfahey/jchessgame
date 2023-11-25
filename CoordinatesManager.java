@@ -148,12 +148,8 @@ public class CoordinatesManager {
             case -2 -> {
                 leftInnerBlackBorderWidth -= 1; leftBeigeMarginWidth -= 1;
             }
-            case -1 -> {
-                leftInnerBlackBorderWidth -= 1;
-            }
-            case 1 -> {
-                leftOuterBlackBorderWidth += 1;
-            }
+            case -1 -> leftInnerBlackBorderWidth -= 1;
+            case 1 -> leftOuterBlackBorderWidth += 1;
             case 2 -> {
                 leftBeigeMarginWidth += 1; leftOuterBlackBorderWidth += 1;
             }
@@ -172,8 +168,7 @@ public class CoordinatesManager {
                 rightInnerBlackBorderWidth += 1; leftInnerBlackBorderWidth += 1; rightBeigeMarginWidth += 1;
                 leftBeigeMarginWidth += 1; rightOuterBlackBorderWidth += 1; leftOuterBlackBorderWidth += 1;
             }
-            default -> {
-            }
+            default -> { }
         }
 
         /* Now that all the primary measurements have been scaled, and if

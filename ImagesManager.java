@@ -1,16 +1,15 @@
 package org.kmfahey.jchessgame;
 
-import java.awt.Dimension;
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.Image;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
 import java.util.HashMap;
-import javax.imageio.ImageIO;
-import java.io.IOException;
 
 /**
  * Manages an images store of chesspiece icon Image objects, which it loads from
@@ -50,15 +49,7 @@ public class ImagesManager {
 
                 /* processes the filename into a string that can be looked up in
                    Chessboard.PIECE_STRS_TO_INTS to get a piece integer, */
-                String fileName = imagePath.getFileName().toString();
-                String[] fileNamePieces = fileName.split("[ .-]");
-                String pieceColor = fileNamePieces[0].toLowerCase();
-                String pieceRole = fileNamePieces[1].toLowerCase();
-                if (pieceRole.equals("knight")) {
-                    String chirality = fileNamePieces[2].toLowerCase();
-                    pieceRole = pieceRole + "-" + chirality;
-                }
-                String pieceStr = pieceColor + "-" + pieceRole;
+                String pieceStr = getPieceStr(imagePath);
                 int pieceInt = Chessboard.PIECE_STRS_TO_INTS.get(pieceStr);
 
                 /* scales the image to the size indicated by the squareDims argument, */
@@ -70,6 +61,18 @@ public class ImagesManager {
                 piecesImagesScaled.put(pieceInt, scaledImage);
             }
         }
+    }
+
+    private static String getPieceStr(Path imagePath) {
+        String fileName = imagePath.getFileName().toString();
+        String[] fileNamePieces = fileName.split("[ .-]");
+        String pieceColor = fileNamePieces[0].toLowerCase();
+        String pieceRole = fileNamePieces[1].toLowerCase();
+        if (pieceRole.equals("knight")) {
+            String chirality = fileNamePieces[2].toLowerCase();
+            pieceRole = pieceRole + "-" + chirality;
+        }
+        return pieceColor + "-" + pieceRole;
     }
 
     /**

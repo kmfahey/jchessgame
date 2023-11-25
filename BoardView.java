@@ -1,20 +1,13 @@
 package org.kmfahey.jchessgame;
 
-import java.awt.Color;
-import java.awt.Dimension;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Point;
 import java.util.Objects;
 import java.util.Random;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.Timer;
 
 /**
  * This class subclasses JComponent and implements the chessboard area in the
@@ -331,11 +324,11 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
            the pixel value falls inside a square, the coordinate value will be
            the coordinate of the square. */
         while (tempXCoord > squareDimensions.getWidth()) {
-            tempXCoord -= squareDimensions.getWidth();
+            tempXCoord -= (int) squareDimensions.getWidth();
             xCoord += 1;
         }
         while (tempYCoord > squareDimensions.getHeight()) {
-            tempYCoord -= squareDimensions.getHeight();
+            tempYCoord -= (int) squareDimensions.getHeight();
             yCoord += 1;
         }
 
@@ -380,16 +373,9 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
 
             /* These boolean assignments break down the logic that tests whether
                the inputs by the player signal that they intend to castle. */
-            boolean firstPieceIsKing = (clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0;
-            boolean secondPieceIsRook = Objects.nonNull(clickEventToCapturePiece)
-                                            && (clickEventToCapturePiece.pieceInt() & Chessboard.ROOK) != 0;
-            boolean bothPiecesAreSameColor = Objects.nonNull(clickEventToCapturePiece)
-                                                 && (clickEventClickedPiece.pieceInt() & Chessboard.WHITE)
-                                                 == (clickEventToCapturePiece.pieceInt() & Chessboard.WHITE);
-            boolean moveIsCastling = firstPieceIsKing && secondPieceIsRook && bothPiecesAreSameColor;
-            boolean moveIsCastlingKingside = moveIsCastling && clickEventMovingTo[0] == 7;
-            boolean moveIsCastlingQueenside = moveIsCastling && clickEventMovingTo[0] == 0;
-            /* The booleans moveIsCastlingKingside and moveIsCastlingQueenside
+            boolean isMoveCastlingKingside = isMoveCastling() && clickEventMovingTo[0] == 7;
+            boolean isMoveCastlingQueenside = isMoveCastling() && clickEventMovingTo[0] == 0;
+            /* The booleans isMoveCastlingKingside and isMoveCastlingQueenside
                are used as arguments to the Chessboard.Move constructor. */
 
             /* A Chessboard.Move object is incepted with the mouseClicked()
@@ -398,9 +384,19 @@ public class BoardView extends JComponent implements MouseListener, ActionListen
                                           clickEventMovingTo[0], clickEventMovingTo[1],
                                           Objects.nonNull(clickEventToCapturePiece)
                                               ? clickEventToCapturePiece.pieceInt() : 0,
-                                          moveIsCastlingKingside, moveIsCastlingQueenside, 0);
+                                          isMoveCastlingKingside, isMoveCastlingQueenside, 0);
             return moveObj;
         }
+    }
+
+    private boolean isMoveCastling() {
+        boolean isFirstPieceKing = (clickEventClickedPiece.pieceInt() & Chessboard.KING) != 0;
+        boolean isSecondPieceRook = Objects.nonNull(clickEventToCapturePiece)
+                                        && (clickEventToCapturePiece.pieceInt() & Chessboard.ROOK) != 0;
+        boolean areBothPiecesSameColor = Objects.nonNull(clickEventToCapturePiece)
+                                             && (clickEventClickedPiece.pieceInt() & Chessboard.WHITE)
+                                             == (clickEventToCapturePiece.pieceInt() & Chessboard.WHITE);
+        return isFirstPieceKing && isSecondPieceRook && areBothPiecesSameColor;
     }
 
     /* Applies five different tests to the moveobj to identify move errors: if

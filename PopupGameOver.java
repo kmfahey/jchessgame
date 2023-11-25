@@ -1,14 +1,7 @@
 package org.kmfahey.jchessgame;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Implements a dialog box that informs the player who won the chess game
@@ -86,7 +79,7 @@ public class PopupGameOver extends JFrame {
                to them depending on the value of losingSide-- instances the
                GridBagConstraints object for it, and attaches the JLabel and its
                constraints to the JPanel dboxPane. */
-            GridBagConstraints colorChoiceLabConstraints = buildConstraints(0, 0, 1, 2);
+            GridBagConstraints colorChoiceLabConstraints = buildConstraints(0, 0, 2);
             colorChoiceLabConstraints.insets = new Insets(10, 20, 10, 20);
             if (losingSide == PLAYER_LOST) {
                 pawnPromExplLabel = new JLabel(
@@ -107,7 +100,7 @@ public class PopupGameOver extends JFrame {
                object for it, and sets it with its constraints object to the JPanel
                dboxPane. */
             JButton playAgainButton = buildPlayAgainButton();
-            GridBagConstraints playAgainButtonConstraints = buildConstraints(1, 0, 1, 1);
+            GridBagConstraints playAgainButtonConstraints = buildConstraints(1, 0, 1);
             playAgainButtonConstraints.insets = new Insets(20, 40, 20, 40);
             dboxPane.add(playAgainButton, playAgainButtonConstraints);
 
@@ -115,7 +108,7 @@ public class PopupGameOver extends JFrame {
                object for it, and sets it with its constraints object to the JPanel
                dboxPane. */
             JButton okayButton = buildOkayButton();
-            GridBagConstraints okayButtonConstraints = buildConstraints(1, 1, 1, 1);
+            GridBagConstraints okayButtonConstraints = buildConstraints(1, 1, 1);
             okayButtonConstraints.insets = new Insets(20, 40, 20, 40);
             dboxPane.add(okayButton, okayButtonConstraints);
 
@@ -136,12 +129,12 @@ public class PopupGameOver extends JFrame {
          * @param rowspawn The value for GridBagConstraints.gridheight.
          * @param colspawn The value for GridBagConstraints.gridwidth.
          */
-        private GridBagConstraints buildConstraints(final int row, final int col, final int rowspan, final int colspan) {
+        private GridBagConstraints buildConstraints(final int row, final int col, final int colspan) {
             GridBagConstraints elemConstraints = new GridBagConstraints();
             elemConstraints.fill = GridBagConstraints.BOTH;
             elemConstraints.gridy = row;
             elemConstraints.gridx = col;
-            elemConstraints.gridheight = rowspan;
+            elemConstraints.gridheight = 1;
             elemConstraints.gridwidth = colspan;
             return elemConstraints;
         }

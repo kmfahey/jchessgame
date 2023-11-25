@@ -308,17 +308,12 @@ public class Chessboard {
      * of the board and the color the AI is playing at the top.
      */
     public void layOutPieces() {
-        HashMap<Integer, Integer[][]> piecesStartingCoords;
-
         /* The piecesStartingCoords variable is set to the correct one of
            piecesStartingLocsWhiteBelow or piecesStartingLocsBlackBelow such
            that the color the user is playing gets arrayed at the bottom of the
            board. */
-        if (colorPlaying == WHITE) {
-            piecesStartingCoords = PIECES_STARTING_LOCS_WHITE_BELOW;
-        } else {
-            piecesStartingCoords = PIECES_STARTING_LOCS_BLACK_BELOW;
-        }
+        HashMap<Integer, Integer[][]> piecesStartingCoords = (colorPlaying == WHITE ? PIECES_STARTING_LOCS_WHITE_BELOW
+                                                                                    : PIECES_STARTING_LOCS_BLACK_BELOW);
 
         /* All cells in the board array are set to zero as a starting point. */
         for (int xIdx = 0; xIdx < 8; xIdx++) {
@@ -599,9 +594,7 @@ public class Chessboard {
      * @param moveObj The Chessboard.Move object describing the move to be made.
      * @see Chessboard.Move
      */
-    private void movePieceCastling(final Chessboard.Move moveObj
-                                  ) throws KingIsInCheckException, IllegalArgumentException,
-                                           CastlingNotPossibleException {
+    private void movePieceCastling(final Chessboard.Move moveObj) throws IllegalArgumentException, CastlingNotPossibleException {
         int kingXCoord = moveObj.fromXCoord();
         int kingYCoord = moveObj.fromYCoord();
         int rookXCoord = moveObj.toXCoord();

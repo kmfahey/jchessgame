@@ -1,8 +1,8 @@
 package org.kmfahey.jchessgame;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.StringJoiner;
-import javax.swing.JTextArea;
 
 /**
  * Implements a readonly textarea that sits to the right of BoardView's
@@ -82,26 +82,17 @@ public class MovesLog extends JTextArea {
             String fromLocStr = BoardArrays.coordsToAlgNotn(moveObj.fromXCoord(), moveObj.fromYCoord());
             String toLocStr = BoardArrays.coordsToAlgNotn(moveObj.toXCoord(), moveObj.toYCoord());
             String retval = "Moving " + pieceStr + " from " + fromLocStr + " to " + toLocStr + ": ";
-            switch (issueFlag) {
-                case WOULD_BE_IN_CHECK:
-                    retval += "that move would place your king in check."; break;
-                case IS_IN_CHECK:
-                    retval += "your king is in check and move doesn't resolve that."; break;
-                case NOT_A_VALID_MOVE:
-                    retval += "that's not a valid move for that piece."; break;
-                case IS_A_FRIENDLY_PIECE:
-                    retval += "can't capture a friendly piece."; break;
-                case CASTLING_INTERVENING_SPACE_OCCUPIED:
-                    retval += "castling is impossible because an intervening space is occupied."; break;
-                case CASTLING_KING_IN_CHECK:
-                    retval += "castling is impossible because king is in check."; break;
-                case CASTLING_PATH_IS_THREATENED:
-                    retval += "castling is impossible because a traversed square is threatened."; break;
-                case CASTLING_PIECE_HAS_MOVED:
-                    retval += "castling is impossible because one the pieces has already moved."; break;
-                default:
-                    break;
-            }
+            retval += switch (issueFlag) {
+                case WOULD_BE_IN_CHECK -> "that move would place your king in check.";
+                case IS_IN_CHECK -> "your king is in check and move doesn't resolve that.";
+                case NOT_A_VALID_MOVE -> "that's not a valid move for that piece.";
+                case IS_A_FRIENDLY_PIECE -> "can't capture a friendly piece.";
+                case CASTLING_INTERVENING_SPACE_OCCUPIED -> "castling is impossible because an intervening space is occupied.";
+                case CASTLING_KING_IN_CHECK -> "castling is impossible because king is in check.";
+                case CASTLING_PATH_IS_THREATENED -> "castling is impossible because a traversed square is threatened.";
+                case CASTLING_PIECE_HAS_MOVED -> "castling is impossible because one the pieces has already moved.";
+                default -> "";
+            };
             return retval;
         }
     }
